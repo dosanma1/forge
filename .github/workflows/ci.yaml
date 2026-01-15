@@ -16,7 +16,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.24.0"
+          go-version: "1.25"
           cache-dependency-path: |
             go.work.sum
             go/kit/go.sum
@@ -27,7 +27,7 @@ jobs:
           bazelisk-version: 1.19.0
 
       - name: Install Forge CLI
-        run: go install github.com/dosanma1/forge-cli@latest
+        run: go install github.com/dosanma1/forge-cli/cmd/forge@latest
 
       - name: Forge Sync
         run: forge sync -y
