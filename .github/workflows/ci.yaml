@@ -2,12 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   forge-check:
+    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,13 +16,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.24.0'
+          go-version: "1.24.0"
           cache-dependency-path: |
             go.work.sum
             go/kit/go.sum
 
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@v0.8.0
+        uses: bazel-contrib/setup-bazel@v0.8.5
         with:
           bazelisk-version: 1.19.0
 
