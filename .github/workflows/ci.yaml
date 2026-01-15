@@ -30,7 +30,7 @@ jobs:
         run: |
           git clone https://github.com/dosanma1/forge-cli.git
           cd forge-cli
-          go install ./cmd/forge
+          GOWORK=off go install ./cmd/forge
           cd ..
           rm -rf forge-cli
 
