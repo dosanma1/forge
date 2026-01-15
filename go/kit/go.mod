@@ -20,7 +20,7 @@ require (
 	github.com/orlangure/gnomock v0.32.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.12.1
-	github.com/redis/go-redis/v9 v9.12.1
+	github.com/redis/go-redis/v9 v9.17.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggest/jsonschema-go v0.3.78
