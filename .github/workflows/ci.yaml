@@ -22,7 +22,7 @@ jobs:
             go/kit/go.sum
 
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@v0.18.0
+        uses: bazel-contrib/setup-bazel@0.18.0
         with:
           bazelisk-version: 1.19.0
 
