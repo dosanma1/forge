@@ -22,7 +22,7 @@ require (
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.12.1
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/swaggest/jsonschema-go v0.3.78
 	github.com/swaggest/openapi-go v0.2.59
 	github.com/swaggest/swgui v1.8.4
