@@ -27,7 +27,12 @@ jobs:
           bazelisk-version: 1.19.0
 
       - name: Install Forge CLI
-        run: go install github.com/dosanma1/forge-cli/cmd/forge@latest
+        run: |
+          git clone https://github.com/dosanma1/forge-cli.git
+          cd forge-cli
+          go install ./cmd/forge
+          cd ..
+          rm -rf forge-cli
 
       - name: Forge Sync
         run: forge sync -y
