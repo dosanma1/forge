@@ -1,0 +1,11 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "endpoint.go",
+        "error.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/transport",
+    visibility = ["//visibility:public"],
+)

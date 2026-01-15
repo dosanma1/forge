@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "authenticator.go",
+        "token.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/auth/authtest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/auth:go_default_library",
+        "//go/kit/errors:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+    ],
+)

@@ -1,0 +1,44 @@
+# Mockery configuration for API Docs Backend
+# This is the global configuration that covers shared library interfaces
+# Each service can have its own .mockery.yaml for service-specific interfaces
+
+dir: "{{.InterfaceDir}}/{{.SrcPackageName}}test"
+structname: "{{.InterfaceName}}"
+pkgname: "{{.SrcPackageName}}test"
+filename: "{{ .InterfaceName | snakecase }}_mock.go"
+template: testify
+template-data:
+  unroll-variadic: true
+
+packages:
+  # Shared library interfaces
+  github.com/domi-unimedia/trading-bot/shared/go-kit/application/ctrl:
+    interfaces:
+      Creator: {}
+      CreatorBatch: {}
+      Deleter: {}
+      Getter: {}
+      Lister: {}
+      Updater: {}
+      Patcher: {}
+  github.com/domi-unimedia/trading-bot/shared/go-kit/application/repository:
+    interfaces:
+      Creator: {}
+      CreatorBatch: {}
+      Getter: {}
+      Lister: {}
+      Updater: {}
+      Deleter: {}
+      Patcher: {}
+  github.com/domi-unimedia/trading-bot/shared/go-kit/application/usecase:
+    interfaces:
+      Creator: {}
+      CreatorBatch: {}
+      Getter: {}
+      Lister: {}
+      Updater: {}
+      Deleter: {}
+      Patcher: {}
+  github.com/domi-unimedia/trading-bot/shared/go-kit/monitoring/logger:
+    interfaces:
+      Logger: {}

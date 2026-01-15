@@ -1,0 +1,41 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "errors.go",
+        "fields.go",
+        "model.go",
+        "optional.go",
+        "parser.go",
+        "resource.go",
+        "time.go",
+        "validators.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/fields",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/errors:go_default_library",
+        "//go/kit/generics:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@org_golang_x_text//currency:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "errors_test.go",
+        "fields_test.go",
+        "optional_test.go",
+        "validators_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "//go/kit/errors:go_default_library",
+        "//go/kit/resource:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

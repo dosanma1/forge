@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  forge-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.0'
+          cache-dependency-path: |
+            go.work.sum
+            go/kit/go.sum
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@v0.8.0
+        with:
+          bazelisk-version: 1.19.0
+
+      - name: Install Forge CLI
+        run: go install github.com/dosanma1/forge-cli@latest
+
+      - name: Forge Sync
+        run: forge sync -y
+
+      - name: Forge Build
+        run: forge build
+
+      - name: Forge Test
+        run: forge test

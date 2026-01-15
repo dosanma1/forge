@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["client.go"],
+    importpath = "github.com/dosanma1/forge/go/kit/monitoring/tracer/appinsights/mock",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_golang_mock//gomock:go_default_library",
+        "@com_github_microsoft_applicationinsights_go//appinsights:go_default_library",
+        "@com_github_microsoft_applicationinsights_go//appinsights/contracts:go_default_library",
+    ],
+)

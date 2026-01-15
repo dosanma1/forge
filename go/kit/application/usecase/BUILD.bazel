@@ -1,0 +1,53 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "creator.go",
+        "deleter.go",
+        "doc.go",
+        "getter.go",
+        "lister.go",
+        "patcher.go",
+        "updater.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/application/usecase",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/application/repository:go_default_library",
+        "//go/kit/errors:go_default_library",
+        "//go/kit/fields:go_default_library",
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/persistence:go_default_library",
+        "//go/kit/resource:go_default_library",
+        "//go/kit/search:go_default_library",
+        "//go/kit/search/query:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "creator_test.go",
+        "deleter_test.go",
+        "getter_test.go",
+        "lister_test.go",
+        "updater_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "//go/kit/application/repository:go_default_library",
+        "//go/kit/application/repository/repositorytest:go_default_library",
+        "//go/kit/errors:go_default_library",
+        "//go/kit/fields:go_default_library",
+        "//go/kit/filter:go_default_library",
+        "//go/kit/resource:go_default_library",
+        "//go/kit/resource/resourcetest:go_default_library",
+        "//go/kit/search:go_default_library",
+        "//go/kit/search/query:go_default_library",
+        "//go/kit/search/searchtest:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

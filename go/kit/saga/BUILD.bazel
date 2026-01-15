@@ -1,0 +1,24 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "saga.go",
+        "step.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/saga",
+    visibility = ["//visibility:public"],
+    deps = ["@org_golang_x_sync//errgroup:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "saga_test.go",
+        "step_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

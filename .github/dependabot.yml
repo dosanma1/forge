@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Maintain Go modules
+  - package-ecosystem: "gomod"
+    directory: "/go/kit" # Location of go.mod
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+
+  # Maintain GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10

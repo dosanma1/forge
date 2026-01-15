@@ -1,0 +1,52 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "client.go",
+        "deleter.go",
+        "doc.go",
+        "monitor.go",
+        "tracer_plugin.go",
+        "transactioner.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/gormcli",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/errors:go_default_library",
+        "//go/kit/fields:go_default_library",
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/persistence:go_default_library",
+        "//go/kit/persistence/sqldb:go_default_library",
+        "@io_gorm_gorm//:go_default_library",
+        "@io_gorm_gorm//logger:go_default_library",
+        "@io_gorm_gorm//schema:go_default_library",
+        "@io_gorm_gorm//utils:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "client_test.go",
+        "deleter_test.go",
+        "transactioner_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "//go/kit/monitoring/tracer/tracertest:go_default_library",
+        "//go/kit/persistence/persistencetest:go_default_library",
+        "//go/kit/persistence/pg:go_default_library",
+        "//go/kit/persistence/pg/pgtest:go_default_library",
+        "//go/kit/persistence/sqldb:go_default_library",
+        "//go/kit/ptr:go_default_library",
+        "@com_github_data_dog_go_sqlmock//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@io_gorm_driver_postgres//:go_default_library",
+        "@io_gorm_gorm//:go_default_library",
+    ],
+)

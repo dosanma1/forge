@@ -1,0 +1,9 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["helper.go"],
+    importpath = "github.com/dosanma1/forge/go/kit/location/locationtest",
+    visibility = ["//visibility:public"],
+    deps = ["//go/kit/location:go_default_library"],
+)

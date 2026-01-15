@@ -1,0 +1,25 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "config.go",
+        "fixture_handler.go",
+        "fixture_runner.go",
+        "fixtures.go",
+        "script_executor.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/fixtures",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/fields:go_default_library",
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/monitoring/tracer:go_default_library",
+        "//go/kit/monitoring/tracer/module:go_default_library",
+        "//go/kit/persistence/gormcli:go_default_library",
+        "//go/kit/persistence/gormcli/gormpg:go_default_library",
+        "@com_github_kelseyhightower_envconfig//:go_default_library",
+        "@org_uber_go_fx//:go_default_library",
+    ],
+)

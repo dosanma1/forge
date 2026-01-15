@@ -1,0 +1,57 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: {{.ServiceName}}
+  labels:
+    app: {{.ServiceName}}
+    environment: {{.Environment}}
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "{{.MinInstances}}"
+        autoscaling.knative.dev/maxScale: "{{.MaxInstances}}"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containerConcurrency: {{.Concurrency}}
+      timeoutSeconds: {{.Timeout}}
+      containers:
+        - name: {{.ServiceName}}
+          image: {{.Image}}
+          ports:
+            - name: http1
+              containerPort: {{.Port}}
+          env:
+            - name: NODE_ENV
+              value: "{{.Environment}}"
+            - name: PORT
+              value: "{{.Port}}"
+          resources:
+            limits:
+              cpu: "{{.CPU}}"
+              memory: "{{.Memory}}"
+          startupProbe:
+            httpGet:
+              path: {{.HealthPath}}
+              port: {{.Port}}
+            initialDelaySeconds: 0
+            timeoutSeconds: 1
+            periodSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: {{.HealthPath}}
+              port: {{.Port}}
+            initialDelaySeconds: 0
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+  traffic:
+    - percent: 100
+      latestRevision: true

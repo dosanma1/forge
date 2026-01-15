@@ -1,0 +1,29 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gormcli.go"],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/gormcli/mock",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "//go/kit/monitoring/tracer/tracertest:go_default_library",
+        "//go/kit/persistence/gormcli:go_default_library",
+        "//go/kit/persistence/persistencetest:go_default_library",
+        "@com_github_data_dog_go_sqlmock//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@io_gorm_driver_postgres//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["gormcli_test.go"],
+    deps = [
+        ":go_default_library",
+        "//go/kit/persistence/gormcli:go_default_library",
+        "//go/kit/persistence/sqldb:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

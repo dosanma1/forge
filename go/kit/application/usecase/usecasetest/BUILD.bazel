@@ -1,0 +1,29 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "creator_batch_mock.go",
+        "creator_mock.go",
+        "deleter_mock.go",
+        "doc.go",
+        "getter_mock.go",
+        "helpers.go",
+        "lister_mock.go",
+        "patcher_batch_mock.go",
+        "patcher_mock.go",
+        "updater_mock.go",
+        "usecase_stub.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/application/usecase/usecasetest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/application/repository:go_default_library",
+        "//go/kit/application/usecase:go_default_library",
+        "//go/kit/resource:go_default_library",
+        "//go/kit/resource/resourcetest:go_default_library",
+        "//go/kit/search:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

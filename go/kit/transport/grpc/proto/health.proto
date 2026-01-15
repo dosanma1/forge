@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package tb.health;
+
+option go_package = "github.com/dosanma1/forge/go/kit/transport/grpc/pb";
+
+message HealthRequest {}
+message HealthResponse {
+  enum Status {
+    S_UNHEALTHY = 0;
+    S_HEALTHY = 1;
+  }
+  Status status = 1;
+}
+
+service HealthService {
+  rpc Status(HealthRequest) returns (HealthResponse);
+}

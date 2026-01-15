@@ -1,0 +1,47 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "grpc.go",
+        "resource.go",
+        "response.go",
+        "rest.go",
+        "rest_TOBEDELETED.go",
+        "utils.go",
+        "validators.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/resource",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/fields:go_default_library",
+        "//go/kit/generics:go_default_library",
+        "//go/kit/jsonapi:go_default_library",
+        "//go/kit/kslices:go_default_library",
+        "//go/kit/ptr:go_default_library",
+        "//go/kit/resource/pb:go_default_library",
+        "//go/kit/transport/grpc:go_default_library",
+        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "response_test.go",
+        "rest_test.go",
+        "utils_test.go",
+        "validators_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "//go/kit/errors:go_default_library",
+        "//go/kit/fields:go_default_library",
+        "//go/kit/kslices:go_default_library",
+        "//go/kit/resource/resourcetest:go_default_library",
+        "@com_github_golang_mock//gomock:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

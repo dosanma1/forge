@@ -1,0 +1,50 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "client.go",
+        "doc.go",
+        "module.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/gormcli/gormpg",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/errors:go_default_library",
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/persistence:go_default_library",
+        "//go/kit/persistence/gormcli:go_default_library",
+        "//go/kit/persistence/pg:go_default_library",
+        "//go/kit/persistence/sqldb:go_default_library",
+        "@com_github_jackc_pgx_v5//:go_default_library",
+        "@com_github_jackc_pgx_v5//stdlib:go_default_library",
+        "@io_gorm_driver_postgres//:go_default_library",
+        "@io_gorm_gorm//:go_default_library",
+        "@org_uber_go_fx//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["client_test.go"],
+    deps = [
+        ":go_default_library",
+        "//go/kit/fields:go_default_library",
+        "//go/kit/filter:go_default_library",
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "//go/kit/monitoring/tracer/tracertest:go_default_library",
+        "//go/kit/persistence/gormcli:go_default_library",
+        "//go/kit/persistence/pg:go_default_library",
+        "//go/kit/persistence/pg/pgtest:go_default_library",
+        "//go/kit/persistence/sqldb:go_default_library",
+        "//go/kit/resource:go_default_library",
+        "//go/kit/resource/resourcetest:go_default_library",
+        "//go/kit/search/query:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

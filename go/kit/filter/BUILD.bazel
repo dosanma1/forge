@@ -1,0 +1,26 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "filter.go",
+        "validator.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/filter",
+    visibility = ["//visibility:public"],
+    deps = ["//go/kit/fields:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "filter_test.go",
+        "validator_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "//go/kit/errors:go_default_library",
+        "//go/kit/fields:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

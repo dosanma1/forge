@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "monitor_stub.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/monitoring/monitoringtest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "//go/kit/monitoring/tracer:go_default_library",
+        "//go/kit/monitoring/tracer/tracertest:go_default_library",
+    ],
+)

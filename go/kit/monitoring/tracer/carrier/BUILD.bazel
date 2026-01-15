@@ -1,0 +1,28 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "carrier.go",
+        "grpc_metadata.go",
+        "http_header.go",
+        "map_string_any.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/monitoring/tracer/carrier",
+    visibility = ["//visibility:public"],
+    deps = ["@org_golang_google_grpc//metadata:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "grpc_metadata_test.go",
+        "http_header_test.go",
+        "map_string_any_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+    ],
+)

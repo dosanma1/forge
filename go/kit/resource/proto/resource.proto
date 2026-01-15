@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package tb;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/dosanma1/forge/go/kit/resource/pb";
+
+message Resource {
+  string id = 1;
+  google.protobuf.Timestamp createdAt = 2;
+  google.protobuf.Timestamp updatedAt = 3;
+  google.protobuf.Timestamp deletedAt = 4;
+  string type = 5;
+}
+
+message ResourceIdentifier {
+  string id = 1;
+  string type = 2;
+}

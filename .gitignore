@@ -1,0 +1,30 @@
+# Bazel files
+/bazel-*
+.bazelrc.user
+
+# Go
+bin/
+*.exe
+*.test
+*.prof
+vendor/
+go.work.sum
+
+# Node
+node_modules/
+dist/
+coverage/
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Forge
+.forge/
+
+# Secrets
+.decrypted-*.yaml
+.decrypted~*.yaml

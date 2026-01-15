@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package tb.filter;
+
+option go_package = "github.com/dosanma1/forge/go/kit/filter/pb";
+
+message Operator {
+    string lt = 1;
+    string lte = 2;
+    string gt = 3;
+    string gte = 4;
+}

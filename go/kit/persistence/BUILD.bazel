@@ -1,0 +1,35 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "tracing.go",
+        "transactioner.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/errors:go_default_library",
+        "//go/kit/fields:go_default_library",
+        "//go/kit/kslices:go_default_library",
+        "//go/kit/monitoring/tracer:go_default_library",
+        "@io_opentelemetry_go_otel//attribute:go_default_library",
+        "@io_opentelemetry_go_otel//semconv/v1.20.0:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["tracing_test.go"],
+    deps = [
+        ":go_default_library",
+        "//go/kit/errors:go_default_library",
+        "//go/kit/fields:go_default_library",
+        "//go/kit/monitoring/tracer:go_default_library",
+        "//go/kit/monitoring/tracer/tracertest:go_default_library",
+        "//go/kit/persistence/persistencetest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@io_opentelemetry_go_otel//semconv/v1.20.0:go_default_library",
+    ],
+)

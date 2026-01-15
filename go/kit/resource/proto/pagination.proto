@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package tb.resource;
+
+option go_package = "github.com/dosanma1/forge/go/kit/resource/pb";
+
+// Pagination request parameters
+message PaginationRequest {
+    int32 page = 1;        // Page number (1-based)
+    int32 page_size = 2;   // Number of items per page
+}
+
+// Alternative pagination using offset/limit
+message Pagination {
+    int32 limit = 1;   // Maximum number of items to return
+    int32 offset = 2;  // Number of items to skip
+}
+
+// Pagination response metadata
+message PaginationResponse {
+    int32 total = 1;       // Total number of items
+    int32 page = 2;        // Current page number
+    int32 page_size = 3;   // Number of items per page
+    int32 total_pages = 4; // Total number of pages
+}

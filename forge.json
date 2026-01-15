@@ -1,0 +1,40 @@
+{
+    "$schema": "https://raw.githubusercontent.com/dosanma1/forge-cli/main/schemas/forge-config.v1.schema.json",
+    "version": "1",
+    "workspace": {
+        "name": "forge",
+        "forgeVersion": "1.0.0",
+        "toolVersions": {
+            "go": "1.24.0",
+            "node": "24.11.1",
+            "bazel": "7.4.1"
+        },
+        "github": {
+            "org": "dosanma1"
+        }
+    },
+    "newProjectRoot": ".",
+    "projects": {
+        "go-kit": {
+            "projectType": "library",
+            "language": "go",
+            "root": "go/kit",
+            "tags": [
+                "library",
+                "shared"
+            ],
+            "architect": {
+                "build": {
+                    "builder": "@forge/bazel:build",
+                    "options": {
+                        "target": "/..."
+                    },
+                    "configurations": {
+                        "production": {}
+                    },
+                    "defaultConfiguration": "production"
+                }
+            }
+        }
+    }
+}

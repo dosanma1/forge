@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cursor.go",
+        "parser.go",
+        "query.go",
+        "url_encoder.go",
+        "validator.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/search/query",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/fields:go_default_library",
+        "//go/kit/filter:go_default_library",
+        "//go/kit/resource:go_default_library",
+        "@org_golang_google_grpc//metadata:go_default_library",
+        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+    ],
+)

@@ -1,0 +1,17 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "format.go",
+        "level.go",
+        "slog.go",
+        "zap.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/monitoring/logger/internal",
+    visibility = ["//go/kit/monitoring/logger:__subpackages__"],
+    deps = [
+        "@org_uber_go_zap//:go_default_library",
+        "@org_uber_go_zap//zapcore:go_default_library",
+    ],
+)
