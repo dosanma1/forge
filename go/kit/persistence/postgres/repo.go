@@ -10,12 +10,10 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 
-	"github.com/dosanma1/forge/go/kit/application/repository"
 	apierrors "github.com/dosanma1/forge/go/kit/errors"
 	"github.com/dosanma1/forge/go/kit/filter"
 	"github.com/dosanma1/forge/go/kit/persistence/gormdb"
 	"github.com/dosanma1/forge/go/kit/resource"
-	"github.com/dosanma1/forge/go/kit/search"
 	"github.com/dosanma1/forge/go/kit/search/query"
 )
 
@@ -78,29 +76,24 @@ func (r *Repo) CountApply(ctx context.Context, model interface{}, q query.Query)
 	return r.applyFilters(db, q.Filters())
 }
 
-func (r *Repo) PatchApply(ctx context.Context, patch repository.PatchQuery, model interface{}, patchFieldsMap map[string]string) (*gorm.DB, error) {
-	s := search.New(patch.SearchOpts()...)
+func (r *Repo) PatchApply(ctx context.Context, q query.Query, model interface{}, patchFields map[string]interface{}) *gorm.DB {
 	db := r.DB.WithContext(ctx).Model(model)
-	db = r.applyFilters(db, s.Query().Filters())
+	db = r.applyFilters(db, q.Filters())
 
 	updates := make(map[string]interface{})
-	for field, val := range patch.PatchFields() {
-		dbCol, ok := patchFieldsMap[field]
+	for field, val := range patchFields {
+		dbCol, ok := r.fieldMap[field]
 		if !ok {
-			dbCol, ok = r.fieldMap[field]
+			dbCol = field
 		}
-		if ok {
-			updates[dbCol] = val
-		} else {
-			updates[field] = val
-		}
+		updates[dbCol] = val
 	}
 
 	if len(updates) == 0 {
-		return db, nil
+		return db
 	}
 
-	return db.Updates(updates), nil
+	return db.Updates(updates)
 }
 
 func (r *Repo) applyQuery(db *gorm.DB, q query.Query) *gorm.DB {
