@@ -2,7 +2,14 @@ load("@rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["database.go"],
+    srcs = [
+        "client_mock.go",
+        "context_aware_pinger_mock.go",
+        "database.go",
+        "database_provider_mock.go",
+        "pinger_mock.go",
+        "querier_mock.go",
+    ],
     data = glob(["migrations/*.sql"]),
     importpath = "github.com/dosanma1/forge/go/kit/persistence/sqldb/sqldbtest",
     visibility = ["//visibility:public"],
@@ -11,5 +18,6 @@ go_library(
         "@com_github_lib_pq//:go_default_library",
         "@com_github_orlangure_gnomock//:go_default_library",
         "@com_github_orlangure_gnomock//preset/postgres:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
     ],
 )

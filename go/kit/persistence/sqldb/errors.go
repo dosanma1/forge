@@ -21,3 +21,7 @@ func newErrConn(err error) error {
 func newErrEmptyDSNField(field connField) error {
 	return errors.New(errors.CodeConfigurationError, errors.WithMessage(fmt.Sprintf("DSN field '%s' cannot be empty", field)))
 }
+
+func NewErrEmptyDBConnection() error {
+	return errors.New(errors.CodeConfigurationError, errors.WithMessage("empty sql.DB connection handle"))
+}

@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "controller_mock.go",
+        "error_handler_mock.go",
+        "handler_mock.go",
+        "registry_mock.go",
+        "session_mock.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/transport/tcp/tcptest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/transport/tcp:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

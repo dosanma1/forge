@@ -5,12 +5,15 @@ go_library(
     srcs = [
         "doc.go",
         "grpc.go",
+        "relationship.go",
         "resource.go",
         "response.go",
+        "rest.go",
     ],
     importpath = "github.com/dosanma1/forge/go/kit/resource",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/kit/instance:go_default_library",
         "//go/kit/resource/proto:resourcepb_go_proto",
         "//go/kit/slicesx:go_default_library",
         "//go/kit/transport/grpc:go_default_library",

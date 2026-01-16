@@ -92,6 +92,66 @@ func (_c *Logger_Critical_Call) RunAndReturn(run func(msg string, args ...any)) 
 	return _c
 }
 
+// CriticalContext provides a mock function for the type Logger
+func (_mock *Logger) CriticalContext(ctx context.Context, msg string, args ...any) {
+	var _ca []interface{}
+	_ca = append(_ca, ctx, msg)
+	_ca = append(_ca, args...)
+	_mock.Called(_ca...)
+	return
+}
+
+// Logger_CriticalContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CriticalContext'
+type Logger_CriticalContext_Call struct {
+	*mock.Call
+}
+
+// CriticalContext is a helper method to define mock.On call
+//   - ctx context.Context
+//   - msg string
+//   - args ...any
+func (_e *Logger_Expecter) CriticalContext(ctx interface{}, msg interface{}, args ...interface{}) *Logger_CriticalContext_Call {
+	return &Logger_CriticalContext_Call{Call: _e.mock.On("CriticalContext",
+		append([]interface{}{ctx, msg}, args...)...)}
+}
+
+func (_c *Logger_CriticalContext_Call) Run(run func(ctx context.Context, msg string, args ...any)) *Logger_CriticalContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []any
+		variadicArgs := make([]any, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(any)
+			}
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *Logger_CriticalContext_Call) Return() *Logger_CriticalContext_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *Logger_CriticalContext_Call) RunAndReturn(run func(ctx context.Context, msg string, args ...any)) *Logger_CriticalContext_Call {
+	_c.Run(run)
+	return _c
+}
+
 // Debug provides a mock function for the type Logger
 func (_mock *Logger) Debug(msg string, args ...any) {
 	var _ca []interface{}
@@ -142,6 +202,66 @@ func (_c *Logger_Debug_Call) Return() *Logger_Debug_Call {
 }
 
 func (_c *Logger_Debug_Call) RunAndReturn(run func(msg string, args ...any)) *Logger_Debug_Call {
+	_c.Run(run)
+	return _c
+}
+
+// DebugContext provides a mock function for the type Logger
+func (_mock *Logger) DebugContext(ctx context.Context, msg string, args ...any) {
+	var _ca []interface{}
+	_ca = append(_ca, ctx, msg)
+	_ca = append(_ca, args...)
+	_mock.Called(_ca...)
+	return
+}
+
+// Logger_DebugContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DebugContext'
+type Logger_DebugContext_Call struct {
+	*mock.Call
+}
+
+// DebugContext is a helper method to define mock.On call
+//   - ctx context.Context
+//   - msg string
+//   - args ...any
+func (_e *Logger_Expecter) DebugContext(ctx interface{}, msg interface{}, args ...interface{}) *Logger_DebugContext_Call {
+	return &Logger_DebugContext_Call{Call: _e.mock.On("DebugContext",
+		append([]interface{}{ctx, msg}, args...)...)}
+}
+
+func (_c *Logger_DebugContext_Call) Run(run func(ctx context.Context, msg string, args ...any)) *Logger_DebugContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []any
+		variadicArgs := make([]any, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(any)
+			}
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *Logger_DebugContext_Call) Return() *Logger_DebugContext_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *Logger_DebugContext_Call) RunAndReturn(run func(ctx context.Context, msg string, args ...any)) *Logger_DebugContext_Call {
 	_c.Run(run)
 	return _c
 }
@@ -251,6 +371,66 @@ func (_c *Logger_Error_Call) RunAndReturn(run func(msg string, args ...any)) *Lo
 	return _c
 }
 
+// ErrorContext provides a mock function for the type Logger
+func (_mock *Logger) ErrorContext(ctx context.Context, msg string, args ...any) {
+	var _ca []interface{}
+	_ca = append(_ca, ctx, msg)
+	_ca = append(_ca, args...)
+	_mock.Called(_ca...)
+	return
+}
+
+// Logger_ErrorContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ErrorContext'
+type Logger_ErrorContext_Call struct {
+	*mock.Call
+}
+
+// ErrorContext is a helper method to define mock.On call
+//   - ctx context.Context
+//   - msg string
+//   - args ...any
+func (_e *Logger_Expecter) ErrorContext(ctx interface{}, msg interface{}, args ...interface{}) *Logger_ErrorContext_Call {
+	return &Logger_ErrorContext_Call{Call: _e.mock.On("ErrorContext",
+		append([]interface{}{ctx, msg}, args...)...)}
+}
+
+func (_c *Logger_ErrorContext_Call) Run(run func(ctx context.Context, msg string, args ...any)) *Logger_ErrorContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []any
+		variadicArgs := make([]any, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(any)
+			}
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *Logger_ErrorContext_Call) Return() *Logger_ErrorContext_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *Logger_ErrorContext_Call) RunAndReturn(run func(ctx context.Context, msg string, args ...any)) *Logger_ErrorContext_Call {
+	_c.Run(run)
+	return _c
+}
+
 // Info provides a mock function for the type Logger
 func (_mock *Logger) Info(msg string, args ...any) {
 	var _ca []interface{}
@@ -301,6 +481,66 @@ func (_c *Logger_Info_Call) Return() *Logger_Info_Call {
 }
 
 func (_c *Logger_Info_Call) RunAndReturn(run func(msg string, args ...any)) *Logger_Info_Call {
+	_c.Run(run)
+	return _c
+}
+
+// InfoContext provides a mock function for the type Logger
+func (_mock *Logger) InfoContext(ctx context.Context, msg string, args ...any) {
+	var _ca []interface{}
+	_ca = append(_ca, ctx, msg)
+	_ca = append(_ca, args...)
+	_mock.Called(_ca...)
+	return
+}
+
+// Logger_InfoContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InfoContext'
+type Logger_InfoContext_Call struct {
+	*mock.Call
+}
+
+// InfoContext is a helper method to define mock.On call
+//   - ctx context.Context
+//   - msg string
+//   - args ...any
+func (_e *Logger_Expecter) InfoContext(ctx interface{}, msg interface{}, args ...interface{}) *Logger_InfoContext_Call {
+	return &Logger_InfoContext_Call{Call: _e.mock.On("InfoContext",
+		append([]interface{}{ctx, msg}, args...)...)}
+}
+
+func (_c *Logger_InfoContext_Call) Run(run func(ctx context.Context, msg string, args ...any)) *Logger_InfoContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []any
+		variadicArgs := make([]any, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(any)
+			}
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *Logger_InfoContext_Call) Return() *Logger_InfoContext_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *Logger_InfoContext_Call) RunAndReturn(run func(ctx context.Context, msg string, args ...any)) *Logger_InfoContext_Call {
 	_c.Run(run)
 	return _c
 }
@@ -406,6 +646,66 @@ func (_c *Logger_Warn_Call) Return() *Logger_Warn_Call {
 }
 
 func (_c *Logger_Warn_Call) RunAndReturn(run func(msg string, args ...any)) *Logger_Warn_Call {
+	_c.Run(run)
+	return _c
+}
+
+// WarnContext provides a mock function for the type Logger
+func (_mock *Logger) WarnContext(ctx context.Context, msg string, args ...any) {
+	var _ca []interface{}
+	_ca = append(_ca, ctx, msg)
+	_ca = append(_ca, args...)
+	_mock.Called(_ca...)
+	return
+}
+
+// Logger_WarnContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WarnContext'
+type Logger_WarnContext_Call struct {
+	*mock.Call
+}
+
+// WarnContext is a helper method to define mock.On call
+//   - ctx context.Context
+//   - msg string
+//   - args ...any
+func (_e *Logger_Expecter) WarnContext(ctx interface{}, msg interface{}, args ...interface{}) *Logger_WarnContext_Call {
+	return &Logger_WarnContext_Call{Call: _e.mock.On("WarnContext",
+		append([]interface{}{ctx, msg}, args...)...)}
+}
+
+func (_c *Logger_WarnContext_Call) Run(run func(ctx context.Context, msg string, args ...any)) *Logger_WarnContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []any
+		variadicArgs := make([]any, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(any)
+			}
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *Logger_WarnContext_Call) Return() *Logger_WarnContext_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *Logger_WarnContext_Call) RunAndReturn(run func(ctx context.Context, msg string, args ...any)) *Logger_WarnContext_Call {
 	_c.Run(run)
 	return _c
 }
@@ -574,69 +874,4 @@ func (_c *Logger_WithKeysAndValues_Call) Return(logger1 logger.Logger) *Logger_W
 func (_c *Logger_WithKeysAndValues_Call) RunAndReturn(run func(keysAndValues ...any) logger.Logger) *Logger_WithKeysAndValues_Call {
 	_c.Call.Return(run)
 	return _c
-}
-
-// CriticalContext provides a mock function for the type Logger
-func (_mock *Logger) CriticalContext(ctx context.Context, msg string, args ...any) {
-	var _ca []interface{}
-	_ca = append(_ca, ctx, msg)
-	_ca = append(_ca, args...)
-	_mock.Called(_ca...)
-}
-
-func (_e *Logger_Expecter) CriticalContext(ctx interface{}, msg interface{}, args ...interface{}) *mock.Call {
-	return _e.mock.On("CriticalContext",
-		append([]interface{}{ctx, msg}, args...)...)
-}
-
-// DebugContext provides a mock function for the type Logger
-func (_mock *Logger) DebugContext(ctx context.Context, msg string, args ...any) {
-	var _ca []interface{}
-	_ca = append(_ca, ctx, msg)
-	_ca = append(_ca, args...)
-	_mock.Called(_ca...)
-}
-
-func (_e *Logger_Expecter) DebugContext(ctx interface{}, msg interface{}, args ...interface{}) *mock.Call {
-	return _e.mock.On("DebugContext",
-		append([]interface{}{ctx, msg}, args...)...)
-}
-
-// ErrorContext provides a mock function for the type Logger
-func (_mock *Logger) ErrorContext(ctx context.Context, msg string, args ...any) {
-	var _ca []interface{}
-	_ca = append(_ca, ctx, msg)
-	_ca = append(_ca, args...)
-	_mock.Called(_ca...)
-}
-
-func (_e *Logger_Expecter) ErrorContext(ctx interface{}, msg interface{}, args ...interface{}) *mock.Call {
-	return _e.mock.On("ErrorContext",
-		append([]interface{}{ctx, msg}, args...)...)
-}
-
-// InfoContext provides a mock function for the type Logger
-func (_mock *Logger) InfoContext(ctx context.Context, msg string, args ...any) {
-	var _ca []interface{}
-	_ca = append(_ca, ctx, msg)
-	_ca = append(_ca, args...)
-	_mock.Called(_ca...)
-}
-
-func (_e *Logger_Expecter) InfoContext(ctx interface{}, msg interface{}, args ...interface{}) *mock.Call {
-	return _e.mock.On("InfoContext",
-		append([]interface{}{ctx, msg}, args...)...)
-}
-
-// WarnContext provides a mock function for the type Logger
-func (_mock *Logger) WarnContext(ctx context.Context, msg string, args ...any) {
-	var _ca []interface{}
-	_ca = append(_ca, ctx, msg)
-	_ca = append(_ca, args...)
-	_mock.Called(_ca...)
-}
-
-func (_e *Logger_Expecter) WarnContext(ctx interface{}, msg interface{}, args ...interface{}) *mock.Call {
-	return _e.mock.On("WarnContext",
-		append([]interface{}{ctx, msg}, args...)...)
 }

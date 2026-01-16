@@ -1,6 +1,6 @@
-# Mockery configuration for API Docs Backend
-# This is the global configuration that covers shared library interfaces
-# Each service can have its own .mockery.yaml for service-specific interfaces
+# Mockery configuration for forge/go/kit
+# Generates mock implementations of interfaces for testing
+# Run: mockery --config .mockery.yaml
 
 dir: "{{.InterfaceDir}}/{{.SrcPackageName}}test"
 structname: "{{.InterfaceName}}"
@@ -11,11 +11,173 @@ template-data:
   unroll-variadic: true
 
 packages:
-  github.com/dosanma1/mmo-game/shared/go-kit/monitoring/logger:
+  # Application Layer - Controllers
+  github.com/dosanma1/forge/go/kit/application/ctrl:
+    interfaces:
+      Creator: {}
+      CreatorBatch: {}
+      Deleter: {}
+      Getter: {}
+      Lister: {}
+      Updater: {}
+
+  # Application Layer - Use Cases
+  github.com/dosanma1/forge/go/kit/application/usecase:
+    interfaces:
+      Creator: {}
+      CreatorBatch: {}
+      Deleter: {}
+      Getter: {}
+      Lister: {}
+      Updater: {}
+
+  # Application Layer - Repository
+  github.com/dosanma1/forge/go/kit/application/repository:
+    interfaces:
+      Creator: {}
+      CreatorBatch: {}
+      Deleter: {}
+      Getter: {}
+      Lister: {}
+      Lock: {}
+      Patcher: {}
+      Updater: {}
+
+  # Authentication
+  github.com/dosanma1/forge/go/kit/auth:
+    interfaces:
+      ContextInjector: {}
+
+  github.com/dosanma1/forge/go/kit/auth/jwt:
+    interfaces:
+      Issuer: {}
+      IssuerValidator: {}
+      Validator: {}
+
+  github.com/dosanma1/forge/go/kit/auth/provider:
+    interfaces:
+      Provider: {}
+
+  # Errors
+  github.com/dosanma1/forge/go/kit/errors:
+    interfaces:
+      Detail: {}
+      Error: {}
+
+  # Filters
+  github.com/dosanma1/forge/go/kit/filter:
+    interfaces:
+      FieldFilter: {}
+
+  # Firebase
+  github.com/dosanma1/forge/go/kit/firebase:
+    interfaces:
+      User: {}
+      UserManagement: {}
+
+  # JSON:API
+  github.com/dosanma1/forge/go/kit/jsonapi:
+    interfaces:
+      Linkable: {}
+      ListResponse: {}
+      MarshalHook: {}
+      Metable: {}
+      Payloader: {}
+      RelationshipLinkable: {}
+      RelationshipMetable: {}
+      UnmarshalHook: {}
+
+  # Monitoring
+  github.com/dosanma1/forge/go/kit/monitoring:
+    interfaces:
+      Monitor:
+        config:
+          structname: MockMonitor
+
+  github.com/dosanma1/forge/go/kit/monitoring/logger:
     interfaces:
       Logger: {}
-  github.com/dosanma1/mmo-game/shared/go-kit/firebase:
+
+  # Persistence
+  github.com/dosanma1/forge/go/kit/persistence:
+    interfaces:
+      Transactioner:
+        config:
+          structname: MockTransactioner
+
+  github.com/dosanma1/forge/go/kit/persistence/sqldb:
     interfaces:
       Client: {}
-      AuthAPI: {}
-      UserManagement: {}
+      ContextAwarePinger: {}
+      DatabaseProvider: {}
+      Pinger: {}
+      Querier: {}
+
+  # Resource
+  github.com/dosanma1/forge/go/kit/resource:
+    interfaces:
+      ListResponse: {}
+
+  # Search
+  github.com/dosanma1/forge/go/kit/search:
+    interfaces:
+      Search: {}
+
+  github.com/dosanma1/forge/go/kit/search/query:
+    interfaces:
+      Cursor: {}
+      Query: {}
+
+  # Transport - AMQP
+  github.com/dosanma1/forge/go/kit/transport/amqp:
+    interfaces:
+      Connection: {}
+      Consumer: {}
+      Handler: {}
+
+  # Transport - Common
+  github.com/dosanma1/forge/go/kit/transport:
+    interfaces:
+      ErrorHandler: {}
+
+  # Transport - gRPC
+  github.com/dosanma1/forge/go/kit/transport/grpc:
+    interfaces:
+      Controller: {}
+      GRPCAuthenticator: {}
+      HandlerMiddleware: {}
+      Middleware: {}
+
+  # Transport - REST/HTTP
+  github.com/dosanma1/forge/go/kit/transport/rest:
+    interfaces:
+      Controller: {}
+      Endpoint: {}
+      Headerer: {}
+      HTTPAuthenticator: {}
+      Middleware: {}
+      OpenAPIPreparer: {}
+      StatusCoder: {}
+
+  # Transport - TCP
+  github.com/dosanma1/forge/go/kit/transport/tcp:
+    interfaces:
+      Controller: {}
+      ErrorHandler: {}
+      Handler: {}
+      Registry: {}
+      Session: {}
+
+  # Transport - UDP
+  github.com/dosanma1/forge/go/kit/transport/udp:
+    interfaces:
+      Handler: {}
+      Registry: {}
+      Session: {}
+
+  # Transport - WebSocket
+  github.com/dosanma1/forge/go/kit/transport/websocket:
+    interfaces:
+      Client: {}
+      Service: {}
+      TokenProvider: {}

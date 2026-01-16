@@ -34,7 +34,7 @@ func NewListResponse[T any](items []T, count int) *listRes[T] {
 
 type (
 	ListResponseDTO[DTO any] struct {
-		Results    []DTO          `json:"results"`
+		RResults   []DTO          `json:"results"`
 		Pagination *PaginationDTO `json:"pagination"`
 	}
 
@@ -60,10 +60,15 @@ func ListResponseToDTO[DTO any, R any](
 		}
 
 		return &ListResponseDTO[DTO]{
-			Results: dtos,
+			RResults: dtos,
 			Pagination: &PaginationDTO{
 				TotalCount: count,
 			},
 		}
 	}
+}
+
+// Results returns the list of DTOs, implementing jsonapi.ListResponse[DTO]
+func (l *ListResponseDTO[DTO]) Results() []DTO {
+	return l.RResults
 }

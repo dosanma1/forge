@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "doc.go",
+        "monitor_mock.go",
         "monitor_stub.go",
     ],
     importpath = "github.com/dosanma1/forge/go/kit/monitoring/monitoringtest",
@@ -12,5 +13,6 @@ go_library(
         "//go/kit/monitoring:go_default_library",
         "//go/kit/monitoring/logger:go_default_library",
         "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
     ],
 )

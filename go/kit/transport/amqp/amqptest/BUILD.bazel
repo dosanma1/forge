@@ -1,0 +1,27 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "connection_mock.go",
+        "consumer_mock.go",
+        "doc.go",
+        "handler_mock.go",
+        "helpers.go",
+        "producer_mock.go",
+        "rabbitmq.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/transport/amqp/amqptest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "//go/kit/transport/amqp:go_default_library",
+        "@com_github_orlangure_gnomock//:go_default_library",
+        "@com_github_orlangure_gnomock//preset/rabbitmq:go_default_library",
+        "@com_github_rabbitmq_amqp091_go//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

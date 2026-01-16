@@ -1,7 +1,13 @@
 package search
 
 import (
+	// Forced rebuild
 	"github.com/dosanma1/forge/go/kit/search/query"
+)
+
+const (
+	FieldNameSearch  string = "search"
+	FieldNameOptions string = "options"
 )
 
 type Search interface {

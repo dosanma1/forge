@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "client_mock.go",
+        "service_mock.go",
+        "token_provider_mock.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/transport/websocket/websockettest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/transport/websocket:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

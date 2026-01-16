@@ -6,6 +6,7 @@ go_library(
         "auth_api_mock.go",
         "client_mock.go",
         "user_management_mock.go",
+        "user_mock.go",
     ],
     importpath = "github.com/dosanma1/forge/go/kit/firebase/firebasetest",
     visibility = ["//visibility:public"],

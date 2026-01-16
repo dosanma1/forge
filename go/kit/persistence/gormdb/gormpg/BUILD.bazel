@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "client.go",
+        "doc.go",
+        "module.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/gormdb/gormpg",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/persistence:go_default_library",
+        "//go/kit/persistence/gormdb:go_default_library",
+        "//go/kit/persistence/sqldb:go_default_library",
+        "@com_github_jackc_pgx_v5//:go_default_library",
+        "@com_github_jackc_pgx_v5//stdlib:go_default_library",
+        "@io_gorm_driver_postgres//:go_default_library",
+        "@io_gorm_gorm//:go_default_library",
+        "@org_uber_go_fx//:go_default_library",
+    ],
+)

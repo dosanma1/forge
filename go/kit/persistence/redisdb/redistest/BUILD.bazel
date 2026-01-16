@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "redis.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/redisdb/redistest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/monitoring:go_default_library",
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/persistence/redisdb:go_default_library",
+        "@com_github_orlangure_gnomock//:go_default_library",
+        "@com_github_orlangure_gnomock//preset/redis:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

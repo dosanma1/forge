@@ -73,11 +73,11 @@ type fieldFilter[T any] struct {
 	operator Operator
 }
 
-func (f fieldFilter[T]) Name() string         { return f.name }
-func (f fieldFilter[T]) Value() T            { return f.val }
+func (f fieldFilter[T]) Name() string       { return f.name }
+func (f fieldFilter[T]) Value() T           { return f.val }
 func (f fieldFilter[T]) Operator() Operator { return f.operator }
 
-func NewFieldFilter[T any](op Operator, name string, val T) FieldFilter[T] {
+func NewFieldFilter[T any](op Operator, name string, val T) *fieldFilter[T] {
 	return &fieldFilter[T]{
 		name:     name,
 		val:      val,

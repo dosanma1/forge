@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cursor_mock.go",
+        "query_mock.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/search/query/querytest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/search/query:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)
