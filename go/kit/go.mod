@@ -3,7 +3,7 @@ module github.com/dosanma1/forge/go/kit
 go 1.24.0
 
 require (
-	firebase.google.com/go/v4 v4.15.1
+	firebase.google.com/go/v4 v4.18.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/getsops/sops/v3 v3.8.1
@@ -14,21 +14,17 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/jackc/pgx/v5 v5.6.0
-	github.com/jinzhu/gorm v1.9.16
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/orlangure/gnomock v0.32.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.17.2
-	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggest/jsonschema-go v0.3.79
 	github.com/swaggest/openapi-go v0.2.60
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	golang.org/x/sync v0.19.0
-	golang.org/x/text v0.33.0
 	google.golang.org/api v0.256.0
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.11
@@ -159,6 +155,7 @@ require (
 	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/term v0.38.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/appengine/v2 v2.0.6 // indirect
 	google.golang.org/genproto v0.0.0-20250922171735-9219d122eba9 // indirect
