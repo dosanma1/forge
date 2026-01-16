@@ -17,3 +17,7 @@ func (c *tokenClaims) Subject() string {
 func (c *tokenClaims) Expiry() time.Time {
 	return time.Now().Add(time.Hour)
 }
+
+func (c *tokenClaims) Get(key string) any {
+	return nil
+}

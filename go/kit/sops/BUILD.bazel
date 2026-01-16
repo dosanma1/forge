@@ -2,7 +2,10 @@ load("@rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["helper.go"],
+    srcs = [
+        "doc.go",
+        "helper.go",
+    ],
     importpath = "github.com/dosanma1/forge/go/kit/sops",
     visibility = ["//visibility:public"],
     deps = [

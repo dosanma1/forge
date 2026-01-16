@@ -20,13 +20,8 @@ type authMiddleware struct {
 
 type authMiddlewareOption func(*authMiddleware)
 
-func defaultAuthMiddlewareOpts() []authMiddlewareOption {
-	return []authMiddlewareOption{
-		WithErrorHandler(defaultErrorHandler),
-	}
-}
-
-func WithErrorHandler(handler func(error) error) authMiddlewareOption {
+// WithAuthErrorHandler sets a custom error handler for authentication errors
+func WithAuthErrorHandler(handler func(error) error) authMiddlewareOption {
 	return func(m *authMiddleware) {
 		m.errorHandler = handler
 	}
@@ -39,17 +34,19 @@ func defaultErrorHandler(err error) error {
 }
 
 // NewAuthMiddleware creates a new gRPC authentication middleware
+// Used internally by WithAuthentication option
 func NewAuthMiddleware(authenticator GRPCAuthenticator, opts ...authMiddlewareOption) *authMiddleware {
 	middleware := &authMiddleware{
 		authenticator: authenticator,
+		errorHandler:  defaultErrorHandler,
 	}
-	for _, opt := range append(defaultAuthMiddlewareOpts(), opts...) {
+	for _, opt := range opts {
 		opt(middleware)
 	}
 	return middleware
 }
 
-// Intercept implements the Middleware interface
+// Intercept implements the HandlerMiddleware interface
 func (m *authMiddleware) Intercept(next Handler) Handler {
 	return HandlerFunc(func(ctx context.Context, req interface{}) (interface{}, error) {
 		// Extract metadata from incoming context
@@ -69,10 +66,9 @@ func (m *authMiddleware) Intercept(next Handler) Handler {
 	})
 }
 
-// RequireAuthentication creates a gRPC server interceptor that requires authentication
-func RequireAuthentication(handler Handler, authenticator GRPCAuthenticator, opts ...authMiddlewareOption) Handler {
-	return chain(handler, NewAuthMiddleware(authenticator, opts...))
-}
+// ============================================================================
+// Client Authentication
+// ============================================================================
 
 // ClientAuthMiddleware creates a middleware that extracts auth token from context and adds it to metadata
 func ClientAuthMiddleware() ClientMiddleware {

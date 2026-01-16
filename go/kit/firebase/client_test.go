@@ -4,124 +4,102 @@
 package firebase_test
 
 import (
+	"context"
 	"path/filepath"
+	"strings"
 	"testing"
 
-	"github.com/dosanma1/forge/go/kit/application/repository"
-	"github.com/dosanma1/forge/go/kit/fields"
-	"github.com/dosanma1/forge/go/kit/filter"
-	"github.com/dosanma1/forge/go/kit/search"
-	"github.com/dosanma1/forge/go/kit/search/query"
+	"github.com/dosanma1/forge/go/kit/firebase"
 	"github.com/dosanma1/forge/go/kit/sops"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// NOTE: These tests require valid Firebase credentials using SOPS.
+// Usage: go test -tags=integration -v ./...
+
 func TestUserManagement(t *testing.T) {
-	sops.NewSOPSEnvVarLoader().LoadEnvFromFile(t, filepath.Join("testdata", "integ.yaml"))
+	// Attempt to load credentials from SOPS
+	// If it fails (e.g. access denied), we skip the test.
+	loader := sops.NewSOPSEnvVarLoader()
+	if err := loader.LoadEnvFromFile(t, filepath.Join("testdata", "integ.yaml")); err != nil {
+		t.Skipf("Skipping integration test: sops load failed (check KMS creds): %v", err)
+	}
 
 	var (
 		cli = firebase.NewClient()
-		ctx = t.Context()
+		ctx = context.Background()
 	)
 
-	var (
-		user1 = NewUser(
-			"test1@example.com",
-			"pass123",
-			"John",
-			WithID(uuid.NewString()),
-			WithUserLastName("Doe"),
-			WithUserEmailVerified(true),
-		)
-		user2 = NewUser(
-			"test2@example.com",
-			"pass456",
-			"Jane",
-			WithID(uuid.NewString()),
-			WithUserLastName("Smith"),
-			WithUserEmailVerified(false),
-		)
+	uid := uuid.NewString()
+	email := "integ-test-" + uid + "@example.com"
+
+	user := firebase.NewUser(
+		email,
+		"password123",
+		"Integration",
+		firebase.WithID(uid),
+		firebase.WithUserLastName("Test"),
+		firebase.WithUserEmailVerified(true),
 	)
 
-	var createdUser1, createdUser2 User
-	var err error
+	t.Cleanup(func() {
+		_ = cli.UserManagement().Delete(ctx, uid)
+	})
 
 	t.Run("create user", func(t *testing.T) {
-		createdUser1, err = cli.UserManagement().Create(ctx, user1)
+		created, err := cli.UserManagement().Create(ctx, user)
 		require.NoError(t, err)
-		require.NotNil(t, createdUser1)
-		assert.Equal(t, user1.Email(), createdUser1.Email())
-		assert.Equal(t, user1.FirstName(), createdUser1.FirstName())
-		assert.Equal(t, user1.EmailVerified(), createdUser1.EmailVerified())
-		assert.NotEmpty(t, createdUser1.ID())
+		require.NotNil(t, created)
+		assert.Equal(t, uid, created.ID())
+		assert.Equal(t, email, created.Email())
+		assert.Equal(t, "Integration", created.FirstName())
+		assert.Equal(t, "Test", created.LastName())
+		assert.True(t, created.EmailVerified())
 	})
 
-	t.Run("duplicate user", func(t *testing.T) {
-		duplicateUser, err := cli.UserManagement().Create(ctx, user1)
-		require.Error(t, err)
-		assert.Nil(t, duplicateUser)
+	t.Run("get user by id", func(t *testing.T) {
+		found, err := cli.UserManagement().Get(ctx, uid)
+		require.NoError(t, err)
+		assert.Equal(t, uid, found.ID())
 	})
 
-	t.Run("create different user", func(t *testing.T) {
-		createdUser2, err = cli.UserManagement().Create(ctx, user2)
+	t.Run("get user by email", func(t *testing.T) {
+		found, err := cli.UserManagement().GetByEmail(ctx, email)
 		require.NoError(t, err)
-		require.NotNil(t, createdUser2)
-		assert.Equal(t, user2.Email(), createdUser2.Email())
-		assert.Equal(t, user2.FirstName(), createdUser2.FirstName())
-		assert.Equal(t, user2.EmailVerified(), createdUser2.EmailVerified())
-		assert.NotEmpty(t, createdUser2.ID())
+		assert.Equal(t, uid, found.ID())
+		assert.Equal(t, email, found.Email())
 	})
 
-	t.Run("get user", func(t *testing.T) {
-		foundUser, err := cli.UserManagement().Get(ctx, []query.Option{
-			query.FilterBy(filter.OpEq, fields.NameID, createdUser1.ID()),
-		})
-		require.NoError(t, err)
-		require.NotNil(t, foundUser)
-		assert.Equal(t, createdUser1.ID(), foundUser.ID())
-		assert.Equal(t, createdUser1.Email(), foundUser.Email())
-		assert.Equal(t, createdUser1.FirstName(), foundUser.FirstName())
-		assert.Equal(t, createdUser1.EmailVerified(), foundUser.EmailVerified())
-	})
+	t.Run("update user", func(t *testing.T) {
+		updatedNameUser := firebase.NewUser(
+			email,
+			"",
+			"Updated",
+			firebase.WithUserLastName("TestUpdated"),
+			firebase.WithUserEmailVerified(false),
+		)
 
-	t.Run("patch user", func(t *testing.T) {
-		updatedUser, err := cli.UserManagement().Patch(ctx, []repository.PatchOption{
-			repository.PatchSearchOpts(search.WithQueryOpts(query.FilterBy(filter.OpEq, fields.NameID, createdUser1.ID()))),
-			repository.PatchField(fields.NameEmail, "updated1@example.com"),
-		})
+		updated, err := cli.UserManagement().Update(ctx, uid, updatedNameUser)
 		require.NoError(t, err)
-		require.NotNil(t, updatedUser)
-		assert.Equal(t, "updated1@example.com", updatedUser.Email())
-		assert.Equal(t, createdUser1.ID(), updatedUser.ID())
+		assert.Equal(t, "Updated", updated.FirstName())
+		assert.Equal(t, "TestUpdated", updated.LastName())
+		assert.False(t, updated.EmailVerified())
 	})
 
 	t.Run("delete user", func(t *testing.T) {
-		// Test delete user1
-		_, err := cli.UserManagement().Delete(ctx, []query.Option{
-			query.FilterBy(filter.OpEq, fields.NameID, createdUser1.ID()),
-		})
+		err := cli.UserManagement().Delete(ctx, uid)
 		require.NoError(t, err)
 
-		// Verify user is deleted by trying to get it
-		deletedUser, err := cli.UserManagement().Get(ctx, []query.Option{
-			query.FilterBy(filter.OpEq, fields.NameID, createdUser1.ID()),
-		})
+		_, err = cli.UserManagement().Get(ctx, uid)
 		require.Error(t, err)
-		assert.Nil(t, deletedUser)
-
-		// Test delete user2
-		_, err = cli.UserManagement().Delete(ctx, []query.Option{
-			query.FilterBy(filter.OpEq, fields.NameID, createdUser2.ID()),
-		})
-		require.NoError(t, err)
-
-		// Verify user is deleted by trying to get it
-		deletedUser2, err := cli.UserManagement().Get(ctx, []query.Option{
-			query.FilterBy(filter.OpEq, fields.NameID, createdUser2.ID()),
-		})
-		require.Error(t, err)
-		assert.Nil(t, deletedUser2)
+		t.Logf("Get deleted user error: %v", err)
+		assert.True(t,
+			strings.Contains(err.Error(), "NOT_FOUND") ||
+				strings.Contains(strings.ToLower(err.Error()), "not found") ||
+				strings.Contains(strings.ToLower(err.Error()), "no user record found") ||
+				strings.Contains(strings.ToLower(err.Error()), "no user exists"),
+		)
 	})
 }

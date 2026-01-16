@@ -4,7 +4,7 @@ package tb;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/dosanma1/forge/go/kit/resource/pb";
+option go_package = "github.com/dosanma1/forge/go/kit/resource/resourcepb";
 
 message Resource {
   string id = 1;

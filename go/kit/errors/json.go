@@ -31,13 +31,13 @@ func (e *errorImpl) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements json.Unmarshaler for Error
 func (e *errorImpl) UnmarshalJSON(data []byte) error {
 	type jsonError struct {
-		Code       string    `json:"code"`
-		Message    string    `json:"message"`
-		HTTPStatus int       `json:"http_status,omitempty"`
-		Details    []Detail  `json:"details,omitempty"`
-		Timestamp  time.Time `json:"timestamp"`
-		RequestID  string    `json:"request_id,omitempty"`
-		Service    string    `json:"service,omitempty"`
+		Code       string        `json:"code"`
+		Message    string        `json:"message"`
+		HTTPStatus int           `json:"http_status,omitempty"`
+		Details    []*detailImpl `json:"details,omitempty"`
+		Timestamp  time.Time     `json:"timestamp"`
+		RequestID  string        `json:"request_id,omitempty"`
+		Service    string        `json:"service,omitempty"`
 	}
 
 	var je jsonError
@@ -48,7 +48,12 @@ func (e *errorImpl) UnmarshalJSON(data []byte) error {
 	e.code = Code(je.Code)
 	e.message = je.Message
 	e.httpStatus = je.HTTPStatus
-	e.details = je.Details
+	
+	e.details = make([]Detail, len(je.Details))
+	for i, d := range je.Details {
+		e.details[i] = d
+	}
+	
 	e.timestamp = je.Timestamp
 	e.requestID = je.RequestID
 	e.service = je.Service

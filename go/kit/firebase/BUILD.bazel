@@ -4,7 +4,9 @@ go_library(
     name = "go_default_library",
     srcs = [
         "client.go",
+        "doc.go",
         "module.go",
+        "user.go",
     ],
     importpath = "github.com/dosanma1/forge/go/kit/firebase",
     visibility = ["//visibility:public"],

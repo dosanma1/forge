@@ -4,6 +4,21 @@
   <img src="assets/logo.png" alt="Forge Logo" width="200"/>
 </p>
 
+<p align="center">
+  <a href="https://github.com/dosanma1/forge/actions/workflows/ci.yaml">
+    <img src="https://github.com/dosanma1/forge/actions/workflows/ci.yaml/badge.svg" alt="CI Status" />
+  </a>
+  <a href="https://goreportcard.com/report/github.com/dosanma1/forge/go/kit">
+    <img src="https://goreportcard.com/badge/github.com/dosanma1/forge/go/kit" alt="Go Report Card" />
+  </a>
+  <a href="https://pkg.go.dev/github.com/dosanma1/forge/go/kit">
+    <img src="https://pkg.go.dev/badge/github.com/dosanma1/forge/go/kit.svg" alt="Go Reference" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" />
+  </a>
+</p>
+
 **Forge** is a polyglot shared library monorepo designed to centralize utilities and best practices across the ecosystem. It serves as the single source of truth for reliable, battle-tested code in Go, TypeScript, and more.
 
 ## Structures

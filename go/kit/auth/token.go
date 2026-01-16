@@ -26,6 +26,7 @@ type (
 	TokenClaims interface {
 		Subject() string
 		Expiry() time.Time
+		Get(key string) any
 	}
 
 	TokenType string
@@ -43,6 +44,10 @@ func (jtc jwtTokenClaims) Subject() string {
 
 func (jtc jwtTokenClaims) Expiry() time.Time {
 	return jtc.timeClaim("exp")
+}
+
+func (jtc jwtTokenClaims) Get(key string) any {
+	return jtc[key]
 }
 
 func (jtc jwtTokenClaims) timeClaim(name string) time.Time {
@@ -76,6 +81,7 @@ const (
 	TokenTypeFirebase TokenType = "FIREBASE"
 	TokenTypeOAuth    TokenType = "OAUTH"
 	TokenTypeAPIKey   TokenType = "API_KEY"
+	TokenTypeHMAC     TokenType = "HMAC"
 	TokenTypeCustom   TokenType = "CUSTOM"
 
 	jwtNumParts = 3
@@ -142,10 +148,10 @@ func (te *httpTokenExtractor) Extract(ctx context.Context, req *http.Request) (T
 		return nil, err
 	}
 
-	// We'll default to firebase for now
-	authType := TokenTypeFirebase
+	tokenStr := extractTokenFromHeader(authHeader, "")
+	authType := determineTokenType(tokenStr)
 
-	token, err := NewToken(extractTokenFromHeader(authHeader, authType.String()), TokenType(authType), nil)
+	token, err := NewToken(tokenStr, authType, nil)
 
 	return token, err
 }
@@ -178,10 +184,10 @@ func (te *grpcTokenExtractor) Extract(ctx context.Context, md metadata.MD) (Toke
 	}
 	authHeader := authHeaders[0]
 
-	// We'll default to firebase for now
-	authType := TokenTypeFirebase
+	tokenStr := extractTokenFromHeader(authHeader, "")
+	authType := determineTokenType(tokenStr)
 
-	token, err := NewToken(extractTokenFromHeader(authHeader, authType.String()), TokenType(authType), nil)
+	token, err := NewToken(tokenStr, authType, nil)
 
 	return token, err
 }
@@ -196,4 +202,31 @@ func extractTokenFromHeader(authHeader, authType string) string {
 
 	// For Bearer tokens, remove the prefix
 	return strings.TrimPrefix(authHeader, BearerPrefix)
+}
+
+func determineTokenType(tokenStr string) TokenType {
+	// Simple heuristic: check number of parts
+	parts := strings.Split(tokenStr, ".")
+	if len(parts) != jwtNumParts {
+		// Not a JWT, assume Custom or API Key depending on context,
+		// but for now default to Firebase to let it fail there if invalid
+		return TokenTypeFirebase
+	}
+
+	// Decode payload (2nd part)
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return TokenTypeFirebase
+	}
+
+	var claims map[string]interface{}
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return TokenTypeFirebase
+	}
+
+	if iss, ok := claims["iss"].(string); ok && iss == "HMAC" {
+		return TokenTypeHMAC
+	}
+
+	return TokenTypeFirebase
 }

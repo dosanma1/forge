@@ -1,14 +1,15 @@
-// Package grpc have everything needed to build a GRPC gateway
+// Package grpc provides everything needed to build a gRPC server and client
 package grpc
 
 import (
 	"crypto/tls"
 	"net"
 	"os"
+	"time"
 
 	"github.com/dosanma1/forge/go/kit/monitoring"
-	"github.com/dosanma1/forge/go/kit/monitoring/tracer"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -20,114 +21,153 @@ type serverConfig struct {
 	address     string
 	controllers []Controller
 	middlewares []Middleware
+	keepalive   *keepalive.ServerParameters
 }
 
 func defaultServerControllers(monitor monitoring.Monitor) []Controller {
 	return []Controller{NewHealthServer(monitor)}
 }
 
-func defaultServerMiddlewares(T tracer.Tracer) []Middleware {
-	return []Middleware{
-		TracerMiddleware(T),
+func defaultServerMiddlewares() []Middleware {
+	return []Middleware{}
+}
+
+func defaultKeepalive() *keepalive.ServerParameters {
+	return &keepalive.ServerParameters{
+		MaxConnectionIdle: 15 * time.Second, // Close idle connections after 15s
+		Time:              5 * time.Second,  // Ping interval
+		Timeout:           1 * time.Second,  // Ping timeout
 	}
 }
 
 func defaultServerOpts(monitor monitoring.Monitor) []serverOption {
 	return []serverOption{
 		WithControllers(defaultServerControllers(monitor)...),
-		WithMiddlewares(defaultServerMiddlewares(monitor.Tracer())...),
+		WithMiddlewares(defaultServerMiddlewares()...),
+		WithKeepalive(defaultKeepalive()),
 		withAddrFromEnv(),
 	}
 }
 
-// WithTLSConfig sets the TLS configuration of the inner *http.Server
+// WithTLSConfig sets the TLS configuration for the server
 func WithTLSConfig(config *tls.Config) serverOption {
 	return func(cfg *serverConfig) {
 		cfg.tlsConfig = config
 	}
 }
 
-// WithNetwork sets the network the inner *grpc.Server will listen to
+// WithNetwork sets the network the server will listen to (tcp, tcp4, tcp6, unix)
 func WithNetwork(network string) serverOption {
 	return func(cfg *serverConfig) {
 		cfg.network = network
 	}
 }
 
-// WithAddress sets the address the inner *grpc.Server will listen to
+// WithAddress sets the address the server will listen to (e.g., ":50051", "localhost:50051")
 func WithAddress(address string) serverOption {
 	return func(cfg *serverConfig) {
 		cfg.address = address
 	}
 }
 
-func withAddrFromEnv() serverOption {
-	return WithAddress(os.Getenv("GRPC_ADDRESS"))
+// WithKeepalive sets keepalive parameters to prevent zombie connections
+func WithKeepalive(params *keepalive.ServerParameters) serverOption {
+	return func(cfg *serverConfig) {
+		cfg.keepalive = params
+	}
 }
 
-// WithMiddlewares adds the provided rest middlewares to the middleware list
+func withAddrFromEnv() serverOption {
+	addr := os.Getenv("GRPC_ADDRESS")
+	if addr == "" {
+		return func(cfg *serverConfig) {} // No-op if env var not set
+	}
+	return WithAddress(addr)
+}
+
+// WithMiddlewares adds the provided middlewares to the middleware list
 func WithMiddlewares(middlewares ...Middleware) serverOption {
 	return func(cfg *serverConfig) {
 		cfg.middlewares = append(cfg.middlewares, middlewares...)
 	}
 }
 
-// WithControllers adds the provided rest controllers to the controllers list
+// WithControllers adds the provided controllers to the controllers list
 func WithControllers(controllers ...Controller) serverOption {
 	return func(cfg *serverConfig) {
 		cfg.controllers = append(cfg.controllers, controllers...)
 	}
 }
 
-type server struct {
-	grpc.Server
-	listener net.Listener
+// Server wraps grpc.Server with additional functionality
+type Server struct {
+	*grpc.Server // Embedded as pointer (not value)
+	listener     net.Listener
 }
 
-func (g *server) Start() error {
-	return g.Serve(g.listener)
+// Start starts serving gRPC requests
+func (s *Server) Start() error {
+	return s.Serve(s.listener)
 }
 
-func New(monitor monitoring.Monitor, opts ...serverOption) (*server, error) {
+// Addr returns the listener's network address
+func (s *Server) Addr() net.Addr {
+	if s.listener != nil {
+		return s.listener.Addr()
+	}
+	return nil
+}
+
+// New creates a new gRPC server with the given options
+func New(monitor monitoring.Monitor, opts ...serverOption) (*Server, error) {
 	grpcOpts := make([]grpc.ServerOption, 0)
 	cfg := &serverConfig{
 		network: "tcp",
-		address: ":3009",
+		address: ":50051", // gRPC standard port
 	}
 
 	for _, opt := range append(defaultServerOpts(monitor), opts...) {
 		opt(cfg)
 	}
 
+	// Add keepalive if configured
+	if cfg.keepalive != nil {
+		grpcOpts = append(grpcOpts, grpc.KeepaliveParams(*cfg.keepalive))
+	}
+
+	// Setup listener
 	var lis net.Listener
+	var err error
 
 	if cfg.tlsConfig == nil {
-		var err error
 		lis, err = net.Listen(cfg.network, cfg.address)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		var err error
 		lis, err = tls.Listen(cfg.network, cfg.address, cfg.tlsConfig)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for _, m := range cfg.middlewares {
-		grpcOpts = append(grpcOpts, grpc.UnaryInterceptor(m.Intercept))
+	// Chain middlewares
+	if len(cfg.middlewares) > 0 {
+		grpcOpts = append(grpcOpts, grpc.UnaryInterceptor(ChainUnaryServer(cfg.middlewares...)))
 	}
 
-	g := &server{
-		Server:   *grpc.NewServer(grpcOpts...),
+	s := &Server{
+		Server:   grpc.NewServer(grpcOpts...),
 		listener: lis,
 	}
 
+	// Register controllers
 	for _, c := range cfg.controllers {
-		g.RegisterService(c.SD(), c)
+		s.RegisterService(c.SD(), c)
 	}
-	reflection.Register(&g.Server)
 
-	return g, nil
+	// Enable reflection for debugging
+	reflection.Register(s.Server)
+
+	return s, nil
 }

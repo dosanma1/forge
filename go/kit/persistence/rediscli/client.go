@@ -1,3 +1,25 @@
+// Package rediscli provides a Redis client wrapper with connection pooling,
+// configuration management, and FX integration.
+//
+// The client supports both single-instance and cluster/sentinel configurations
+// via redis.UniversalClient. Configuration is primarily driven by environment
+// variables, but can be overridden using functional options.
+//
+// Environment Variables:
+//   - REDIS_ADDRESS: Comma-separated list of Redis server addresses (required)
+//   - REDIS_PASSWORD: Password for authentication (optional)
+//   - REDIS_MASTER_NAME: Sentinel master name for failover scenarios (optional)
+//
+// Example usage:
+//
+//	client, err := rediscli.New(monitor)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	defer client.Close()
+//
+//	// Use client
+//	err = client.Set(ctx, "key", "value", 0).Err()
 package rediscli
 
 import (
@@ -114,11 +136,23 @@ func defaultOptions() []Option {
 	}
 }
 
-// Client implements a redis.Client.
+// Client wraps redis.UniversalClient to provide a unified interface for
+// both standalone and cluster Redis deployments. The embedding allows direct
+// access to all redis.UniversalClient methods while enabling future extensions.
 type Client struct {
 	redis.UniversalClient
 }
 
+// New creates a new Redis client with the given monitoring and options.
+// It establishes a connection to Redis, verifies connectivity via PING,
+// and configures keyspace notifications for pub/sub functionality.
+//
+// The client uses connection pooling with default limits of 100 max open
+// connections and 10 max idle connections. These can be customized using
+// WithMaxOpenLimit and WithMaxIdleConns options.
+//
+// Returns an error if connection fails, PING doesn't return PONG, or if
+// keyspacenotifications configuration fails.
 func New(m monitoring.Monitor, options ...Option) (*Client, error) {
 	config := newConfig(options...)
 
@@ -141,9 +175,6 @@ func New(m monitoring.Monitor, options ...Option) (*Client, error) {
 		return nil, newNotifyKeySpaceEventsErr()
 	}
 
-	if err := instrumentTracing(cli, m.Tracer()); err != nil {
-		panic(err)
-	}
 
 	return &Client{cli}, nil
 }

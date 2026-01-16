@@ -1,7 +1,6 @@
 package logger_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/dosanma1/forge/go/kit/monitoring/logger"
@@ -49,20 +48,22 @@ func TestLoggerFactory(t *testing.T) {
 			}
 
 			// Test basic functionality
-			ctx := context.Background()
-			l.InfoContext(ctx, "Test message from %s", tt.expected)
-			l.DebugContext(context.Background(), "Debug message from %s with value %s", "test", "value")
-			l.ErrorContext(context.Background(), "Error message with key=%s", "value")
+			l.Info("Test message")
+			l.Debug("Debug message", "test", "value")
+			l.Error("Error message", "key", "value")
 
 			// Test level checking
-			if !l.Enabled(int(logger.LogLevelError)) {
+			if !l.IsLevelEnabled(logger.LogLevelError) {
 				t.Errorf("Error level should always be enabled")
 			}
 
-			// Test context
-			type ctxKeyRequestID struct{}
-			ctx = context.WithValue(context.Background(), ctxKeyRequestID{}, "123")
-			l.InfoContext(ctx, "Message with context")
+			// Test WithFields
+			l2 := l.WithFields(logger.LogFields{"request_id": "123"})
+			l2.Info("Message with fields")
+
+			// Test WithKeysAndValues
+			l3 := l.WithKeysAndValues("user", "test", "action", "login")
+			l3.Info("Message with key-value pairs")
 		})
 	}
 }

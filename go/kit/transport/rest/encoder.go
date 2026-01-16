@@ -73,7 +73,7 @@ func newHTTPEncoderWithContentType[I any](
 	)
 }
 
-func restJSONEncoder[I, O any](
+func RestJSONEncoder[I, O any](
 	itemMapper func(in I) O,
 	successCode int,
 ) func(context.Context, http.ResponseWriter, any) error {

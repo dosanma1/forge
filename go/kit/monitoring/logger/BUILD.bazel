@@ -17,6 +17,9 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["logger_test.go"],
+    srcs = [
+        "context_test.go",
+        "logger_test.go",
+    ],
     deps = [":go_default_library"],
 )

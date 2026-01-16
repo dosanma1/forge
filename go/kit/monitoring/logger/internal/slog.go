@@ -49,6 +49,7 @@ func WithSlogFormat(format OutputFormat) SlogOption {
 
 type slogLogger struct {
 	slog *slog.Logger
+	ctx  context.Context
 }
 
 // NewSlogLogger creates a new slog logger with optional configuration
@@ -76,54 +77,59 @@ func NewSlogLogger(opts ...SlogOption) *slogLogger {
 
 	return &slogLogger{
 		slog: logger,
+		ctx:  context.Background(),
 	}
 }
 
 func (l *slogLogger) Enabled(level int) bool {
 	slogLevel := convertLevelToSlogLevel(level)
-	return l.slog.Enabled(context.Background(), slogLevel)
+	return l.slog.Enabled(l.ctx, slogLevel)
 }
 
-// Context methods
-func (l *slogLogger) DebugContext(ctx context.Context, msg string, args ...any) {
-	l.slog.DebugContext(ctx, msg, args...)
+func (l *slogLogger) WithContext(ctx context.Context) Logger {
+	return &slogLogger{
+		slog: l.slog,
+		ctx:  ctx,
+	}
 }
 
-func (l *slogLogger) InfoContext(ctx context.Context, msg string, args ...any) {
-	l.slog.InfoContext(ctx, msg, args...)
+func (l *slogLogger) WithFields(fields map[string]any) Logger {
+	args := make([]any, 0, len(fields)*2)
+	for k, v := range fields {
+		args = append(args, k, v)
+	}
+	return &slogLogger{
+		slog: l.slog.With(args...),
+		ctx:  l.ctx,
+	}
 }
 
-func (l *slogLogger) WarnContext(ctx context.Context, msg string, args ...any) {
-	l.slog.WarnContext(ctx, msg, args...)
-}
-
-func (l *slogLogger) ErrorContext(ctx context.Context, msg string, args ...any) {
-	l.slog.ErrorContext(ctx, msg, args...)
-}
-
-func (l *slogLogger) CriticalContext(ctx context.Context, msg string, args ...any) {
-	l.slog.ErrorContext(ctx, msg, args...)
+func (l *slogLogger) WithKeysAndValues(keysAndValues ...any) Logger {
+	return &slogLogger{
+		slog: l.slog.With(keysAndValues...),
+		ctx:  l.ctx,
+	}
 }
 
 // Non-context methods
 func (l *slogLogger) Debug(msg string, args ...any) {
-	l.slog.Debug(msg, args...)
+	l.slog.DebugContext(l.ctx, msg, args...)
 }
 
 func (l *slogLogger) Info(msg string, args ...any) {
-	l.slog.Info(msg, args...)
+	l.slog.InfoContext(l.ctx, msg, args...)
 }
 
 func (l *slogLogger) Warn(msg string, args ...any) {
-	l.slog.Warn(msg, args...)
+	l.slog.WarnContext(l.ctx, msg, args...)
 }
 
 func (l *slogLogger) Error(msg string, args ...any) {
-	l.slog.Error(msg, args...)
+	l.slog.ErrorContext(l.ctx, msg, args...)
 }
 
 func (l *slogLogger) Critical(msg string, args ...any) {
-	l.slog.Error(msg, args...)
+	l.slog.ErrorContext(l.ctx, msg, args...)
 }
 
 func convertLevelToSlogLevel(level int) slog.Level {

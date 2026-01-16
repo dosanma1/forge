@@ -10,9 +10,7 @@ go_library(
     importpath = "github.com/dosanma1/forge/go/kit/monitoring",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/kit/fields:go_default_library",
         "//go/kit/monitoring/logger:go_default_library",
-        "//go/kit/monitoring/tracer:go_default_library",
         "@org_uber_go_fx//:go_default_library",
     ],
 )
@@ -22,11 +20,7 @@ go_test(
     srcs = ["monitor_test.go"],
     deps = [
         ":go_default_library",
-        "//go/kit/fields:go_default_library",
-        "//go/kit/monitoring/logger:go_default_library",
         "//go/kit/monitoring/logger/loggertest:go_default_library",
-        "//go/kit/monitoring/tracer:go_default_library",
-        "//go/kit/monitoring/tracer/tracertest:go_default_library",
         "@com_github_stretchr_testify//assert:go_default_library",
     ],
 )

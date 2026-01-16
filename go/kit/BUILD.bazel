@@ -1,1 +1,3 @@
 # Managed by gazelle
+# gazelle:resolve go github.com/dosanma1/forge/go/kit/resource/resourcepb //go/kit/resource/proto:resourcepb_go_proto
+# gazelle:resolve go github.com/dosanma1/forge/go/kit/transport/grpc/grpctest/grpctestpb //go/kit/transport/grpc/grpctest/proto:grpctestpb_go_proto

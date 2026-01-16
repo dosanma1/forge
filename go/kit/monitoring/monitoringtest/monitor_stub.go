@@ -6,8 +6,6 @@ import (
 	"github.com/dosanma1/forge/go/kit/monitoring"
 	"github.com/dosanma1/forge/go/kit/monitoring/logger"
 	"github.com/dosanma1/forge/go/kit/monitoring/logger/loggertest"
-	"github.com/dosanma1/forge/go/kit/monitoring/tracer"
-	"github.com/dosanma1/forge/go/kit/monitoring/tracer/tracertest"
 )
 
 type monitorStubOpt func(m *monitor)
@@ -18,23 +16,12 @@ func WithLogger(l logger.Logger) monitorStubOpt {
 	}
 }
 
-func WithTracer(t tracer.Tracer) monitorStubOpt {
-	return func(m *monitor) {
-		m.trace = t
-	}
-}
-
 type monitor struct {
-	trace tracer.Tracer
-	log   logger.Logger
+	log logger.Logger
 }
 
 func (m *monitor) Logger() logger.Logger {
 	return m.log
-}
-
-func (m *monitor) Tracer() tracer.Tracer {
-	return m.trace
 }
 
 func defaultMonitorOpts(t *testing.T) []monitorStubOpt {
@@ -42,7 +29,6 @@ func defaultMonitorOpts(t *testing.T) []monitorStubOpt {
 
 	return []monitorStubOpt{
 		WithLogger(loggertest.NewStubLogger(t)),
-		WithTracer(tracertest.NewRecorderTracer()),
 	}
 }
 

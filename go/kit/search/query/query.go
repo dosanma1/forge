@@ -1,4 +1,3 @@
-// Package query ...
 package query
 
 import (
@@ -6,15 +5,14 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/dosanma1/forge/go/kit/fields"
 	"github.com/dosanma1/forge/go/kit/filter"
 )
 
 const (
-	FieldNameQuery      fields.Name = "query"
-	FieldNamePagination fields.Name = "pagination"
-	FieldNameSorting    fields.Name = "sorting"
-	FieldNameIncludes   fields.Name = "includes"
+	FieldNameQuery      = "query"
+	FieldNamePagination = "pagination"
+	FieldNameSorting    = "sorting"
+	FieldNameIncludes   = "includes"
 )
 
 type SortingDir uint
@@ -111,8 +109,8 @@ func (qf Filters[T]) Delete(key string) {
 	}
 }
 
-func GetFilterVal[T any](fName fields.Name, filters Filters[any]) T {
-	f := filters.Get(fName.String())
+func GetFilterVal[T any](fName string, filters Filters[any]) T {
+	f := filters.Get(fName)
 	var fVal T
 	if f != nil {
 		fVal = f.Value().(T)
@@ -120,30 +118,16 @@ func GetFilterVal[T any](fName fields.Name, filters Filters[any]) T {
 	return fVal
 }
 
-// GetFilterValOrDefault retrieves the value associated with a field name from a set of filters,
-// and returns the value if found. If the field filter is not present in the filters, it returns
-// the provided default value.
-//
-// Parameters:
-//   - fName: The field name to look up in the filters.
-//   - filters: A set of filters, typically associated with a query.
-//   - def: The default value to return if the field filter is not found or its value is nil.
-//
-// Type Parameters:
-//   - T: The type of value to retrieve and return.
-//
-// Returns:
-//   - T: The value associated with the field name, or the default value if not found or nil.
-func GetFilterValOrDefault[T any](fName fields.Name, filters Filters[any], def T) T {
-	f := filters.Get(fName.String())
+func GetFilterValOrDefault[T any](fName string, filters Filters[any], def T) T {
+	f := filters.Get(fName)
 	if f != nil {
 		return f.Value().(T)
 	}
 	return def
 }
 
-func GetFilterSingleOrArrayVal[T any](fName fields.Name, filters Filters[any]) []T {
-	f := filters.Get(fName.String())
+func GetFilterSingleOrArrayVal[T any](fName string, filters Filters[any]) []T {
+	f := filters.Get(fName)
 	if f == nil {
 		return []T{}
 	}
@@ -164,27 +148,27 @@ func GetFilterSingleOrArrayVal[T any](fName fields.Name, filters Filters[any]) [
 	}
 }
 
-func DoesInclude(q Query, relationship fields.Name) bool {
+func DoesInclude(q Query, relationship string) bool {
 	return slices.Contains(q.IncludedResourceObjects(), relationship)
 }
 
-func AddFilter(q Query, operator filter.Operator, name fields.Name, val any) {
-	if q.Filters().Exists(name.String()) {
+func AddFilter(q Query, operator filter.Operator, name string, val any) {
+	if q.Filters().Exists(name) {
 		return
 	}
-	q.Filters()[name.String()] = filter.NewFieldFilter(operator, name.String(), val)
+	q.Filters()[name] = filter.NewFieldFilter(operator, name, val)
 }
 
-func UpdateFilter[T any](q Query, name fields.Name, updateFunc func(filter.Operator, T) (filter.Operator, string, any)) {
-	if !q.Filters().Exists(name.String()) {
+func UpdateFilter[T any](q Query, name string, updateFunc func(filter.Operator, T) (filter.Operator, string, any)) {
+	if !q.Filters().Exists(name) {
 		return
 	}
-	f := q.Filters()[name.String()]
+	f := q.Filters()[name]
 	v, ok := f.Value().(T)
 	if !ok {
 		return
 	}
-	q.Filters()[name.String()] = filter.NewFieldFilter(updateFunc(f.Operator(), v))
+	q.Filters()[name] = filter.NewFieldFilter(updateFunc(f.Operator(), v))
 }
 
 type Query interface {
@@ -192,7 +176,7 @@ type Query interface {
 	Sorting() *SortingParams
 	Merge(q Query)
 	Pagination() *PaginationParams
-	IncludedResourceObjects() []fields.Name
+	IncludedResourceObjects() []string
 	Equal(another Query) bool
 }
 
@@ -293,7 +277,7 @@ func Pagination(limit, offset int) Option {
 	}
 }
 
-func IncludedResourceObjects(relationshipNames ...fields.Name) Option {
+func IncludedResourceObjects(relationshipNames ...string) Option {
 	return func(q *query) {
 		q.includedResourceObjects = append(q.includedResourceObjects, relationshipNames...)
 	}
@@ -303,7 +287,7 @@ type query struct {
 	filters                 map[string]filter.FieldFilter[any]
 	sortingParams           *SortingParams
 	pagination              *PaginationParams
-	includedResourceObjects []fields.Name
+	includedResourceObjects []string
 }
 
 func (q *query) Filters() Filters[any] {
@@ -331,7 +315,7 @@ func (q *query) Pagination() *PaginationParams {
 	return q.pagination
 }
 
-func (q *query) IncludedResourceObjects() []fields.Name {
+func (q *query) IncludedResourceObjects() []string {
 	return q.includedResourceObjects
 }
 
@@ -369,18 +353,6 @@ func (q *query) Equal(another Query) bool {
 	return reflect.DeepEqual(q, another.(*query))
 }
 
-// New creates a new query with the provided options.
-//
-// Parameters:
-//   - opts: Optional functional options to configure the query.
-//
-// Returns:
-//   - Query: A new query instance configured with the specified options.
-//
-// Example Usage:
-//
-//	opts := SortBy("field1", SortAsc, "field2", SortDesc)
-//	myQuery := New(opts...)
 func New(opts ...Option) Query {
 	q := &query{
 		filters:       make(map[string]filter.FieldFilter[any]),

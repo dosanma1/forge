@@ -19,7 +19,7 @@ func FiltersToURLValues(filters Filters[any]) url.Values {
 			continue
 		}
 
-		operator := operatorToString(fieldFilter.Operator())
+		operator := MarshalOperator(fieldFilter.Operator())
 		value := fieldFilter.Value()
 
 		// Handle different value types
@@ -62,42 +62,6 @@ func FiltersToURLValues(filters Filters[any]) url.Values {
 	}
 
 	return queryParams
-}
-
-// operatorToString converts filter operators to their string representation for URLs
-func operatorToString(op filter.Operator) string {
-	switch op {
-	case filter.OpEq:
-		return "eq"
-	case filter.OpNEq:
-		return "neq"
-	case filter.OpGT:
-		return "gt"
-	case filter.OpGTEq:
-		return "gte"
-	case filter.OpLT:
-		return "lt"
-	case filter.OpLTEq:
-		return "lte"
-	case filter.OpIn:
-		return "in"
-	case filter.OpNotIn:
-		return "not-in"
-	case filter.OpLike:
-		return "like"
-	case filter.OpBetween:
-		return "between"
-	case filter.OpContains:
-		return "contains"
-	case filter.OpContainsLike:
-		return "contains-like"
-	case filter.OpIs:
-		return "is"
-	case filter.OpIsNot:
-		return "is-not"
-	default:
-		return "eq" // fallback
-	}
 }
 
 // AddFilterParam is a convenience function to add a single filter parameter

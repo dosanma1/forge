@@ -11,34 +11,11 @@ template-data:
   unroll-variadic: true
 
 packages:
-  # Shared library interfaces
-  github.com/domi-unimedia/trading-bot/shared/go-kit/application/ctrl:
-    interfaces:
-      Creator: {}
-      CreatorBatch: {}
-      Deleter: {}
-      Getter: {}
-      Lister: {}
-      Updater: {}
-      Patcher: {}
-  github.com/domi-unimedia/trading-bot/shared/go-kit/application/repository:
-    interfaces:
-      Creator: {}
-      CreatorBatch: {}
-      Getter: {}
-      Lister: {}
-      Updater: {}
-      Deleter: {}
-      Patcher: {}
-  github.com/domi-unimedia/trading-bot/shared/go-kit/application/usecase:
-    interfaces:
-      Creator: {}
-      CreatorBatch: {}
-      Getter: {}
-      Lister: {}
-      Updater: {}
-      Deleter: {}
-      Patcher: {}
-  github.com/domi-unimedia/trading-bot/shared/go-kit/monitoring/logger:
+  github.com/dosanma1/mmo-game/shared/go-kit/monitoring/logger:
     interfaces:
       Logger: {}
+  github.com/dosanma1/mmo-game/shared/go-kit/firebase:
+    interfaces:
+      Client: {}
+      AuthAPI: {}
+      UserManagement: {}

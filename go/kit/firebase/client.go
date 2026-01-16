@@ -18,6 +18,7 @@ type (
 	Client interface {
 		Auth() AuthAPI
 		AuthClient() *firebaseAuth.Client
+		UserManagement() UserManagement
 	}
 
 	AuthAPI interface {
@@ -71,7 +72,24 @@ func WithClientFirebaseOpts(opts ...option.ClientOption) clientOption {
 }
 
 func jsonCredsFromEnv() option.ClientOption {
+	// First try the specific JSON content env var
+	if jsonContent := os.Getenv("FIREBASE_CREDENTIALS_JSON"); jsonContent != "" {
+		return option.WithCredentialsJSON([]byte(jsonContent))
+	}
+
+	// Fallback to standard GOOGLE_APPLICATION_CREDENTIALS
 	appCreds := os.Getenv(appCredsEnvarName)
+	if appCreds == "" {
+		// No credentials found, return empty option (let default chain handle it or fail later)
+		return option.WithCredentialsFile("")
+	}
+
+	// If it looks like a path (starts with / or .), treat as file
+	if strings.HasPrefix(appCreds, "/") || strings.HasPrefix(appCreds, ".") {
+		return option.WithCredentialsFile(appCreds)
+	}
+
+	// Otherwise try to treat it as JSON content (legacy/fallback)
 	if strings.HasPrefix(appCreds, "\"") {
 		creds, err := strconv.Unquote(appCreds)
 		if err != nil {
@@ -134,6 +152,92 @@ func (s *authService) VerifyIDToken(ctx context.Context, idToken string) (TokenC
 		emailVerified: emailVerified,
 		claims:        token.Claims,
 	}, nil
+}
+
+// ----------------------------------------------------------------------------- User Management Implementation
+
+func (c *client) UserManagement() UserManagement {
+	return &userManagement{auth: c.authCli}
+}
+
+type userManagement struct {
+	auth *firebaseAuth.Client
+}
+
+func (u *userManagement) Create(ctx context.Context, user User) (User, error) {
+	params := (&firebaseAuth.UserToCreate{}).
+		Email(user.Email()).
+		Password(user.Password()).
+		DisplayName(user.FirstName() + " " + user.LastName()).
+		EmailVerified(user.EmailVerified()).
+		Disabled(false)
+
+	if user.ID() != "" {
+		params = params.UID(user.ID())
+	}
+
+	record, err := u.auth.CreateUser(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return u.mapRecordToUser(record), nil
+}
+
+func (u *userManagement) Get(ctx context.Context, id string) (User, error) {
+	record, err := u.auth.GetUser(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return u.mapRecordToUser(record), nil
+}
+
+func (u *userManagement) GetByEmail(ctx context.Context, email string) (User, error) {
+	record, err := u.auth.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	return u.mapRecordToUser(record), nil
+}
+
+func (u *userManagement) Update(ctx context.Context, id string, user User) (User, error) {
+	params := (&firebaseAuth.UserToUpdate{}).
+		Email(user.Email()).
+		DisplayName(user.FirstName() + " " + user.LastName()).
+		EmailVerified(user.EmailVerified())
+
+	if user.Password() != "" {
+		params = params.Password(user.Password())
+	}
+
+	record, err := u.auth.UpdateUser(ctx, id, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return u.mapRecordToUser(record), nil
+}
+
+func (u *userManagement) Delete(ctx context.Context, id string) error {
+	return u.auth.DeleteUser(ctx, id)
+}
+
+func (u *userManagement) mapRecordToUser(r *firebaseAuth.UserRecord) User {
+	nameParts := strings.SplitN(r.DisplayName, " ", 2)
+	firstName := r.DisplayName
+	lastName := ""
+	if len(nameParts) > 1 {
+		firstName = nameParts[0]
+		lastName = nameParts[1]
+	}
+
+	return &user{
+		id:            r.UID,
+		email:         r.Email,
+		emailVerified: r.EmailVerified,
+		firstName:     firstName,
+		lastName:      lastName,
+	}
 }
 
 // ----------------------------------------------------------------------------- Interface Implementations

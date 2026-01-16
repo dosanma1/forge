@@ -5,20 +5,21 @@ go_library(
     srcs = [
         "client.go",
         "conn.go",
+        "dbclient.go",
         "doc.go",
         "drivers.go",
         "dsn.go",
         "errors.go",
         "module.go",
-        "tracing.go",
+        "pool.go",
+        "registry.go",
+        "transactioner.go",
     ],
     importpath = "github.com/dosanma1/forge/go/kit/persistence/sqldb",
     visibility = ["//visibility:public"],
     deps = [
         "//go/kit/errors:go_default_library",
-        "//go/kit/fields:go_default_library",
         "//go/kit/persistence:go_default_library",
-        "@io_opentelemetry_go_otel//semconv/v1.20.0:go_default_library",
         "@org_uber_go_fx//:go_default_library",
     ],
 )
@@ -26,15 +27,16 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
-        "conn_test.go",
+        "drivers_test.go",
         "dsn_test.go",
-        "tracing_test.go",
+        "pool_test.go",
+        "registry_test.go",
+        "transactioner_test.go",
     ],
+    embed = [":go_default_library"],
     deps = [
-        ":go_default_library",
-        "//go/kit/persistence:go_default_library",
-        "@com_github_data_dog_go_sqlmock//:go_default_library",
+        "//go/kit/persistence/sqldb/sqldbtest:go_default_library",
         "@com_github_stretchr_testify//assert:go_default_library",
-        "@io_opentelemetry_go_otel//semconv/v1.20.0:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
     ],
 )

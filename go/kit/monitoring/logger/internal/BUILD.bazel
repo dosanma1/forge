@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "format.go",
         "level.go",
+        "logger.go",
         "slog.go",
         "zap.go",
     ],

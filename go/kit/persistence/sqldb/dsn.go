@@ -1,6 +1,7 @@
 package sqldb
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"os"
@@ -16,16 +17,18 @@ func (f connField) String() string {
 func (f connField) valid() bool {
 	return f == connFieldHost || f == connFieldPort ||
 		f == connFieldUser || f == connFieldPwd ||
-		f == connFieldDBName || f == connFieldSSLMode
+		f == connFieldDBName || f == connFieldSSLMode ||
+		f == connFieldSearchPath
 }
 
 const (
-	connFieldHost    connField = "host"
-	connFieldPort    connField = "port"
-	connFieldUser    connField = "user"
-	connFieldPwd     connField = "password"
-	connFieldDBName  connField = "dbname"
-	connFieldSSLMode connField = "sslmode"
+	connFieldHost       connField = "host"
+	connFieldPort       connField = "port"
+	connFieldUser       connField = "user"
+	connFieldPwd        connField = "password"
+	connFieldDBName     connField = "dbname"
+	connFieldSSLMode    connField = "sslmode"
+	connFieldSearchPath connField = "search_path"
 )
 
 //nolint:gochecknoglobals // we want this global variable to have all the connection fields in place
@@ -49,16 +52,20 @@ func (d dsn) buildQueryParams() url.Values {
 	vals := url.Values{}
 	vals.Add(connFieldSSLMode.String(), d[connFieldSSLMode])
 
+	// lib/pq uses 'options' to pass session-level parameters like search_path
+	if searchPath := d[connFieldSearchPath]; searchPath != "" {
+		vals.Add("options", fmt.Sprintf("-c %s=%s", connFieldSearchPath.String(), searchPath))
+	}
+
 	return vals
 }
 
 func (d dsn) validateConnFields() error {
 	for _, f := range orderedConnFields {
-		if len(d[f]) < 1 {
+		if d[f] == "" {
 			return newErrEmptyDSNField(f)
 		}
 	}
-
 	return nil
 }
 
@@ -85,40 +92,52 @@ func withConnStringVal(field connField, val string) ConnectionDSNOption {
 	}
 }
 
-// WithConnHost sets the given db host in the DSN.
+// WithConnHost sets the database host in the DSN.
 func WithConnHost(host string) ConnectionDSNOption {
 	return withConnStringVal(connFieldHost, host)
 }
 
-// WithConnPort sets the given db port in the DSN.
+// WithConnPort sets the database port in the DSN.
 func WithConnPort(port string) ConnectionDSNOption {
 	return withConnStringVal(connFieldPort, port)
 }
 
-// WithConnUser sets the given user in the DSN.
+// WithConnUser sets the database user in the DSN.
 func WithConnUser(user string) ConnectionDSNOption {
 	return withConnStringVal(connFieldUser, user)
 }
 
-// WithConnPwd sets the given password in the DSN.
+// WithConnPwd sets the database password in the DSN.
 func WithConnPwd(pwd string) ConnectionDSNOption {
 	return withConnStringVal(connFieldPwd, pwd)
 }
 
-// WithConnDBName sets the given database name in the DSN.
+// WithConnDBName sets the database name in the DSN.
 func WithConnDBName(dbName string) ConnectionDSNOption {
 	return withConnStringVal(connFieldDBName, dbName)
 }
 
-// WithConnSSLMode sets the given ssl mode in the DSN.
+// WithConnSSLMode sets the SSL mode in the DSN (e.g., "disable", "require", "verify-full").
 func WithConnSSLMode(sslMode string) ConnectionDSNOption {
 	return withConnStringVal(connFieldSSLMode, sslMode)
 }
 
-// WithDSNConnFromEnv applies all the parameters of the DSN url from env.
-// (this is the default option applied when calling sqldb.NewDSN).
+// WithConnSearchPath sets the PostgreSQL search_path in the DSN.
+// This is useful for multi-schema databases where you want to set a default schema.
+func WithConnSearchPath(searchPath string) ConnectionDSNOption {
+	return withConnStringVal(connFieldSearchPath, searchPath)
+}
+
+// WithDSNConnFromEnv loads all DSN parameters from environment variables.
+// This is the default option applied when calling NewDSN.
 //
-// - envvars being read: DB_NAME, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_SSL.
+// Environment variables read:
+//   - DB_HOST: Database host
+//   - DB_PORT: Database port
+//   - DB_NAME: Database name
+//   - DB_USER: Database user
+//   - DB_PASSWORD: Database password
+//   - DB_SSL: SSL mode
 func WithDSNConnFromEnv() ConnectionDSNOption {
 	return func(dsn dsn) error {
 		options := []ConnectionDSNOption{
@@ -128,6 +147,7 @@ func WithDSNConnFromEnv() ConnectionDSNOption {
 			WithConnUser(os.Getenv("DB_USER")),
 			WithConnPwd(os.Getenv("DB_PASSWORD")),
 			WithConnSSLMode(os.Getenv("DB_SSL")),
+			WithConnSearchPath(ensurePublicSchema(os.Getenv("DB_SCHEMA"))),
 		}
 
 		for _, opt := range options {
@@ -147,14 +167,20 @@ func defaultDSNOptions() []ConnectionDSNOption {
 	}
 }
 
-// NewDSN generates the url of a DSN (data source name) to connect to a specific database.
-// This url is being generated from the database name, authentication (username, password),
-// host, port and ssl mode.
+// NewDSN generates a DSN (Data Source Name) URL for database connections.
 //
-// By default it takes the params from the following envvars, though any of the params
-// can be overiden using specific options.
+// By default, it reads connection parameters from environment variables:
+//   - DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_SSL
 //
-// Envvars read by default: DB_NAME, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_SSL.
+// These defaults can be overridden by passing specific ConnectionDSNOption functions.
+//
+// Example:
+//
+//	dsn, err := NewDSN(
+//	    DriverTypePostgres,
+//	    WithConnHost("localhost"),
+//	    WithConnPort("5432"),
+//	)
 func NewDSN(driverType DriverType, options ...ConnectionDSNOption) (*url.URL, error) {
 	if !driverType.valid() {
 		return nil, newErrConnInvalidDriver(driverType)
@@ -175,7 +201,8 @@ func NewDSN(driverType DriverType, options ...ConnectionDSNOption) (*url.URL, er
 	return connDSN.genConnectionURL(driverType)
 }
 
-// MustGenerateDSN generates a dsn or panics in case of failure.
+// MustGenerateDSN generates a DSN URL or panics if an error occurs.
+// This is useful for initialization code where errors should be fatal.
 func MustGenerateDSN(driverType DriverType, options ...ConnectionDSNOption) *url.URL {
 	dsn, err := NewDSN(driverType, options...)
 	if err != nil {
@@ -183,4 +210,10 @@ func MustGenerateDSN(driverType DriverType, options ...ConnectionDSNOption) *url
 	}
 
 	return dsn
+}
+func ensurePublicSchema(schema string) string {
+	if schema != "" && !strings.Contains(schema, "public") {
+		return schema + ",public"
+	}
+	return schema
 }

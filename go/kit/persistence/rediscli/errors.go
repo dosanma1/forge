@@ -1,9 +1,8 @@
 package rediscli
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/dosanma1/forge/go/kit/fields"
 )
 
 // ConnectionErr defines a database connection error.
@@ -11,8 +10,9 @@ type ConnectionErr struct {
 	wrappedErr error
 }
 
+// Error implements the error interface with additional context.
 func (err ConnectionErr) Error() string {
-	return fmt.Sprintf("connection error: %s", err.wrappedErr.Error())
+	return fmt.Sprintf("redis connection error: %s", err.wrappedErr.Error())
 }
 
 // Unwrap returns the child error (the specific error reason of the connection error).
@@ -27,9 +27,9 @@ func newErrConn(wrappedErr error) error {
 }
 
 func newPingErr() error {
-	return newErrConn(fields.NewWrappedErr("no PONG received"))
+	return newErrConn(errors.New("no PONG received"))
 }
 
 func newNotifyKeySpaceEventsErr() error {
-	return newErrConn(fields.NewWrappedErr("notify-keyspace-events not configured correctly"))
+	return newErrConn(errors.New("notify-keyspace-events not configured correctly"))
 }

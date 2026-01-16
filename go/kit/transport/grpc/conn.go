@@ -9,7 +9,7 @@ type Conn *grpc.ClientConn
 type ServiceDesc *grpc.ServiceDesc
 
 // Dial creates a client connection to the given target.
-func dial(target string, opts ...grpc.DialOption) (Conn, error) {
+func dial(target string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	c, err := grpc.NewClient(target, opts...)
 	if err != nil {
 		return c, err

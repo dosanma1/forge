@@ -5,8 +5,8 @@ go_library(
     srcs = [
         "codes.go",
         "common.go",
+        "doc.go",
         "error.go",
-        "errors_TOBEDELETED.go",
         "grpc.go",
         "json.go",
         "validation.go",
@@ -23,14 +23,13 @@ go_test(
     name = "go_default_test",
     srcs = [
         "error_test.go",
-        "errors_TOBEDELETED_test.go",
         "validation_test.go",
     ],
     embed = [":go_default_library"],
     deps = [
-        "//go/kit/fields:go_default_library",
         "@com_github_stretchr_testify//assert:go_default_library",
         "@com_github_stretchr_testify//require:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
     ],
 )

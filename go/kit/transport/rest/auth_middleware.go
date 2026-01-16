@@ -17,7 +17,7 @@ type authMiddlewareOption func(*AuthMiddleware)
 
 func defaultAuthMiddlewareOpts() []authMiddlewareOption {
 	return []authMiddlewareOption{
-		WithErrorEncoder(JsonApiErrorEncoder),
+		WithErrorEncoder(JSONErrorEncoder),
 	}
 }
 

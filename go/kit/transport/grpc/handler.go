@@ -42,7 +42,9 @@ type (
 type (
 	HandlerOpt    func(c *handlerConfig)
 	handlerConfig struct {
-		errorHandler transport.ErrorHandler
+		errorHandler  transport.ErrorHandler
+		authenticator GRPCAuthenticator
+		middlewares   []HandlerMiddleware
 	}
 )
 
@@ -62,13 +64,30 @@ func (h *LogErrorHandler) Handle(ctx context.Context, err error) {
 
 func defaultHandlerOpts(log logger.Logger) []HandlerOpt {
 	return []HandlerOpt{
-		HandlerWithErrorEncoder(NewLogErrorHandler(log)),
+		WithHandlerErrorHandler(NewLogErrorHandler(log)),
 	}
 }
 
-func HandlerWithErrorEncoder(eh transport.ErrorHandler) HandlerOpt {
+// WithHandlerErrorHandler sets a custom error handler for the gRPC handler
+func WithHandlerErrorHandler(eh transport.ErrorHandler) HandlerOpt {
 	return func(c *handlerConfig) {
 		c.errorHandler = eh
+	}
+}
+
+// WithAuthentication adds authentication middleware to the handler
+// This is a cleaner alternative to wrapping with RequireAuthentication
+func WithAuthentication(authenticator GRPCAuthenticator, opts ...authMiddlewareOption) HandlerOpt {
+	return func(c *handlerConfig) {
+		c.authenticator = authenticator
+		c.middlewares = append(c.middlewares, NewAuthMiddleware(authenticator, opts...))
+	}
+}
+
+// WithHandlerMiddlewares adds custom handler middlewares
+func WithHandlerMiddlewares(middlewares ...HandlerMiddleware) HandlerOpt {
+	return func(c *handlerConfig) {
+		c.middlewares = append(c.middlewares, middlewares...)
 	}
 }
 
@@ -83,7 +102,8 @@ func NewHandler[DI, DO, EI, EO any](
 	for _, opt := range append(defaultHandlerOpts(monitoring.Logger()), opts...) {
 		opt(c)
 	}
-	return HandlerFunc(func(ctx context.Context, req interface{}) (interface{}, error) {
+
+	handler := HandlerFunc(func(ctx context.Context, req interface{}) (interface{}, error) {
 		request, err := reqDecoder(ctx, req.(DI))
 		if err != nil {
 			c.errorHandler.Handle(ctx, err)
@@ -104,6 +124,9 @@ func NewHandler[DI, DO, EI, EO any](
 
 		return grpcResp, nil
 	})
+
+	// Apply middlewares (e.g., authentication)
+	return chain(handler, c.middlewares...)
 }
 
 func NewEmptyResHandler[DI, DO any](
@@ -116,7 +139,8 @@ func NewEmptyResHandler[DI, DO any](
 	for _, opt := range append(defaultHandlerOpts(monitor.Logger()), opts...) {
 		opt(c)
 	}
-	return HandlerFunc(func(ctx context.Context, req interface{}) (interface{}, error) {
+
+	handler := HandlerFunc(func(ctx context.Context, req interface{}) (interface{}, error) {
 		request, err := reqDecoder(ctx, req.(DI))
 		if err != nil {
 			c.errorHandler.Handle(ctx, err)
@@ -131,4 +155,7 @@ func NewEmptyResHandler[DI, DO any](
 
 		return nil, nil
 	})
+
+	// Apply middlewares (e.g., authentication)
+	return chain(handler, c.middlewares...)
 }

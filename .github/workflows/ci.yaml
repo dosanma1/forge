@@ -25,6 +25,8 @@ jobs:
         uses: bazel-contrib/setup-bazel@0.18.0
         with:
           bazelisk-version: 1.19.0
+          disk-cache: true
+          repository-cache: true
 
       - name: Install Forge CLI
         run: |

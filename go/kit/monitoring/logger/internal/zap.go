@@ -64,7 +64,8 @@ func WithZapOutput(output io.Writer) ZapOption {
 }
 
 type zapLogger struct {
-	zap *zap.Logger
+	sugar *zap.SugaredLogger
+	ctx   context.Context
 }
 
 // NewZapLogger creates a new zap logger with optional configuration
@@ -82,80 +83,66 @@ func NewZapLogger(opts ...ZapOption) *zapLogger {
 	zapOptions = append(zapOptions,
 		zap.ErrorOutput(zapcore.AddSync(cfg.output)),
 	)
-	zl, err := cfg.Build(zapOptions...)
+	zl, err := cfg.Config.Build(zapOptions...)
 	if err != nil {
 		panic(err)
 	}
 
 	return &zapLogger{
-		zap: zl,
+		sugar: zl.Sugar(),
+		ctx:   context.Background(),
 	}
 }
 
 func (l *zapLogger) Enabled(level int) bool {
 	zapLevel := convertLevelToZapLevel(level)
-	return l.zap.Core().Enabled(zapLevel)
+	return l.sugar.Desugar().Core().Enabled(zapLevel)
 }
 
-// Context methods
-func (l *zapLogger) DebugContext(ctx context.Context, msg string, args ...any) {
-	l.zap.Debug(msg, l.convertArgsToZapFields(args...)...)
+func (l *zapLogger) WithContext(ctx context.Context) Logger {
+	return &zapLogger{
+		sugar: l.sugar,
+		ctx:   ctx,
+	}
 }
 
-func (l *zapLogger) InfoContext(ctx context.Context, msg string, args ...any) {
-	l.zap.Info(msg, l.convertArgsToZapFields(args...)...)
+func (l *zapLogger) WithFields(fields map[string]any) Logger {
+	args := make([]any, 0, len(fields)*2)
+	for k, v := range fields {
+		args = append(args, k, v)
+	}
+	return &zapLogger{
+		sugar: l.sugar.With(args...),
+		ctx:   l.ctx,
+	}
 }
 
-func (l *zapLogger) WarnContext(ctx context.Context, msg string, args ...any) {
-	l.zap.Warn(msg, l.convertArgsToZapFields(args...)...)
-}
-
-func (l *zapLogger) ErrorContext(ctx context.Context, msg string, args ...any) {
-	l.zap.Error(msg, l.convertArgsToZapFields(args...)...)
-}
-
-func (l *zapLogger) CriticalContext(ctx context.Context, msg string, args ...any) {
-	l.zap.Error(msg, l.convertArgsToZapFields(args...)...)
+func (l *zapLogger) WithKeysAndValues(keysAndValues ...any) Logger {
+	return &zapLogger{
+		sugar: l.sugar.With(keysAndValues...),
+		ctx:   l.ctx,
+	}
 }
 
 // Non-context methods
 func (l *zapLogger) Debug(msg string, args ...any) {
-	l.zap.Debug(msg, l.convertArgsToZapFields(args...)...)
+	l.sugar.Debugw(msg, args...)
 }
 
 func (l *zapLogger) Info(msg string, args ...any) {
-	l.zap.Info(msg, l.convertArgsToZapFields(args...)...)
+	l.sugar.Infow(msg, args...)
 }
 
 func (l *zapLogger) Warn(msg string, args ...any) {
-	l.zap.Warn(msg, l.convertArgsToZapFields(args...)...)
+	l.sugar.Warnw(msg, args...)
 }
 
 func (l *zapLogger) Error(msg string, args ...any) {
-	l.zap.Error(msg, l.convertArgsToZapFields(args...)...)
+	l.sugar.Errorw(msg, args...)
 }
 
 func (l *zapLogger) Critical(msg string, args ...any) {
-	l.zap.Error(msg, l.convertArgsToZapFields(args...)...)
-}
-
-func (l *zapLogger) convertArgsToZapFields(args ...any) []zap.Field {
-	if len(args) == 0 {
-		return nil
-	}
-
-	zapFields := make([]zap.Field, 0, len(args)/2)
-
-	for i := 0; i < len(args); i += 2 {
-		if i+1 >= len(args) {
-			break
-		}
-		if k, ok := args[i].(string); ok {
-			zapFields = append(zapFields, zap.Any(k, args[i+1]))
-		}
-	}
-
-	return zapFields
+	l.sugar.Errorw(msg, args...)
 }
 
 func convertLevelToZapLevel(level int) zapcore.Level {

@@ -2,94 +2,157 @@ package fixtures
 
 import (
 	"context"
-	"embed"
-	"flag"
-	"time"
+	"fmt"
+	"io/fs"
+	"regexp"
+	"sort"
+	"strings"
 
-	"github.com/kelseyhightower/envconfig"
-	"go.uber.org/fx"
-
-	"github.com/dosanma1/forge/go/kit/fields"
-	"github.com/dosanma1/forge/go/kit/monitoring"
 	"github.com/dosanma1/forge/go/kit/monitoring/logger"
-	"github.com/dosanma1/forge/go/kit/monitoring/tracer"
-	"github.com/dosanma1/forge/go/kit/persistence/gormcli"
-	"github.com/dosanma1/forge/go/kit/persistence/gormcli/gormpg"
-
-	tracermodule "github.com/dosanma1/forge/go/kit/monitoring/tracer/module"
+	"github.com/dosanma1/forge/go/kit/persistence/sqldb"
 )
 
-const (
-	timeoutBeforeShutdown = 5 * time.Second
-)
+// Flexible pattern: any number of digits followed by underscore
+// Supports: 0001_init.sql, 001_init.sql, 20250123000000_init.sql, etc.
+var filenamePattern = regexp.MustCompile(`^(\d+)_.*\.sql$`)
 
-var (
-	fixturesFS embed.FS
-)
+// loader handles loading SQL fixtures into a database.
+type loader struct {
+	db     *sqldb.DBClient
+	logger logger.Logger
+}
 
-// Run initializes and runs the fixture loading process with the provided embedded filesystem
-func Run(fixturesFolder embed.FS) {
-	fixturesFS = fixturesFolder
-	// Load configuration
-	cfg := configuration{}
-	err := envconfig.Process("", &cfg)
+// option configures a loader.
+type option func(*loader)
+
+// WithLogger sets a custom logger.
+func WithLogger(log logger.Logger) option {
+	return func(l *loader) {
+		l.logger = log
+	}
+}
+
+// defaultOptions returns the default options for a loader.
+func defaultOptions() []option {
+	return []option{
+		WithLogger(logger.New()),
+	}
+}
+
+// New creates a new loader with the given database and options.
+// DB parameter is required for explicit dependency management.
+func New(db *sqldb.DBClient, opts ...option) (*loader, error) {
+	if db == nil {
+		return nil, fmt.Errorf("db is required")
+	}
+
+	l := &loader{
+		db: db,
+	}
+
+	// Apply default options first, then user options
+	for _, opt := range append(defaultOptions(), opts...) {
+		opt(l)
+	}
+
+	return l, nil
+}
+
+// Load loads SQL fixtures from the embedded filesystem.
+func (l *loader) Load(ctx context.Context, fixturesFS fs.FS) error {
+	if err := l.db.DB().PingContext(ctx); err != nil {
+		return fmt.Errorf("database ping failed: %w", err)
+	}
+
+	files, err := readSQLFiles(fixturesFS)
 	if err != nil {
-		panic(fields.NewWrappedErr("load config failed: %v", err))
+		return err
 	}
 
-	// Define and parse command-line flags
-	flag.BoolVar(&cfg.dryRun, "dry-run", false, "Show what would be executed without running it")
-	flag.Parse()
-
-	app := configureAppModules(&cfg)
-	app.Run()
-}
-
-// configureAppModules sets up the FX application modules
-func configureAppModules(cfg *configuration) *fx.App {
-	return fx.New(
-		logger.FxModule(),
-		tracermodule.FxModule(),
-		monitoring.FxModule(),
-		gormpg.FxModule(),
-		fx.Invoke(newFixtureHandler(cfg)),
-	)
-}
-
-// newFixtureHandler creates an FX handler function
-func newFixtureHandler(cfg *configuration) func(
-	lc fx.Lifecycle,
-	shutdowner fx.Shutdowner,
-	monitor monitoring.Monitor,
-	db *gormcli.DBClient,
-) {
-	return func(
-		lc fx.Lifecycle,
-		shutdowner fx.Shutdowner,
-		monitor monitoring.Monitor,
-		db *gormcli.DBClient,
-	) {
-		handler := NewFixtureHandler(cfg, monitor, db)
-
-		lc.Append(fx.Hook{
-			OnStart: func(appCtx context.Context) error {
-				trace := monitor.Tracer()
-				ctx, _ := trace.Start(context.Background(), tracer.WithName("fixtures-"+cfg.ServiceName), tracer.WithSpanKind(tracer.SpanKindInternal))
-
-				err := handler.StartFixtureLoading(ctx)
-
-				// Always call exitApp to handle shutdown properly
-				go func() {
-					handler.exitApp(ctx, shutdowner, err)
-				}()
-
-				// Don't return the error to FX, let exitApp handle the exit code
-				return nil
-			},
-			OnStop: func(ctx context.Context) error {
-				monitor.Logger().DebugContext(ctx, "Fixtures OnStop")
-				return nil
-			},
-		})
+	if len(files) == 0 {
+		l.logger.Info("⚠️  No SQL fixture files found")
+		return nil
 	}
+
+	l.logger.Info("📁 Loading %d fixture file(s)", len(files))
+
+	// Use Transactioner for automatic commit/rollback
+	transactioner := sqldb.NewTransactioner(l.db.DB())
+
+	return transactioner.Exec(ctx, func(ctx context.Context) error {
+		// Get the transaction from context
+		tx := sqldb.GetTx(ctx, l.db.DB())
+
+		for _, filename := range files {
+			l.logger.Info("🔄 Executing: %s", filename)
+
+			content, err := fs.ReadFile(fixturesFS, filename)
+			if err != nil {
+				return fmt.Errorf("failed to read %s: %w", filename, err)
+			}
+
+			if _, err := tx.ExecContext(ctx, string(content)); err != nil {
+				return fmt.Errorf("failed to execute %s: %w", filename, err)
+			}
+
+			l.logger.Info("✅ Executed: %s", filename)
+		}
+
+		l.logger.Info("🎉 Successfully loaded %d fixture(s)", len(files))
+		return nil // Auto-commits on success
+	})
+}
+
+// Load is a convenience function that creates DB from environment and loads fixtures.
+func Load(ctx context.Context, fixturesFS fs.FS) error {
+	// Create DB from environment variables
+	dsn, err := sqldb.NewDSN(sqldb.DriverTypePostgres)
+	if err != nil {
+		return fmt.Errorf("failed to generate DSN: %w", err)
+	}
+
+	db, err := sqldb.Connect(dsn)
+	if err != nil {
+		return fmt.Errorf("failed to connect: %w", err)
+	}
+	defer db.Close()
+
+	sqldb.ConfigureDefaultPool(db)
+	dbClient := sqldb.NewDBClient(db)
+
+	loader, err := New(dbClient)
+	if err != nil {
+		return err
+	}
+
+	return loader.Load(ctx, fixturesFS)
+}
+
+// readSQLFiles reads and validates SQL files.
+func readSQLFiles(fixturesFS fs.FS) ([]string, error) {
+	entries, err := fs.ReadDir(fixturesFS, ".")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read embedded filesystem: %w", err)
+	}
+
+	var files []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name()
+		if !strings.HasSuffix(name, ".sql") {
+			continue
+		}
+
+		if !filenamePattern.MatchString(name) {
+			return nil, fmt.Errorf("invalid fixture filename '%s': must match pattern <digits>_name.sql (e.g., 0001_init.sql)", name)
+		}
+
+		files = append(files, name)
+	}
+
+	sort.Strings(files)
+	return files, nil
 }

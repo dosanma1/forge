@@ -40,6 +40,12 @@ type LogFields map[string]any
 type Logger interface {
 	Enabled(level int) bool
 
+	WithContext(ctx context.Context) Logger
+	WithFields(fields LogFields) Logger
+	WithKeysAndValues(keysAndValues ...any) Logger
+
+	IsLevelEnabled(level LogLevel) bool
+
 	// Context-aware methods
 	DebugContext(ctx context.Context, msg string, args ...any)
 	InfoContext(ctx context.Context, msg string, args ...any)
@@ -94,6 +100,60 @@ func defaultConfig() []Option {
 	}
 }
 
+// loggerAdapter wraps internal.Logger and adds IsLevelEnabled method
+type loggerAdapter struct {
+	internal.Logger
+}
+
+func (l *loggerAdapter) IsLevelEnabled(level LogLevel) bool {
+	return l.Enabled(int(level))
+}
+
+func (l *loggerAdapter) WithContext(ctx context.Context) Logger {
+	return &loggerAdapter{Logger: l.Logger.WithContext(ctx)}
+}
+
+func (l *loggerAdapter) WithFields(fields LogFields) Logger {
+	return &loggerAdapter{Logger: l.Logger.WithFields(fields)}
+}
+
+func (l *loggerAdapter) WithKeysAndValues(keysAndValues ...any) Logger {
+	return &loggerAdapter{Logger: l.Logger.WithKeysAndValues(keysAndValues...)}
+}
+
+func (l *loggerAdapter) DebugContext(ctx context.Context, msg string, args ...any) {
+	if l.Logger != nil {
+		l.Logger.WithContext(ctx).Debug(msg, args...)
+	}
+}
+
+func (l *loggerAdapter) InfoContext(ctx context.Context, msg string, args ...any) {
+	if l.Logger != nil {
+		l.Logger.WithContext(ctx).Info(msg, args...)
+	}
+}
+
+func (l *loggerAdapter) WarnContext(ctx context.Context, msg string, args ...any) {
+	if l.Logger != nil {
+		l.Logger.WithContext(ctx).Warn(msg, args...)
+	}
+}
+
+func (l *loggerAdapter) ErrorContext(ctx context.Context, msg string, args ...any) {
+	if l.Logger != nil {
+		// Try to cast to internal logger if it supports context, or just fallback
+		// internal/logger.go interface has WithContext which returns a Logger.
+		// We should use that.
+		l.Logger.WithContext(ctx).Error(msg, args...)
+	}
+}
+
+func (l *loggerAdapter) CriticalContext(ctx context.Context, msg string, args ...any) {
+	if l.Logger != nil {
+		l.Logger.WithContext(ctx).Critical(msg, args...)
+	}
+}
+
 // New creates a new logger with optional configuration
 func New(opts ...Option) Logger {
 	cfg := &config{}
@@ -109,12 +169,15 @@ func New(opts ...Option) Logger {
 		opt(cfg)
 	}
 
+	var internalLogger internal.Logger
 	switch cfg.loggerType {
 	case SlogLogger:
-		return internal.NewSlogLogger(internal.WithSlogLevel(int(cfg.level)))
+		internalLogger = internal.NewSlogLogger(internal.WithSlogLevel(int(cfg.level)))
 	case ZapLogger:
 		fallthrough
 	default:
-		return internal.NewZapLogger(internal.WithZapLevel(int(cfg.level)))
+		internalLogger = internal.NewZapLogger(internal.WithZapLevel(int(cfg.level)))
 	}
+
+	return &loggerAdapter{Logger: internalLogger}
 }

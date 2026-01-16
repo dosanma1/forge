@@ -7,7 +7,6 @@ import (
 
 type Configuration struct {
 	ServiceName string     `required:"true" envconfig:"SVC_NAME"`
-	LoggerConn  string     `required:"false" envconfig:"LOGGER_CONN"`
 	LogLevel    string     `required:"false" envconfig:"LOG_LEVEL" default:"info"`
 	LoggerType  LoggerType `required:"false" envconfig:"LOGGER_TYPE" default:"zap"`
 }

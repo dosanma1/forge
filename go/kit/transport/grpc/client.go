@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dosanma1/forge/go/kit/generics"
+	"github.com/dosanma1/forge/go/kit/instance"
 	"github.com/dosanma1/forge/go/kit/transport"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -41,7 +41,7 @@ func NewClientEndpoint[EI, EO, DI, DO any](
 		}
 
 		var header, trailer metadata.MD
-		grpcReply := generics.New[DI]()
+		grpcReply := instance.New[DI]()
 		if err = client.Invoke(ctx, fmtMethodName(serviceName.ServiceName, method), req, grpcReply, grpc.Header(&header), grpc.Trailer(&trailer)); err != nil {
 			return zero, err
 		}

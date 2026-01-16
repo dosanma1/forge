@@ -3,10 +3,8 @@ package authtest
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/dosanma1/forge/go/kit/auth"
-	"github.com/dosanma1/forge/go/kit/errors"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -22,28 +20,41 @@ func (a *httpAuthenticator) Authenticate(r *http.Request) error {
 	return nil
 }
 
+// grpcAuthenticator always authenticates the given subject.
+// Use this in tests where you need a fixed authenticated user without
+// parsing real auth headers.
 type grpcAuthenticator struct {
+	subject string
 }
 
-func NewGRPCAuthenticator() *grpcAuthenticator {
-	return &grpcAuthenticator{}
+type grpcAuthenticatorOption func(*grpcAuthenticator)
+
+func defaultOptions() []grpcAuthenticatorOption {
+	return []grpcAuthenticatorOption{
+		WithGrpcAuthenticatorSubject("test-user-123"),
+	}
+}
+
+func WithGrpcAuthenticatorSubject(subject string) grpcAuthenticatorOption {
+	return func(a *grpcAuthenticator) {
+		a.subject = subject
+	}
+}
+
+func NewGrpcAuthenticator(opts ...grpcAuthenticatorOption) *grpcAuthenticator {
+	authenticator := &grpcAuthenticator{}
+	for _, option := range append(defaultOptions(), opts...) {
+		option(authenticator)
+	}
+	return authenticator
 }
 
 func (a *grpcAuthenticator) Authenticate(ctx context.Context, md metadata.MD) (context.Context, error) {
-	authHeaders := md.Get(auth.AuthorizationHeader)
-	if len(authHeaders) == 0 {
-		return nil, errors.Unauthorized("Authorization header is required")
-	}
-	authHeader := authHeaders[0]
-
-	token, err := auth.NewToken(
-		strings.TrimPrefix(authHeader, auth.BearerPrefix),
-		auth.TokenTypeFirebase,
-		NewTokenClaims(strings.TrimPrefix(authHeader, auth.BearerPrefix)),
+	// Create a token with the fixed subject
+	token, _ := auth.NewToken(
+		"mock-token",
+		auth.TokenTypeJWT,
+		NewTokenClaims(a.subject),
 	)
-	if err != nil {
-		return nil, err
-	}
-
 	return auth.InjectTokenInCtx(ctx, token), nil
 }

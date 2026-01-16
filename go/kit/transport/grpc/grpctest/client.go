@@ -11,8 +11,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/grpc/resolver"
-	"google.golang.org/grpc/test/bufconn"
 )
 
 const bufferSize = 1024 * 1024
@@ -37,34 +35,44 @@ func NewServer(t *testing.T, controller transportgrpc.Controller, opts ...server
 		opt(cfg)
 	}
 
-	lis := bufconn.Listen(bufferSize)
+	// Use real TCP listener to avoid bufconn deadlocks
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Failed to listen: %v", err)
+	}
+	
 	s := grpc.NewServer()
 	s.RegisterService(controller.SD(), controller)
 	reflection.Register(s)
 	go func() {
 		if err := s.Serve(lis); err != nil {
-			log.Fatalf("Server exited with error: %v", err)
+			// Do not fatal here as it kills the test process. Just log.
+			// s.Serve returns nil on Stop(), so this only catches actual errors.
+			log.Printf("Server exited with error: %v", err)
 		}
 	}()
 
-	resolver.SetDefaultScheme("passthrough")
-	dialer := grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
-		return lis.Dial()
-	})
-
+	// No custom dialer needed for real TCP
 	cfg.clientOptions = append(
 		cfg.clientOptions,
-		dialer,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 
-	conn, err := grpc.NewClient("", cfg.clientOptions...)
+	conn, err := grpc.NewClient(lis.Addr().String(), cfg.clientOptions...)
 	assert.NoError(t, err)
 
 	t.Cleanup(func() {
-		s.Stop()
-		err := conn.Close()
-		assert.NoError(t, err)
+		// Close client connection first to ensure no new requests specific to this test
+		// log.Printf("Closing client connection...")
+		_ = conn.Close()
+
+		// Explicitly close listener to ensure Serve returns immediately
+		// log.Printf("Closing listener...")
+		_ = lis.Close()
+		
+		// Stop the server in a goroutine to prevent blocking if it waits for connections
+		// log.Printf("Stopping server...")
+		go s.Stop()
 	})
 
 	return conn

@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "slices.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/slicesx",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "slices_bench_test.go",
+        "slices_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

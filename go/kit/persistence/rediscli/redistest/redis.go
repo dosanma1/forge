@@ -10,7 +10,6 @@ import (
 
 	"github.com/dosanma1/forge/go/kit/monitoring"
 	"github.com/dosanma1/forge/go/kit/monitoring/logger"
-	"github.com/dosanma1/forge/go/kit/monitoring/tracer/tracertest"
 	"github.com/dosanma1/forge/go/kit/persistence/rediscli"
 
 	"github.com/orlangure/gnomock/preset/redis"
@@ -25,12 +24,7 @@ var (
 
 type db struct {
 	*rediscli.Client
-	tracer   *tracertest.Recorder
 	ConnAddr string
-}
-
-func (db *db) Tracer() *tracertest.Recorder {
-	return db.tracer
 }
 
 func GetDB(t *testing.T) *db {
@@ -42,7 +36,8 @@ func GetDB(t *testing.T) *db {
 				logger.WithType(logger.ZapLogger),
 				logger.WithLevel(logger.LogLevelDebug),
 			)
-			monitor := monitoring.New(loggerInstance, tracertest.NewRecorderTracer())
+			// Pass a recorder tracer to satisfy monitoring.New requirements, even if unused by rediscli
+			monitor := monitoring.New(loggerInstance)
 			database = helperCreateRedisContainer(t, monitor)
 		})
 
@@ -66,7 +61,6 @@ func helperCreateRedisContainer(t *testing.T, m monitoring.Monitor) *db {
 
 	return &db{
 		Client:   client,
-		tracer:   m.Tracer().(*tracertest.Recorder),
 		ConnAddr: addr,
 	}
 }

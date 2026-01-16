@@ -1,27 +1,27 @@
 package resource
 
 import (
-	"github.com/dosanma1/forge/go/kit/kslices"
-	"github.com/dosanma1/forge/go/kit/resource/pb"
+	resourcepb "github.com/dosanma1/forge/go/kit/resource/resourcepb"
+	"github.com/dosanma1/forge/go/kit/slicesx"
 	"github.com/dosanma1/forge/go/kit/transport/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToProto(resource Resource) *pb.Resource {
-	if resource == nil {
-		return &pb.Resource{}
+func ToProto(r Resource) *resourcepb.Resource {
+	if r == nil {
+		return &resourcepb.Resource{}
 	}
 
-	return &pb.Resource{
-		Id:        resource.ID(),
-		CreatedAt: timestamppb.New(resource.CreatedAt()),
-		UpdatedAt: timestamppb.New(resource.UpdatedAt()),
-		DeletedAt: grpc.TimePointerToTimestamp(resource.DeletedAt()),
-		Type:      resource.Type().String(),
+	return &resourcepb.Resource{
+		Id:        r.ID(),
+		CreatedAt: timestamppb.New(r.CreatedAt()),
+		UpdatedAt: timestamppb.New(r.UpdatedAt()),
+		DeletedAt: grpc.TimePointerToTimestamp(r.DeletedAt()),
+		Type:      r.Type().String(),
 	}
 }
 
-func FromProto(r *pb.Resource) Resource {
+func FromProto(r *resourcepb.Resource) Resource {
 	if r == nil {
 		return nil
 	}
@@ -34,21 +34,21 @@ func FromProto(r *pb.Resource) Resource {
 	}
 }
 
-func IdentifiersToProto(rs []Identifier) []*pb.ResourceIdentifier {
-	return kslices.Map(rs, IdentifierToProto)
+func IdentifiersToProto(rs []Identifier) []*resourcepb.ResourceIdentifier {
+	return slicesx.Map(rs, IdentifierToProto)
 }
 
-func IdentifierToProto(r Identifier) *pb.ResourceIdentifier {
+func IdentifierToProto(r Identifier) *resourcepb.ResourceIdentifier {
 	if r == nil {
-		return &pb.ResourceIdentifier{}
+		return &resourcepb.ResourceIdentifier{}
 	}
-	return &pb.ResourceIdentifier{
+	return &resourcepb.ResourceIdentifier{
 		Id:   r.ID(),
 		Type: r.Type().String(),
 	}
 }
 
-func IdentifierFromProto(r *pb.ResourceIdentifier) Identifier {
+func IdentifierFromProto(r *resourcepb.ResourceIdentifier) Identifier {
 	if r == nil {
 		return nil
 	}

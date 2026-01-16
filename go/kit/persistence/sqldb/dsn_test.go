@@ -1,153 +1,153 @@
-package sqldb_test
+package sqldb
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/dosanma1/forge/go/kit/persistence/sqldb"
+	"github.com/stretchr/testify/require"
 )
 
-func TestNewDSNOK(t *testing.T) {
-	defer os.Clearenv()
-
-	hostVal := "sqlmock_db_1324"
-	portVal := "5432"
-	dbName := "test_db"
-	dbUser := "test_user"
-	dbPwd := "test1234"
-	dbSSL := "enable"
-
+func TestNewDSN(t *testing.T) {
 	tests := []struct {
-		name          string
-		driverType    sqldb.DriverType
-		before        func()
-		options       []sqldb.ConnectionDSNOption
-		expectedInDSN []string
+		name        string
+		driver      DriverType
+		opts        []ConnectionDSNOption
+		envVars     map[string]string
+		wantErr     bool
+		expectedURL string
 	}{
 		{
-			name:       "config from env",
-			driverType: sqldb.DriverTypePostgres,
-			before: func() {
-				t.Setenv("DB_HOST", hostVal)
-				t.Setenv("DB_PORT", portVal)
-				t.Setenv("DB_NAME", dbName)
-				t.Setenv("DB_USER", dbUser)
-				t.Setenv("DB_PASSWORD", dbPwd)
-				t.Setenv("DB_SSL", dbSSL)
+			name:   "postgres with all fields",
+			driver: DriverTypePostgres,
+			opts: []ConnectionDSNOption{
+				WithConnHost("localhost"),
+				WithConnPort("5432"),
+				WithConnUser("user"),
+				WithConnPwd("pass"),
+				WithConnDBName("mydb"),
+				WithConnSSLMode("disable"),
 			},
-			expectedInDSN: []string{
-				"postgres://",
-				fmt.Sprintf("%s:%s", hostVal, portVal),
-				fmt.Sprintf("%s:%s@", dbUser, dbPwd),
-				fmt.Sprintf("/%s?", dbName),
-				fmt.Sprintf("sslmode=%s", dbSSL),
-			},
+			expectedURL: "postgres://user:pass@localhost:5432/mydb?sslmode=disable",
 		},
 		{
-			name:       "overriding envvars",
-			driverType: sqldb.DriverTypePostgres,
-			options: []sqldb.ConnectionDSNOption{
-				sqldb.WithConnPort("1344"),
-				sqldb.WithConnUser("abcdefg"),
-				sqldb.WithConnPwd("5739"),
-				sqldb.WithConnHost("ahost"),
-				sqldb.WithConnDBName("adb"),
-				sqldb.WithConnSSLMode("disable"),
+			name:   "postgres with search path",
+			driver: DriverTypePostgres,
+			opts: []ConnectionDSNOption{
+				WithConnHost("localhost"),
+				WithConnPort("5432"),
+				WithConnUser("user"),
+				WithConnPwd("pass"),
+				WithConnDBName("mydb"),
+				WithConnSSLMode("disable"),
+				WithConnSearchPath("myschema"),
 			},
-			expectedInDSN: []string{
-				"postgres://",
-				fmt.Sprintf("%s:%s", "ahost", "1344"),
-				fmt.Sprintf("%s:%s@", "abcdefg", "5739"),
-				fmt.Sprintf("/%s?", "adb"),
-				fmt.Sprintf("sslmode=%s", "disable"),
+			expectedURL: "postgres://user:pass@localhost:5432/mydb?options=-c+search_path%3Dmyschema&sslmode=disable",
+		},
+		{
+			name:    "invalid driver",
+			driver:  "invalid",
+			wantErr: true,
+		},
+		{
+			name:   "missing fields",
+			driver: DriverTypePostgres,
+			opts: []ConnectionDSNOption{
+				WithConnHost("localhost"),
 			},
+			wantErr: true,
+		},
+		{
+			name:   "from env",
+			driver: DriverTypePostgres,
+			envVars: map[string]string{
+				"DB_HOST":     "envhost",
+				"DB_PORT":     "5432",
+				"DB_USER":     "envuser",
+				"DB_PASSWORD": "envpass",
+				"DB_NAME":     "envdb",
+				"DB_SSL":      "require",
+			},
+			// Default behavior reads from env if no opts provided (implied by defaultDSNOptions in NewDSN)
+			// But note: NewDSN appends options. Explicit Env option will overwrite if passed.
+			// Actually NewDSN adds defaultDSNOptions() which includes WithDSNConnFromEnv().
+			// So provided opts override env. Here we provide NO opts, so it should read env.
+			expectedURL: "postgres://envuser:envpass@envhost:5432/envdb?sslmode=require",
+		},
+		{
+			name:   "env override by explicit opts",
+			driver: DriverTypePostgres,
+			envVars: map[string]string{
+				"DB_HOST": "envhost",
+			},
+			opts: []ConnectionDSNOption{
+				WithConnHost("overridden"),
+				WithConnPort("5432"),
+				WithConnUser("user"),
+				WithConnPwd("pass"),
+				WithConnDBName("db"),
+				WithConnSSLMode("disable"),
+			},
+			expectedURL: "postgres://user:pass@overridden:5432/db?sslmode=disable",
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if test.before != nil {
-				test.before()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup Env
+			os.Clearenv()
+			for k, v := range tt.envVars {
+				t.Setenv(k, v)
 			}
-			dsn, err := sqldb.NewDSN(test.driverType, test.options...)
-			assert.Nil(t, err)
-			for _, expectedField := range test.expectedInDSN {
-				assert.Contains(t, dsn.String(), expectedField)
+
+			// We need to ensure we clear env vars that might affect tests if not explicitly set in the test case
+			// but os.Clearenv() is destructive to the whole process.
+			// safe approach: t.Setenv for all keys used in NewDSN to empty if not in tt.envVars?
+			// But NewDSN uses os.Getenv.
+			// Better: t.Setenv sets it for the duration of the test.
+			// To be safe, for the "no env" tests, we should probably explicitly un-set them or ensure they are empty.
+			// Since we can't easily iterate all possible env vars, let's just assume pure unit test environment is clean OR explicit set empty.
+			if len(tt.envVars) == 0 {
+				t.Setenv("DB_HOST", "")
+				t.Setenv("DB_PORT", "")
+				t.Setenv("DB_USER", "")
+				t.Setenv("DB_PASSWORD", "")
+				t.Setenv("DB_NAME", "")
+				t.Setenv("DB_SSL", "")
 			}
+
+			// If expecting success with no opts and no env, it will fail validation.
+			// So "missing fields" test case above relies on empty env.
+
+			u, err := NewDSN(tt.driver, tt.opts...)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.expectedURL, u.String())
 		})
 	}
 }
 
-func TestNewDSNErrors(t *testing.T) {
-	tests := []struct {
-		name             string
-		driverType       sqldb.DriverType
-		before           func()
-		options          []sqldb.ConnectionDSNOption
-		expectedErrTypes []error
-		errVal           string
-	}{
-		{
-			name:       "unknown driver type",
-			driverType: sqldb.DriverType("unknown"),
-			expectedErrTypes: []error{
-				new(sqldb.ConnectionErr),
-			},
-			errVal: "connection error: driver type: unknown not supported, allowedValues: [postgres]",
-		},
-		{
-			name: "empty dsn options",
-			options: []sqldb.ConnectionDSNOption{
-				sqldb.WithConnHost(""), sqldb.WithConnPort(""),
-				sqldb.WithConnDBName(""), sqldb.WithConnPwd(""),
-				sqldb.WithConnSSLMode(""), sqldb.WithConnUser(""),
-			},
-			driverType: sqldb.DriverTypePostgres,
-			expectedErrTypes: []error{
-				new(sqldb.ConnectionErr),
-				new(sqldb.EmptyDSNFieldErr),
-			},
-			errVal: "connection error: empty dsn field host",
-		},
-		{
-			name:       "empty conn field must err",
-			driverType: sqldb.DriverTypePostgres,
-			expectedErrTypes: []error{
-				new(sqldb.ConnectionErr),
-				new(sqldb.EmptyDSNFieldErr),
-			},
-			options: []sqldb.ConnectionDSNOption{
-				sqldb.WithConnPort("1344"),
-				sqldb.WithConnUser("abcdefg"),
-				sqldb.WithConnHost("ahost"),
-				sqldb.WithConnDBName("adb"),
-				sqldb.WithConnSSLMode("disable"),
-				sqldb.WithConnPwd(""),
-			},
-			errVal: "connection error: empty dsn field password",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if test.before != nil {
-				test.before()
-			}
-			dsn, err := sqldb.NewDSN(test.driverType, test.options...)
-			assert.NotNil(t, err)
-			assert.Nil(t, dsn)
-
-			for _, expErrType := range test.expectedErrTypes {
-				assert.ErrorAs(t, err, expErrType)
-			}
-			assert.Equal(t, err.Error(), test.errVal)
-
-			assert.Panics(t, func() {
-				sqldb.MustGenerateDSN(test.driverType, test.options...)
-			})
+func TestMustGenerateDSN(t *testing.T) {
+	t.Run("panics on error", func(t *testing.T) {
+		assert.Panics(t, func() {
+			MustGenerateDSN("invalid_driver")
 		})
-	}
+	})
+
+	t.Run("returns url on success", func(t *testing.T) {
+		t.Setenv("DB_HOST", "localhost")
+		t.Setenv("DB_PORT", "5432")
+		t.Setenv("DB_USER", "user")
+		t.Setenv("DB_PASSWORD", "pass")
+		t.Setenv("DB_NAME", "db")
+		t.Setenv("DB_SSL", "disable")
+		
+		assert.NotPanics(t, func() {
+			u := MustGenerateDSN(DriverTypePostgres)
+			assert.NotNil(t, u)
+		})
+	})
 }

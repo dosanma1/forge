@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/dosanma1/forge/go/kit/auth"
-	"github.com/dosanma1/forge/go/kit/monitoring/tracer"
 	"go.uber.org/fx"
 )
 
@@ -40,7 +39,7 @@ func FxModule(opts ...serverOption) fx.Option {
 			),
 		),
 		fx.Invoke(
-			fx.Annotate(func(lc fx.Lifecycle, t tracer.Tracer, opts []serverOption) *http.Server {
+			fx.Annotate(func(lc fx.Lifecycle, opts []serverOption) *http.Server {
 				cfg := &serverConfig{
 					shutdownTimeout: defaultShutdownTimeout,
 				}
@@ -49,7 +48,7 @@ func FxModule(opts ...serverOption) fx.Option {
 					opt(cfg)
 				}
 
-				g := New(t, opts...)
+				g := New(opts...)
 
 				lc.Append(fx.Hook{
 					OnStart: func(context.Context) error {
@@ -73,7 +72,7 @@ func FxModule(opts ...serverOption) fx.Option {
 				})
 
 				return g
-			}, fx.ParamTags(``, ``, `group:"restGatewayOptions"`)),
+			}, fx.ParamTags(``, `group:"restGatewayOptions"`)),
 		),
 	)
 }

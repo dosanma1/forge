@@ -2,18 +2,11 @@ load("@rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = [
-        "helpers.go",
-        "matchers.go",
-        "resource_stub.go",
-    ],
+    srcs = ["resource.go"],
     importpath = "github.com/dosanma1/forge/go/kit/resource/resourcetest",
     visibility = ["//visibility:public"],
     deps = [
         "//go/kit/resource:go_default_library",
-        "//go/kit/resource/pb:go_default_library",
         "@com_github_google_uuid//:go_default_library",
-        "@com_github_stretchr_testify//assert:go_default_library",
-        "@com_github_stretchr_testify//require:go_default_library",
     ],
 )

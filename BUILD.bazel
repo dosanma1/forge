@@ -4,8 +4,7 @@ load("@gazelle//:def.bzl", "gazelle")
 # gazelle:go_naming_convention go_default_library
 
 # gazelle:resolve go github.com/dosanma1/forge/go/kit //go/kit:go_default_library
-# gazelle:resolve go github.com/dosanma1/forge/go/kit/filter/proto //go/kit/filter/proto:go_default_library
 # gazelle:resolve go github.com/dosanma1/forge/go/kit/resource/proto //go/kit/resource/proto:go_default_library
-# gazelle:resolve go github.com/dosanma1/forge/go/kit/transport/grpc/proto //go/kit/transport/grpc/proto:go_default_library
+# gazelle:resolve go github.com/dosanma1/forge/go/kit/transport/grpc/grpctest/proto //go/kit/transport/grpc/grpctest/proto:go_default_library
 
 gazelle(name = "gazelle")

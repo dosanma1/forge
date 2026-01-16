@@ -11,7 +11,5 @@ go_library(
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//credentials/insecure:go_default_library",
         "@org_golang_google_grpc//reflection:go_default_library",
-        "@org_golang_google_grpc//resolver:go_default_library",
-        "@org_golang_google_grpc//test/bufconn:go_default_library",
     ],
 )

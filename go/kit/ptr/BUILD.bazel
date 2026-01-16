@@ -3,6 +3,7 @@ load("@rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "doc.go",
         "of.go",
         "to.go",
     ],
@@ -16,5 +17,8 @@ go_test(
         "of_test.go",
         "to_test.go",
     ],
-    deps = [":go_default_library"],
+    deps = [
+        ":go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
 )

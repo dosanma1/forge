@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["database.go"],
+    data = glob(["migrations/*.sql"]),
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/sqldb/sqldbtest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/persistence/sqldb:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
+        "@com_github_orlangure_gnomock//:go_default_library",
+        "@com_github_orlangure_gnomock//preset/postgres:go_default_library",
+    ],
+)

@@ -5,8 +5,5 @@ go_library(
     srcs = ["search.go"],
     importpath = "github.com/dosanma1/forge/go/kit/search",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/kit/fields:go_default_library",
-        "//go/kit/search/query:go_default_library",
-    ],
+    deps = ["//go/kit/search/query:go_default_library"],
 )

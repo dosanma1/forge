@@ -12,7 +12,5 @@ go_library(
         "//go/kit/monitoring:go_default_library",
         "//go/kit/monitoring/logger:go_default_library",
         "//go/kit/monitoring/logger/loggertest:go_default_library",
-        "//go/kit/monitoring/tracer:go_default_library",
-        "//go/kit/monitoring/tracer/tracertest:go_default_library",
     ],
 )

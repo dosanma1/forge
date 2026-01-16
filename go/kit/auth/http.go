@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"github.com/dosanma1/forge/go/kit/auth/jwt"
 	"github.com/dosanma1/forge/go/kit/firebase"
 )
 
@@ -10,9 +11,14 @@ type httpAuthenticator struct {
 	baseAuthenticator[*http.Request]
 }
 
-func NewHttpAuthenticator(tokenExtractor TokenExtractor[*http.Request], contextInjector ContextInjector, firebaseClient firebase.Client) *httpAuthenticator {
+func NewHttpAuthenticator(
+	tokenExtractor TokenExtractor[*http.Request],
+	contextInjector ContextInjector,
+	firebaseClient firebase.Client,
+	hmacValidator jwt.Validator,
+) *httpAuthenticator {
 	return &httpAuthenticator{
-		baseAuthenticator: *NewBaseAuthenticator(tokenExtractor, contextInjector, firebaseClient),
+		baseAuthenticator: *NewBaseAuthenticator(tokenExtractor, contextInjector, firebaseClient, hmacValidator),
 	}
 }
 
@@ -22,12 +28,12 @@ func (a *httpAuthenticator) Authenticate(r *http.Request) error {
 		return err
 	}
 
-	err = a.ValidateToken(r.Context(), token)
+	verifiedToken, err := a.ValidateToken(r.Context(), token)
 	if err != nil {
 		return err
 	}
 
-	ctx, err := a.contextInjector.Inject(r.Context(), token)
+	ctx, err := a.contextInjector.Inject(r.Context(), verifiedToken)
 	if err != nil {
 		return err
 	}

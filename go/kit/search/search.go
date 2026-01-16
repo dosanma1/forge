@@ -1,13 +1,7 @@
 package search
 
 import (
-	"github.com/dosanma1/forge/go/kit/fields"
 	"github.com/dosanma1/forge/go/kit/search/query"
-)
-
-const (
-	FieldNameSearch  fields.Name = "search"
-	FieldNameOptions fields.Name = "options"
 )
 
 type Search interface {

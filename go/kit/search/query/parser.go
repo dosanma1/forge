@@ -2,13 +2,14 @@ package query
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/dosanma1/forge/go/kit/fields"
+	kiterrors "github.com/dosanma1/forge/go/kit/errors"
 	"github.com/dosanma1/forge/go/kit/filter"
 )
 
@@ -72,19 +73,19 @@ func MarshalOperator(op filter.Operator) string {
 	return OperatorStrings[op]
 }
 
-func parseFilter(filterKey string) (fields.Name, filter.Operator, error) {
+func parseFilter(filterKey string) (string, filter.Operator, error) {
 	split := strings.Split(filterKey, "[")
 	if len(split) != filterSplits {
-		return "", filter.OpUndefined, fields.NewErrInvalid(filterKey, ErrInvalidFilterFormat)
+		return "", filter.OpUndefined, kiterrors.InvalidArgument(fmt.Sprintf("invalid filter format: %s", filterKey))
 	}
 
 	fName := strings.ReplaceAll(split[1], "]", "")
 	op := ParseOperator(strings.ReplaceAll(split[2], "]", ""))
 	if op == filter.OpUndefined {
-		return "", filter.OpUndefined, fields.NewErrInvalid(op, ErrInvalidOperator)
+		return "", filter.OpUndefined, kiterrors.InvalidArgument(fmt.Sprintf("invalid operator: %s", split[2]))
 	}
 
-	return fields.Name(fName), op, nil
+	return fName, op, nil
 }
 
 func parseValue(op filter.Operator, val []string) any {
@@ -138,13 +139,13 @@ func paginationFromURL(uri *url.URL, defaultIfEmpty bool) (opt Option, err error
 	if l != "" {
 		limit, err = strconv.Atoi(l)
 		if err != nil || limit < 0 {
-			return nil, fields.NewErrInvalidValue(FieldNamePagination.Merge(fields.Name("limit")), l)
+			return nil, kiterrors.InvalidArgument(fmt.Sprintf("invalid limit: %s", l))
 		}
 	}
 	if o != "" {
 		offset, err = strconv.Atoi(o)
 		if err != nil || offset < 0 {
-			return nil, fields.NewErrInvalidValue(FieldNamePagination.Merge(fields.Name("offset")), o)
+			return nil, kiterrors.InvalidArgument(fmt.Sprintf("invalid offset: %s", o))
 		}
 	}
 	return Pagination(limit, offset), nil
@@ -156,15 +157,10 @@ func includedResourceObjectsFromURL(uri *url.URL) []Option {
 		return opts
 	}
 	if vals, exist := uri.Query()["include"]; exist && len(vals) > 0 {
-		fNames := []fields.Name{}
+		fNames := []string{}
 		for _, val := range vals {
 			for _, multiVal := range strings.Split(val, ",") { // multiple params splitted by coma for same value
-				splitVals := strings.Split(multiVal, ".")
-				fName := fields.Name(splitVals[0])
-				for i := 1; i < len(splitVals); i++ {
-					fName = fName.Merge(fields.Name(splitVals[i]))
-				}
-				fNames = append(fNames, fName)
+				fNames = append(fNames, multiVal)
 			}
 		}
 		opts = append(opts, IncludedResourceObjects(fNames...))

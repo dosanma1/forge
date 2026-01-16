@@ -11,7 +11,6 @@ go_library(
     deps = [
         "//go/kit/monitoring:go_default_library",
         "//go/kit/monitoring/logger:go_default_library",
-        "//go/kit/monitoring/tracer/tracertest:go_default_library",
         "//go/kit/persistence/rediscli:go_default_library",
         "@com_github_orlangure_gnomock//:go_default_library",
         "@com_github_orlangure_gnomock//preset/redis:go_default_library",

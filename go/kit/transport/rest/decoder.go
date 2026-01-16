@@ -9,13 +9,12 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/dosanma1/forge/go/kit/application/repository"
+	"github.com/dosanma1/forge/go/kit/auth"
 	"github.com/dosanma1/forge/go/kit/errors"
-	"github.com/dosanma1/forge/go/kit/fields"
 	"github.com/dosanma1/forge/go/kit/filter"
-	"github.com/dosanma1/forge/go/kit/resource"
 	"github.com/dosanma1/forge/go/kit/search/query"
 )
+
 
 type DecodeRequestFunc func(context.Context, *http.Request) (request interface{}, err error)
 
@@ -52,6 +51,7 @@ func NewHTTPDecoder[O any](
 		return out, nil
 	}
 }
+
 
 func QueryOptsFromReq(parseOpts ...query.ParseOpt) func(ctx context.Context, r *http.Request) ([]query.Option, error) {
 	return func(_ context.Context, r *http.Request) ([]query.Option, error) {
@@ -97,21 +97,21 @@ func DecodeGetReq(parseOpts []query.ParseOpt, opts ...getDecoderOpt) func(_ cont
 		}
 
 		if id != "" {
-			opts = append(opts, query.FilterBy(filter.OpEq, fields.NameID, id))
+			opts = append(opts, query.FilterBy(filter.OpEq, "id", id))
 		}
 
 		return opts, nil
 	}
 }
 
-func decodeResourceReq[R resource.Resource, O any](
+func decodeResourceReq[R any, O any](
 	mapper func(O) R,
 ) func(_ context.Context, req *http.Request) (R, error) {
 	return func(_ context.Context, req *http.Request) (R, error) {
 		createReq := new(O)
 		err := json.NewDecoder(req.Body).Decode(&createReq)
 		var zero R
-		if err != nil || reflect.DeepEqual(createReq, zero) {
+		if err != nil || reflect.DeepEqual(createReq, new(O)) {
 			return zero, errors.InvalidArgument("invalid request body")
 		}
 
@@ -119,40 +119,14 @@ func decodeResourceReq[R resource.Resource, O any](
 	}
 }
 
-func decodePatchReq[T resource.Resource](
-	kind resource.Type,
-	mapper func(T) []repository.PatchOption,
-) func(_ context.Context, req *http.Request) ([]repository.PatchOption, error) {
-	return func(_ context.Context, req *http.Request) ([]repository.PatchOption, error) {
-		updateReq := new(T)
-		dec := json.NewDecoder(req.Body)
-		// dec.DisallowUnknownFields()
-		err := dec.Decode(&updateReq)
-		if err != nil {
-			return nil, errors.InvalidArgument("invalid request body")
-		}
-
-		r := func(t *T) T { return *t }(updateReq)
-
-		if err := validateUpdateReqData(kind, r); err != nil {
-			return nil, err
-		}
-
-		if pathID := req.PathValue("id"); r.ID() != pathID {
-			return nil, errors.InvalidArgument("request ID mismatch")
-		}
-
-		return mapper(*updateReq), nil
+func DecodeTokenFromCtx(ctx context.Context, r *http.Request) (interface{}, error) {
+	token := auth.TokenFromCtx(ctx)
+	if token == nil {
+		return nil, errors.Unauthorized("missing or invalid auth token")
 	}
+	return token.Value(), nil
 }
 
-func validateUpdateReqData[R resource.Resource](kind resource.Type, data R) error {
-	if data.ID() == "" {
-		return errors.InvalidArgument("missing resource ID")
-	}
-
-	if data.Type() != kind {
-		return errors.InvalidArgument("resource type mismatch")
-	}
-	return nil
+func DecodeEmptyReq(ctx context.Context, r *http.Request) (interface{}, error) {
+	return nil, nil
 }
