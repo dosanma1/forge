@@ -9,169 +9,46 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/exp/maps"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/lib/pq"
 
 	"github.com/dosanma1/forge/go/kit/application/repository"
 	apierrors "github.com/dosanma1/forge/go/kit/errors"
 	"github.com/dosanma1/forge/go/kit/filter"
 	"github.com/dosanma1/forge/go/kit/persistence/gormdb"
-	"github.com/dosanma1/forge/go/kit/resource"
 	"github.com/dosanma1/forge/go/kit/search/query"
+	"github.com/dosanma1/forge/go/kit/slicesx"
 )
-
-var (
-	ErrDuplicateKey = errors.New("duplicate key")
-)
-
-type Model struct {
-	EID        string         `gorm:"primaryKey;column:id"`
-	ECreatedAt time.Time      `gorm:"column:created_at"`
-	EUpdatedAt time.Time      `gorm:"column:updated_at"`
-	EDeletedAt gorm.DeletedAt `gorm:"index;column:deleted_at"`
-}
-
-func (m Model) ID() string {
-	return m.EID
-}
-
-func (m Model) CreatedAt() time.Time {
-	return m.ECreatedAt
-}
-
-func (m Model) UpdatedAt() time.Time {
-	return m.EUpdatedAt
-}
-
-func (m Model) DeletedAt() *time.Time {
-	if m.EDeletedAt.Valid {
-		t := m.EDeletedAt.Time
-		return &t
-	}
-	return nil
-}
-
-func (m Model) LID() string {
-	return ""
-}
-
-// Methods removed to avoid collision with embedded fields
 
 type Repo struct {
-	DB       *gormdb.DBClient
-	fieldMap map[string]string
+	DB      *gormdb.DBClient
+	fMapper map[string]string
 }
 
-type queryApplySetup struct {
-	lock *clause.Locking
-}
-
-type queryApplyOption func(*queryApplySetup)
-
-// withLock applies database locking based on the lock information retrieved from the context.
-func withLock(ctx context.Context, tableName string) queryApplyOption {
-	return func(s *queryApplySetup) {
-		lock := repository.LockFromCtx(ctx)
-		if lock == nil {
-			return
-		}
-
-		switch {
-		case lock.Level() == repository.LockLevelRow:
-			switch {
-			case lock.Contains(repository.LockModeExclusive):
-				s.lock = &clause.Locking{
-					Strength: "UPDATE",
-					Table:    clause.Table{Name: tableName},
-				}
-			default:
-				panic("unexpected locking mode")
-			}
-		default:
-			panic("unexpected locking level")
-		}
+func NewRepo(db *gormdb.DBClient, fMapper map[string]string) (*Repo, error) {
+	if db == nil {
+		return nil, errors.New("missing db client")
 	}
-}
+	if fMapper == nil {
+		return nil, errors.New("missing field map")
+	}
+	fieldMapper := maps.Clone(fMapper)
 
-func NewRepo(db *gormdb.DBClient, fieldMap map[string]string) (*Repo, error) {
 	return &Repo{
-		DB:       db,
-		fieldMap: fieldMap,
+		DB:      db,
+		fMapper: fieldMapper,
 	}, nil
 }
 
-func (r *Repo) QueryApply(ctx context.Context, q query.Query, ops ...queryApplyOption) *gorm.DB {
-	return r.queryApply(ctx, q, "", ops...)
-}
+// -----------------------------------------------------------------------------
+// Public Methods
+// -----------------------------------------------------------------------------
 
-func (r *Repo) QueryApplyWithTableName(ctx context.Context, q query.Query, tableName string, ops ...queryApplyOption) *gorm.DB {
-	return r.queryApply(ctx, q, tableName, ops...)
-}
-
-func (r *Repo) queryApply(ctx context.Context, q query.Query, tableName string, ops ...queryApplyOption) *gorm.DB {
-	ops = append(ops, withLock(ctx, tableName))
-
-	s := new(queryApplySetup)
-	for _, v := range ops {
-		v(s)
-	}
-
-	tx := r.DB.WithContext(ctx)
-	if q == nil {
-		return tx
-	}
-
-	tx = r.applyFilters(tx, q.Filters(), tableName)
-	tx = r.applySorting(tx, q.Sorting())
-	tx = r.applyPagination(tx, q.Pagination())
-
-	if s.lock != nil {
-		tx = tx.Clauses(s.lock)
-	}
-
-	return tx
-}
-
-func (r *Repo) CountApply(ctx context.Context, model interface{}, q query.Query) *gorm.DB {
-	return r.countApply(ctx, model, q, "")
-}
-
-func (r *Repo) CountApplyWithTableName(ctx context.Context, model interface{}, q query.Query, tableName string) *gorm.DB {
-	return r.countApply(ctx, model, q, tableName)
-}
-
-func (r *Repo) countApply(ctx context.Context, model interface{}, q query.Query, tableName string) *gorm.DB {
-	tx := r.DB.WithContext(ctx).Model(model)
-	if q == nil {
-		return tx
-	}
-	if tableName != "" {
-		tx = tx.Table(tableName)
-	}
-	return r.applyFilters(tx, q.Filters(), tableName)
-}
-
-func (r *Repo) PatchApply(ctx context.Context, q query.Query, model interface{}, patchFields map[string]interface{}) *gorm.DB {
-	db := r.DB.WithContext(ctx).Model(model)
-	db = r.applyFilters(db, q.Filters(), "")
-
-	updates := make(map[string]interface{})
-	for field, val := range patchFields {
-		dbCol, ok := r.fieldMap[field]
-		if !ok {
-			dbCol = field
-		}
-		updates[dbCol] = val
-	}
-
-	if len(updates) == 0 {
-		return db
-	}
-
-	return db.Updates(updates)
+func (r *Repo) FMapper() map[string]string {
+	return r.fMapper
 }
 
 func (r *Repo) Commit() error {
@@ -182,155 +59,325 @@ func (r *Repo) Rollback() error {
 	return r.DB.Rollback().Error
 }
 
-func (r *Repo) applyQuery(db *gorm.DB, q query.Query) *gorm.DB {
-	db = r.applyFilters(db, q.Filters(), "") // Original call, now passing empty tableName
-	db = r.applySorting(db, q.Sorting())
-	db = r.applyPagination(db, q.Pagination())
-	return db
+func (r *Repo) QueryApply(ctx context.Context, q query.Query, ops ...queryApplyOption) (tx *gorm.DB) {
+	return r.queryApply(ctx, q, "", ops...)
 }
 
-func (r *Repo) applyFilters(db *gorm.DB, filters query.Filters[any], tableName string) *gorm.DB {
-	// Sort filters for consistent SQL generation (useful for testing)
+func (r *Repo) QueryApplyWithTableName(ctx context.Context, q query.Query, tableName string, ops ...queryApplyOption) (tx *gorm.DB) {
+	return r.queryApply(ctx, q, tableName, ops...)
+}
+
+func (r *Repo) CountApply(ctx context.Context, model any, q query.Query) (tx *gorm.DB) {
+	return r.countApply(ctx, model, q, "")
+}
+
+func (r *Repo) CountApplyWithTableName(ctx context.Context, model any, q query.Query, tableName string) (tx *gorm.DB) {
+	return r.countApply(ctx, model, q, tableName)
+}
+
+func (r *Repo) PatchApply(ctx context.Context, q query.Query, model any, toPatch map[string]any) (tx *gorm.DB) {
+	mapped := make(map[string]any, len(toPatch))
+	for k, v := range toPatch {
+		mappedKey, ok := r.fMapper[k]
+		if !ok {
+			mappedKey = k
+		}
+		mapped[mappedKey] = v
+	}
+
+	tx = r.queryApply(ctx, q, "")
+	return tx.Model(model).Updates(mapped)
+}
+
+// -----------------------------------------------------------------------------
+// Private Methods
+// -----------------------------------------------------------------------------
+
+func (r *Repo) queryApply(ctx context.Context, q query.Query, tableName string, ops ...queryApplyOption) (tx *gorm.DB) {
+	ops = append(ops, withLock(ctx, tableName))
+
+	s := new(queryApplySetup)
+	for _, v := range ops {
+		v(s)
+	}
+
+	tx = r.DB.WithContext(ctx)
+	if q == nil {
+		return
+	}
+	tx = filterApply(tx, r.fMapper, q.Filters(), tableName)
+	tx = sortingApply(tx, r.fMapper, q.Sorting())
+	if q.Pagination() != nil {
+		tx = paginationApply(tx, q.Pagination())
+	}
+	if s.lock != nil {
+		tx = tx.Clauses(s.lock)
+	}
+
+	return
+}
+
+func (r *Repo) countApply(ctx context.Context, model any, q query.Query, tableName string) (tx *gorm.DB) {
+	tx = r.DB.WithContext(ctx).Model(model)
+	if q == nil {
+		return
+	}
+	if tableName != "" {
+		tx = tx.Table(tableName)
+	}
+	tx = filterApply(tx, r.fMapper, q.Filters(), tableName)
+
+	return
+}
+
+// -----------------------------------------------------------------------------
+// Helpers: Locking
+// -----------------------------------------------------------------------------
+
+type queryApplySetup struct {
+	lock *clause.Locking
+}
+
+type queryApplyOption func(*queryApplySetup)
+
+// withLock applies database locking based on the lock information retrieved from the context.
+// It checks the lock level and mode to determine the appropriate locking clause for the database query.
+//
+// If the conditions don't match the expected cases, the function panics with an error message
+// indicating an unexpected locking mode or level.
+//
+// The function returns a copy of the repository with the applied database clause.
+//
+// For more information regarding PostgreSQL locks visit: https://www.postgresql.org/docs/14/explicit-locking.html
+func withLock(ctx context.Context, tableName string) queryApplyOption {
+	return func(s *queryApplySetup) {
+		lock := repository.LockFromCtx(ctx)
+		if lock == nil {
+			return
+		}
+
+		if lock.Level() == repository.LockLevelRow {
+			if lock.Contains(repository.LockModeExclusive) {
+				s.lock = &clause.Locking{
+					Strength: "UPDATE",
+					Table:    clause.Table{Name: tableName},
+				}
+				return
+			}
+			panic("unexpected locking mode")
+		}
+		panic("unexpected locking level")
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Helpers: Applying Filters, Sorting, Pagination
+// -----------------------------------------------------------------------------
+
+func filterApply(tx *gorm.DB, columnMapper map[string]string, filters query.Filters[any], tableName string) *gorm.DB {
+	if len(filters) < 1 {
+		return tx
+	}
+
+	sqlQuery := strings.Builder{}
+	args := []any{}
+
 	keys := maps.Keys(filters)
 	sort.Strings(keys)
-
-	for _, key := range keys {
-		f := filters[key]
-		dbCol := r.mapField(key)
-		
-		if tableName != "" && !strings.Contains(dbCol, ".") {
-			dbCol = tableName + "." + dbCol
+	for i, key := range keys {
+		filt := filters[key]
+		colName := columnMapper[key]
+		if colName == "" {
+			colName = key
 		}
 
-		val := f.Value()
+		if tableName != "" && !strings.Contains(colName, ".") {
+			colName = tableName + "." + colName
+		}
 
-		switch f.Operator() {
-		case filter.OpEq:
-			db = db.Where(fmt.Sprintf("%s = ?", dbCol), val)
-		case filter.OpNEq:
-			db = db.Where(fmt.Sprintf("%s <> ?", dbCol), val)
-		case filter.OpGT:
-			db = db.Where(fmt.Sprintf("%s > ?", dbCol), val)
-		case filter.OpGTEq:
-			db = db.Where(fmt.Sprintf("%s >= ?", dbCol), val)
-		case filter.OpLT:
-			db = db.Where(fmt.Sprintf("%s < ?", dbCol), val)
-		case filter.OpLTEq:
-			db = db.Where(fmt.Sprintf("%s <= ?", dbCol), val)
-		case filter.OpIn:
-			db = db.Where(fmt.Sprintf("%s IN (?)", dbCol), val)
-		case filter.OpNotIn:
-			db = db.Where(fmt.Sprintf("%s NOT IN (?)", dbCol), val)
+		switch filt.Operator() {
+		case filter.OpIs, filter.OpIsNot:
+			if filt.Value() == nil {
+				sqlQuery.WriteString(fmt.Sprintf("%s %s NULL", colName, filt.Operator().String()))
+			} else {
+				sqlQuery.WriteString(simpleArg(colName, filt.Operator()))
+				args = append(args, filt.Value())
+			}
 		case filter.OpLike:
-			db = db.Where(fmt.Sprintf("%s LIKE ?", dbCol), val)
-		case filter.OpContainsLike:
-			// Custom logic for ContainsLike/SliceArg from legacy but adapted to Gorm
-			vals, ok := val.([]string)
+			sqlQuery.WriteString(simpleArg(colName, filt.Operator()))
+			args = append(args, fmt.Sprintf("%%%v%%", filt.Value()))
+		case filter.OpIn, filter.OpNotIn, filter.OpContainsLike:
+			vals, ok := filt.Value().([]string) // Safe casting as of now since it will always be of type []string
 			if !ok {
-				valsStr := []string{}
-				valRef := reflect.ValueOf(val)
-				if valRef.Kind() == reflect.Slice {
-					for i := 0; i < valRef.Len(); i++ {
-						valsStr = append(valsStr, fmt.Sprintf("%v", valRef.Index(i).Interface()))
+				// Cast slice to slice string
+				inputVal := reflect.ValueOf(filt.Value())
+				if inputVal.Kind() == reflect.Slice {
+					output := make([]string, inputVal.Len())
+					for i := 0; i < inputVal.Len(); i++ {
+						output[i] = fmt.Sprintf("%v", inputVal.Index(i).Interface())
 					}
-				}
-				vals = valsStr
-			}
-			
-			subquery := strings.Builder{}
-			for i := 0; i < len(vals); i++ {
-				subquery.WriteString("'%%%%' || ? || '%%%%'")
-				if i < len(vals)-1 {
-					subquery.WriteRune(',')
+					vals = output
 				}
 			}
-			query := fmt.Sprintf(
-				"EXISTS(SELECT FROM unnest(%s) cl_alias WHERE cl_alias LIKE ANY(ARRAY[%s]))",
-				dbCol,
-				subquery.String(),
-			)
-			// Need to flatten args
-			flatArgs := []interface{}{}
-			for _, v := range vals {
-				flatArgs = append(flatArgs, v)
-			}
-			db = db.Where(query, flatArgs...)
-
-		case filter.OpIs:
-			if val == nil {
-				db = db.Where(fmt.Sprintf("%s IS NULL", dbCol))
-			} else {
-				db = db.Where(fmt.Sprintf("%s IS ?", dbCol), val)
-			}
-		case filter.OpIsNot:
-			if val == nil {
-				db = db.Where(fmt.Sprintf("%s IS NOT NULL", dbCol))
-			} else {
-				db = db.Where(fmt.Sprintf("%s IS NOT ?", dbCol), val)
-			}
+			sqlQuery.WriteString(sliceArg(filt.Operator(), colName, vals))
+			args = append(args, slicesx.Map(vals, func(s string) any { return s })...)
 		case filter.OpContains:
-			db = db.Where(fmt.Sprintf("%s @> ?", dbCol), val)
+			sqlQuery.WriteString(simpleArg(colName, filt.Operator()))
+			if kind := reflect.ValueOf(filt.Value()).Kind(); kind == reflect.Slice || kind == reflect.Array {
+				args = append(args, pq.Array(filt.Value()))
+			} else {
+				args = append(args, pq.Array([]any{filt.Value()}))
+			}
+		case filter.OpBetween:
+			vals := btwArgs(filt.Value())
+			sqlQuery.WriteString(fmt.Sprintf("%s %s '%v' AND '%v'", colName, filt.Operator(), vals[0], vals[1]))
+		default:
+			sqlQuery.WriteString(simpleArg(colName, filt.Operator()))
+			if kind := reflect.ValueOf(filt.Value()).Kind(); kind == reflect.Slice || kind == reflect.Array {
+				args = append(args, pq.Array(filt.Value()))
+			} else {
+				args = append(args, filt.Value())
+			}
+		}
+
+		if i < len(filters)-1 {
+			sqlQuery.WriteString(" AND ")
 		}
 	}
-	return db
+
+	return tx.Where(sqlQuery.String(), args...)
 }
 
-func (r *Repo) applySorting(db *gorm.DB, sorting *query.SortingParams) *gorm.DB {
+func sortingApply(tx *gorm.DB, columnMapper map[string]string, sorting *query.SortingParams) *gorm.DB {
 	if sorting == nil {
-		return db
+		return tx
 	}
-	for _, key := range sorting.Keys() {
+	keys := sorting.Keys()
+	if len(keys) < 1 {
+		return tx
+	}
+	allParams := make([]string, len(keys))
+	idx := 0
+	for _, key := range keys {
 		dir := sorting.Get(key)
-		if !dir.Valid() {
-			continue
+		col := columnMapper[key]
+		if col == "" {
+			col = key
 		}
-		dbCol := r.mapField(key)
-		db = db.Order(fmt.Sprintf("%s %s", dbCol, dir.String()))
+		allParams[idx] = fmt.Sprintf("%s %s", col, dir)
+		idx++
 	}
-	return db
+	return tx.Order(strings.Join(allParams, ","))
 }
 
-func (r *Repo) applyPagination(db *gorm.DB, p *query.PaginationParams) *gorm.DB {
-	if p == nil {
-		return db
+func paginationApply(tx *gorm.DB, pagination *query.PaginationParams) *gorm.DB {
+	tx = tx.Offset(pagination.Offset)
+	if pagination.Limit > 0 {
+		tx = tx.Limit(pagination.Limit)
 	}
-	if p.Limit > 0 {
-		db = db.Limit(p.Limit)
-	}
-	if p.Offset > 0 {
-		db = db.Offset(p.Offset)
-	}
-	return db
+
+	return tx
 }
 
-func (r *Repo) mapField(field string) string {
-	if mapped, ok := r.fieldMap[field]; ok {
-		return mapped
+// -----------------------------------------------------------------------------
+// Helpers: Usage
+// -----------------------------------------------------------------------------
+
+func filterOp(op filter.Operator) string {
+	switch op {
+	case filter.OpEq:
+		return "="
+	case filter.OpNEq:
+		return "<>"
+	case filter.OpGT:
+		return ">"
+	case filter.OpGTEq:
+		return ">="
+	case filter.OpLT:
+		return "<"
+	case filter.OpLTEq:
+		return "<="
+	case filter.OpIn:
+		return "IN"
+	case filter.OpNotIn:
+		return "NOT IN"
+	case filter.OpLike:
+		return "LIKE"
+	case filter.OpContainsLike:
+		return "LIKE ANY"
+	case filter.OpBetween:
+		return "BETWEEN"
+	case filter.OpContains:
+		return "@>"
+	case filter.OpIs:
+		return "IS"
+	case filter.OpIsNot:
+		return "IS NOT"
+	default:
+		panic(apierrors.InternalError(fmt.Sprintf("operator %s is not supported", op)))
 	}
-	return field
 }
 
-func ModelFromResource(res resource.Resource) Model {
-	return Model{
-		EID:        res.ID(),
-		ECreatedAt: res.CreatedAt(),
-	}
+func simpleArg(colName string, operator filter.Operator) string {
+	return fmt.Sprintf("%s %s ?", colName, filterOp(operator))
 }
 
-func ErrorIs(err error, target error) bool {
-	if errors.Is(err, target) {
-		return true
+func sliceArg(operator filter.Operator, colName string, vals []string) string {
+	subquery := strings.Builder{}
+	if operator == filter.OpContainsLike {
+		for i := 0; i < len(vals); i++ {
+			subquery.WriteString("'%%%%' || ? || '%%%%'")
+			if i < len(vals)-1 {
+				subquery.WriteRune(',')
+			}
+		}
+		return fmt.Sprintf(
+			"EXISTS(SELECT FROM unnest(%s) cl_alias WHERE cl_alias %s(ARRAY[%s]))",
+			colName,
+			filterOp(operator),
+			subquery.String(),
+		)
 	}
+	for i := 0; i < len(vals); i++ {
+		subquery.WriteString("?")
+		if i < len(vals)-1 {
+			subquery.WriteRune(',')
+		}
+	}
+
+	return fmt.Sprintf(
+		"%s %s (%s)",
+		colName,
+		filterOp(operator),
+		subquery.String(),
+	)
+}
+
+func btwArgs(a any) []any {
+	//nolint:gomnd //between will always have 2 positions
+	args := make([]any, 2)
 	
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		if target == ErrDuplicateKey && pgErr.Code == pgerrcode.UniqueViolation {
-			return true
-		}
+	val := reflect.ValueOf(a)
+	if val.Kind() != reflect.Slice {
+		return args
 	}
-	return false
-}
 
-func NewErrUnknown(err error) error {
-    return apierrors.InternalError(err.Error())
+	// Fast path for common types to avoid reflection overhead where possible, 
+	// though we still need to assign to interface{} array.
+	// For time.Time we need special formatting.
+	switch v := a.(type) {
+	case []time.Time:
+		for i := range v {
+			if i < 2 {
+				args[i] = v[i].Format("2006-01-02 15:04:05")
+			}
+		}
+		return args
+	}
+
+	// Generic handling
+	for i := 0; i < val.Len() && i < 2; i++ {
+		args[i] = val.Index(i).Interface()
+	}
+	return args
 }
