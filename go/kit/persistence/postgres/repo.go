@@ -12,6 +12,7 @@ import (
 	"golang.org/x/exp/maps"
 	"gorm.io/gorm"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 
 	apierrors "github.com/dosanma1/forge/go/kit/errors"
@@ -57,8 +58,16 @@ func (r *Repo) QueryApply(ctx context.Context, q query.Query, ops ...queryApplyO
 	return r.queryApply(ctx, q, "", ops...)
 }
 
+func (r *Repo) QueryApplyWithTableName(ctx context.Context, q query.Query, tableName string, ops ...queryApplyOption) (tx *gorm.DB) {
+	return r.queryApply(ctx, q, tableName, ops...)
+}
+
 func (r *Repo) CountApply(ctx context.Context, model any, q query.Query) (tx *gorm.DB) {
 	return r.countApply(ctx, model, q, "")
+}
+
+func (r *Repo) CountApplyWithTableName(ctx context.Context, model any, q query.Query, tableName string) (tx *gorm.DB) {
+	return r.countApply(ctx, model, q, tableName)
 }
 
 func (r *Repo) PatchApply(ctx context.Context, q query.Query, model any, toPatch map[string]any) (tx *gorm.DB) {
@@ -320,4 +329,23 @@ func btwArgs(a any) []any {
 		args[i] = val.Index(i).Interface()
 	}
 	return args
+}
+
+// -----------------------------------------------------------------------------
+// Errors
+// -----------------------------------------------------------------------------
+
+// ErrDuplicateKey is the Postgres error code for unique constraint violation
+const ErrDuplicateKey = "23505"
+
+func ErrorIs(err error, code string) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == code {
+		return true
+	}
+	return false
+}
+
+func NewErrUnknown(err error) error {
+	return apierrors.InternalError(fmt.Sprintf("query failed, please check the database adapter logs, %s", err.Error()))
 }
