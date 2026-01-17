@@ -21,6 +21,16 @@ jobs:
             go.work.sum
             go/kit/go.sum
 
+      - name: Cache Bazel
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/bazel
+            ~/.cache/bazelisk
+          key: ${{ runner.os }}-bazel-${{ hashFiles('MODULE.bazel', 'go/kit/go.sum', 'BUILD.bazel', '**/*.bzl') }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-
+
       - name: Setup Bazel
         uses: bazel-contrib/setup-bazel@0.18.0
         with:
@@ -40,7 +50,7 @@ jobs:
         run: forge sync -y
 
       - name: Forge Build
-        run: forge build
+        run: forge build -v
 
       - name: Forge Test
-        run: forge test
+        run: forge test -v
