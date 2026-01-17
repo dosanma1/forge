@@ -3,7 +3,7 @@ module github.com/dosanma1/forge/go/kit
 go 1.24.0
 
 require (
-	firebase.google.com/go/v4 v4.15.1
+	firebase.google.com/go/v4 v4.18.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/getsops/sops/v3 v3.8.1
@@ -24,7 +24,6 @@ require (
 	github.com/swaggest/openapi-go v0.2.60
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	golang.org/x/sync v0.19.0
 	google.golang.org/api v0.256.0
 	google.golang.org/grpc v1.76.0
