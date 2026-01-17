@@ -29,16 +29,23 @@ func withLock(ctx context.Context, tableName string) queryApplyOption {
 			return
 		}
 
-		if lock.Level() == repository.LockLevelRow {
-			if lock.Contains(repository.LockModeExclusive) {
-				s.lock = &clause.Locking{
-					Strength: "UPDATE",
-					Table:    clause.Table{Name: tableName},
-				}
-				return
-			}
-			panic("unexpected locking mode")
+		if lock.Level() != repository.LockLevelRow {
+			// We only support row level locking for now
+			return
 		}
-		panic("unexpected locking level")
+
+		strength := ""
+		if lock.Contains(repository.LockModeExclusive) {
+			strength = "UPDATE"
+		} else if lock.Contains(repository.LockModeShare) {
+			strength = "SHARE"
+		}
+
+		if strength != "" {
+			s.lock = &clause.Locking{
+				Strength: strength,
+				Table:    clause.Table{Name: tableName},
+			}
+		}
 	}
 }
