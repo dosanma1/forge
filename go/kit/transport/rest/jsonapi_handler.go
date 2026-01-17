@@ -22,7 +22,7 @@ func NewJsonApiCreateHandler[R, DTO resource.Resource, C ctrl.Creator[R]](
 			creator.Create,
 			NewHTTPDecoder(jsonApiDecodeResourceReq(decoder)),
 			jsonApiEncoder(encoder, http.StatusCreated),
-			opts...,
+			append(opts, HandlerWithErrorEncoder(JsonApiErrorEncoder))...,
 		),
 	)
 }
@@ -43,7 +43,7 @@ func NewJsonApiListHandler[R, DTO resource.Resource, C ctrl.Lister[R]](
 				listResponseMapper,
 				http.StatusOK,
 			),
-			opts...,
+			append(opts, HandlerWithErrorEncoder(JsonApiErrorEncoder))...,
 		),
 	)
 }
@@ -64,7 +64,7 @@ func NewJsonApiGetHandler[R, DTO resource.Resource, C ctrl.Getter[R]](
 			getter.Get,
 			NewHTTPDecoder(DecodeGetReq(parseOpts, cfg.getDecoderOpts...)),
 			jsonApiEncoder(encoder, http.StatusOK),
-			opts...,
+			append(opts, HandlerWithErrorEncoder(JsonApiErrorEncoder))...,
 		),
 	)
 }
@@ -78,7 +78,7 @@ func NewJsonApiUpdateHandler[R, DTO resource.Resource, C ctrl.Updater[R]](
 		updater.Update,
 		NewHTTPDecoder(jsonApiDecodeResourceReq(decoder)),
 		jsonApiEncoder(encoder, http.StatusOK),
-		opts...,
+		append(opts, HandlerWithErrorEncoder(JsonApiErrorEncoder))...,
 	)
 }
 
@@ -92,7 +92,7 @@ func NewJsonApiPatchHandler[T, R, DTO resource.Resource, C ctrl.Patcher[R]](
 			patcher.Patch,
 			NewHTTPDecoder(jsonApiDecodePatchReq(kind, decoder)),
 			jsonApiEncoder(encoder, http.StatusOK),
-			opts...,
+			append(opts, HandlerWithErrorEncoder(JsonApiErrorEncoder))...,
 		),
 	)
 }
@@ -105,7 +105,7 @@ func NewJsonApiDeleteHandler[C ctrl.Deleter](
 			deleter.Delete,
 			NewHTTPDecoder(DecodeGetReq([]query.ParseOpt{query.SkipDefaultPagination()})),
 			NewEmptyHTTPEncoder(http.StatusNoContent),
-			opts...,
+			append(opts, HandlerWithErrorEncoder(JsonApiErrorEncoder))...,
 		),
 	)
 }
