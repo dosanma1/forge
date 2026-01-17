@@ -17,7 +17,7 @@ func JsonApiErrorEncoder(ctx context.Context, err error, w http.ResponseWriter) 
 	}
 
 	// Set headers
-	w.Header().Set("Content-Type", "application/vnd.api+json; charset=utf-8")
+	w.Header().Set("Content-Type", "application/vnd.api+json")
 	w.WriteHeader(statusCode)
 
 	// Marshal the error in JSON-API format
