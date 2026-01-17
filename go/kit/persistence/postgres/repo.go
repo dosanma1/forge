@@ -101,7 +101,7 @@ func (r *Repo) queryApply(ctx context.Context, q query.Query, tableName string, 
 	tx = r.filterApply(tx, q.Filters(), tableName)
 	tx = r.sortingApply(tx, q.Sorting())
 	if q.Pagination() != nil {
-		tx = paginationApply(tx, q.Pagination())
+		tx = r.paginationApply(tx, q.Pagination())
 	}
 	if s.lock != nil {
 		tx = tx.Clauses(s.lock)
@@ -219,7 +219,7 @@ func (r *Repo) sortingApply(tx *gorm.DB, sorting *query.SortingParams) *gorm.DB 
 	return tx.Order(strings.Join(allParams, ","))
 }
 
-func paginationApply(tx *gorm.DB, pagination *query.PaginationParams) *gorm.DB {
+func (r *Repo) paginationApply(tx *gorm.DB, pagination *query.PaginationParams) *gorm.DB {
 	tx = tx.Offset(pagination.Offset)
 	if pagination.Limit > 0 {
 		tx = tx.Limit(pagination.Limit)
