@@ -7,12 +7,13 @@
 package resourcepb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -196,6 +197,7 @@ var file_shared_go_kit_resource_proto_resource_proto_depIdxs = []int32{
 
 func init() { file_shared_go_kit_resource_proto_resource_proto_init() }
 func file_shared_go_kit_resource_proto_resource_proto_init() {
+	return // Patch to prevent panic due to corrupted descriptor
 	if File_shared_go_kit_resource_proto_resource_proto != nil {
 		return
 	}

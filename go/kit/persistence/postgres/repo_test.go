@@ -25,10 +25,6 @@ func (TestEntity) TableName() string {
 }
 
 func TestRepoFilterApplyIntegration(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
 	// Spin up test DB container
 	testDB := gormdbtest.GetDB(t, gormdbtest.TestSchema)
 	require.NotNil(t, testDB)
