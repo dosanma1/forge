@@ -2,8 +2,6 @@ package amqp
 
 import (
 	"errors"
-	"fmt"
-	"os"
 	"strings"
 
 	amqp091 "github.com/rabbitmq/amqp091-go"
@@ -20,8 +18,7 @@ const (
 	ExchangeTypeTopic   ExchangeType = "topic"
 	ExchangeTypeHeaders ExchangeType = "headers"
 
-	envSvcName                 = "SVC_NAME"
-	FieldNameQueue             = "queue"
+	FieldNameQueue = "queue"
 )
 
 func (e ExchangeType) String() string {
@@ -125,7 +122,7 @@ func QueueName(name string) queueOption {
 
 func defaultQueueOpts(consumerName string) []queueOption {
 	return []queueOption{
-		QueueName(fmt.Sprintf("%s-%s", os.Getenv(envSvcName), consumerName)),
+		QueueName(consumerName),
 		QueueDurable(true),
 		QueueAutoDelete(false),
 		QueueExclusive(false),
@@ -183,9 +180,9 @@ func RoutingKey(parts ...RoutingKeyPart) routingKey {
 }
 
 type client struct {
-	conn   Connection
-	ch     *amqp091.Channel
-	log    logger.Logger
+	conn Connection
+	ch   *amqp091.Channel
+	log  logger.Logger
 
 	exchange *Exchange
 }
@@ -196,8 +193,8 @@ func newClient(
 	e *Exchange,
 ) (cli *client, err error) {
 	cli = &client{
-		conn:   conn,
-		log:    log,
+		conn: conn,
+		log:  log,
 	}
 	cli.ch, err = conn.Channel()
 	if err != nil {

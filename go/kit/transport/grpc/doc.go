@@ -11,7 +11,7 @@
 //
 // Basic server usage:
 //
-//	server, err := grpc.New(monitor,
+//	server, err := grpc.NewServer(monitor,
 //	    grpc.WithAddress(":50051"),
 //	    grpc.WithControllers(myController),
 //	)
@@ -22,7 +22,7 @@
 //
 // With middleware:
 //
-//	server, err := grpc.New(monitor,
+//	server, err := grpc.NewServer(monitor,
 //	    grpc.WithMiddlewares(
 //	        middleware.Recovery(logger),
 //	        middleware.Logging(logger),

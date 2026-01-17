@@ -41,14 +41,30 @@ type Server struct {
 	wg       sync.WaitGroup
 
 	controllers []Controller
+	middlewares []Middleware
 }
 
-// ServerOption allows configuring the server
-type ServerOption func(*Server)
+type serverConfig struct {
+	packetSplitter  bufio.SplitFunc
+	readBufferSize  int
+	writeBufferSize int
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	maxConnections  int
+	onConnect       func(Session)
+	onDisconnect    func(Session)
+	address         string
+	handler         Handler
+	controllers     []Controller
+	middlewares     []Middleware
+}
 
-// defaultServerOptions returns the default options
-func defaultServerOptions() []ServerOption {
-	return []ServerOption{
+// serverOption allows configuring the server
+type serverOption func(*serverConfig)
+
+// defaultServerOpts returns the default options
+func defaultServerOpts() []serverOption {
+	return []serverOption{
 		WithPacketSplitter(bufio.ScanLines),
 		WithReadBufferSize(4096),
 		WithWriteBufferSize(128),
@@ -57,100 +73,120 @@ func defaultServerOptions() []ServerOption {
 }
 
 // WithPacketSplitter sets the packet splitter
-func WithPacketSplitter(splitter bufio.SplitFunc) ServerOption {
-	return func(s *Server) {
+func WithPacketSplitter(splitter bufio.SplitFunc) serverOption {
+	return func(s *serverConfig) {
 		s.packetSplitter = splitter
 	}
 }
 
 // WithReadTimeout sets the read timeout
-func WithReadTimeout(d time.Duration) ServerOption {
-	return func(s *Server) {
+func WithReadTimeout(d time.Duration) serverOption {
+	return func(s *serverConfig) {
 		s.readTimeout = d
 	}
 }
 
 // WithWriteDuration sets the write timeout
-func WithWriteDuration(d time.Duration) ServerOption {
-	return func(s *Server) {
+func WithWriteDuration(d time.Duration) serverOption {
+	return func(s *serverConfig) {
 		s.writeTimeout = d
 	}
 }
 
 // WithReadBufferSize sets the read buffer size
-func WithReadBufferSize(size int) ServerOption {
-	return func(s *Server) {
+func WithReadBufferSize(size int) serverOption {
+	return func(s *serverConfig) {
 		s.readBufferSize = size
 	}
 }
 
 // WithWriteBufferSize sets the write channel buffer size
-func WithWriteBufferSize(size int) ServerOption {
-	return func(s *Server) {
+func WithWriteBufferSize(size int) serverOption {
+	return func(s *serverConfig) {
 		s.writeBufferSize = size
 	}
 }
 
 // WithMaxConnections sets the maximum number of concurrent connections
-func WithMaxConnections(max int) ServerOption {
-	return func(s *Server) {
+func WithMaxConnections(max int) serverOption {
+	return func(s *serverConfig) {
 		s.maxConnections = max
 	}
 }
 
 // WithOnConnect sets the onConnect hook
-func WithOnConnect(f func(Session)) ServerOption {
-	return func(s *Server) {
+func WithOnConnect(f func(Session)) serverOption {
+	return func(s *serverConfig) {
 		s.onConnect = f
 	}
 }
 
 // WithOnDisconnect sets the onDisconnect hook
-func WithOnDisconnect(f func(Session)) ServerOption {
-	return func(s *Server) {
+func WithOnDisconnect(f func(Session)) serverOption {
+	return func(s *serverConfig) {
 		s.onDisconnect = f
 	}
 }
 
 // WithAddress sets the server address
-func WithAddress(addr string) ServerOption {
-	return func(s *Server) {
+func WithAddress(addr string) serverOption {
+	return func(s *serverConfig) {
 		s.address = addr
 	}
 }
 
 // WithHandler sets the packet handler
-func WithHandler(handler Handler) ServerOption {
-	return func(s *Server) {
+func WithHandler(handler Handler) serverOption {
+	return func(s *serverConfig) {
 		s.handler = handler
 	}
 }
 
 // WithControllers registers controllers with the server
-func WithControllers(controllers ...Controller) ServerOption {
-	return func(s *Server) {
+func WithControllers(controllers ...Controller) serverOption {
+	return func(s *serverConfig) {
 		s.controllers = append(s.controllers, controllers...)
 	}
 }
 
-func withAddrFromEnv() ServerOption {
+// WithMiddlewares adds middlewares to the server
+func WithMiddlewares(middlewares ...Middleware) serverOption {
+	return func(s *serverConfig) {
+		s.middlewares = append(s.middlewares, middlewares...)
+	}
+}
+
+func withAddrFromEnv() serverOption {
 	addr := os.Getenv("TCP_ADDRESS")
 	if addr == "" {
-		return func(s *Server) {}
+		return func(s *serverConfig) {}
 	}
 	return WithAddress(addr)
 }
 
 // NewServer creates a new TCP server
-func NewServer(monitor monitoring.Monitor, opts ...ServerOption) (*Server, error) {
-	s := &Server{
-		monitor:  monitor,
-		sessions: make(map[uuid.UUID]*session),
-		shutdown: make(chan struct{}),
+func NewServer(monitor monitoring.Monitor, opts ...serverOption) (*Server, error) {
+	cfg := &serverConfig{}
+	for _, opt := range append(defaultServerOpts(), opts...) {
+		opt(cfg)
 	}
 
-	for _, opt := range append(defaultServerOptions(), opts...) {
-		opt(s)
+	s := &Server{
+		monitor:         monitor,
+		sessions:        make(map[uuid.UUID]*session),
+		shutdown:        make(chan struct{}),
+		packetSplitter:  cfg.packetSplitter,
+		readBufferSize:  cfg.readBufferSize,
+		writeBufferSize: cfg.writeBufferSize,
+		readTimeout:     cfg.readTimeout,
+		writeTimeout:    cfg.writeTimeout,
+		maxConnections:  cfg.maxConnections,
+		onConnect:       cfg.onConnect,
+		onDisconnect:    cfg.onDisconnect,
+		address:         cfg.address,
+		handler:         cfg.handler,
+		controllers:     cfg.controllers,
+		middlewares:     cfg.middlewares,
 	}
 
 	s.readPool = &sync.Pool{
@@ -174,6 +210,13 @@ func NewServer(monitor monitoring.Monitor, opts ...ServerOption) (*Server, error
 			c.Register(registry)
 		}
 	}
+
+	// Apply Middlewares
+	h := s.handler
+	for i := len(s.middlewares) - 1; i >= 0; i-- {
+		h = s.middlewares[i](h)
+	}
+	s.handler = h
 
 	return s, nil
 }

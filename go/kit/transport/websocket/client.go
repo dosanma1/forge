@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/dosanma1/forge/go/kit/monitoring/logger"
+	"github.com/dosanma1/forge/go/kit/monitoring"
 	"github.com/gorilla/websocket"
 )
 
@@ -30,7 +30,7 @@ type writeMsg struct {
 
 // WebSocketClient represents the WebSocket client
 type WebSocketClient struct {
-	options          *ClientOption
+	options          *clientConfig
 	conn             *websocket.Conn
 	connLock         sync.Mutex
 	connected        atomic.Bool
@@ -56,13 +56,100 @@ type WebSocketClient struct {
 		goroutines  int64
 	}
 
-	logger logger.Logger
+	monitor monitoring.Monitor
 }
 
-// NewWebSocketClient creates a new WebSocketClient instance
-func NewWebSocketClient(tokenProvider TokenProvider, logger logger.Logger, options *ClientOption) *WebSocketClient {
+type clientConfig struct {
+	Reconnect          bool
+	ReconnectAttempts  int
+	ReconnectInterval  time.Duration
+	DialTimeout        time.Duration
+	ReadBufferBytes    int
+	ReadMessageBuffer  int
+	WriteMessageBuffer int
+	WriteTimeout       time.Duration
+	EventCallback      Callback
+}
+
+func defaultClientOpts() *clientConfig {
+	return &clientConfig{
+		Reconnect:          true,
+		ReconnectAttempts:  -1,
+		ReconnectInterval:  5 * time.Second,
+		DialTimeout:        10 * time.Second,
+		ReadBufferBytes:    2048000,
+		ReadMessageBuffer:  1024,
+		WriteMessageBuffer: 256,
+		WriteTimeout:       30 * time.Second,
+		EventCallback:      nil,
+	}
+}
+
+type clientOption func(*clientConfig)
+
+func WithReconnect(reconnect bool) clientOption {
+	return func(c *clientConfig) {
+		c.Reconnect = reconnect
+	}
+}
+
+func WithReconnectAttempts(attempts int) clientOption {
+	return func(c *clientConfig) {
+		c.ReconnectAttempts = attempts
+	}
+}
+
+func WithReconnectInterval(interval time.Duration) clientOption {
+	return func(c *clientConfig) {
+		c.ReconnectInterval = interval
+	}
+}
+
+func WithDialTimeout(timeout time.Duration) clientOption {
+	return func(c *clientConfig) {
+		c.DialTimeout = timeout
+	}
+}
+
+func WithReadBufferBytes(readBufferBytes int) clientOption {
+	return func(c *clientConfig) {
+		c.ReadBufferBytes = readBufferBytes
+	}
+}
+
+func WithReadMessageBuffer(readMessageBuffer int) clientOption {
+	return func(c *clientConfig) {
+		c.ReadMessageBuffer = readMessageBuffer
+	}
+}
+
+func WithWriteMessageBuffer(writeMessageBuffer int) clientOption {
+	return func(c *clientConfig) {
+		c.WriteMessageBuffer = writeMessageBuffer
+	}
+}
+
+func WithWriteTimeout(timeout time.Duration) clientOption {
+	return func(c *clientConfig) {
+		c.WriteTimeout = timeout
+	}
+}
+
+func WithEventCallback(callback Callback) clientOption {
+	return func(c *clientConfig) {
+		c.EventCallback = callback
+	}
+}
+
+// NewClient creates a new WebSocketClient instance
+func NewClient(tokenProvider TokenProvider, monitor monitoring.Monitor, opts ...clientOption) *WebSocketClient {
+	cfg := defaultClientOpts()
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
 	return &WebSocketClient{
-		options:            options,
+		options:            cfg,
 		conn:               nil,
 		connLock:           sync.Mutex{},
 		connected:          atomic.Bool{},
@@ -73,12 +160,12 @@ func NewWebSocketClient(tokenProvider TokenProvider, logger logger.Logger, optio
 		tokenInfo:          nil,
 		closeChan:          make(chan struct{}),
 		reconnectCloseChan: make(chan struct{}),
-		writeMsg:           make(chan *writeMsg, options.WriteMessageBuffer),
-		readMsg:            make(chan *Message, options.ReadMessageBuffer),
+		writeMsg:           make(chan *writeMsg, cfg.WriteMessageBuffer),
+		readMsg:            make(chan *Message, cfg.ReadMessageBuffer),
 		ackEvent:           make(map[string]*writeMsg),
 		ackEventLock:       sync.Mutex{},
 		wg:                 sync.WaitGroup{},
-		logger:             logger,
+		monitor:            monitor,
 	}
 }
 
@@ -119,7 +206,7 @@ func (c *WebSocketClient) Reconnected() <-chan struct{} {
 func (c *WebSocketClient) notifyEvent(event Event, msg string) {
 	defer func() {
 		if r := recover(); r != nil {
-			c.logger.Error("recovered in notifyEvent: %v", r)
+			c.monitor.Logger().Error("recovered in notifyEvent: %v", r)
 		}
 	}()
 
@@ -184,9 +271,9 @@ func (c *WebSocketClient) Read() <-chan *Message {
 func (c *WebSocketClient) dial() (err error) {
 	defer func() {
 		if err == nil {
-			c.logger.Info("connection established")
+			c.monitor.Logger().Info("connection established")
 		} else {
-			c.logger.Error("failed to connect: %v", err)
+			c.monitor.Logger().Error("failed to connect: %v", err)
 		}
 	}()
 
@@ -250,7 +337,7 @@ func (c *WebSocketClient) readMessages() {
 		m := &Message{}
 
 		if err := c.conn.ReadJSON(m); err != nil {
-			c.logger.Error("websocket connection got error: %v", err)
+			c.monitor.Logger().Error("websocket connection got error: %v", err)
 			if !websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				c.disconnectEvent <- struct{}{}
 				return
@@ -271,7 +358,7 @@ func (c *WebSocketClient) readMessages() {
 					{
 						//warn and break
 						c.notifyEvent(EventReadBufferFull, "")
-						c.logger.Error("read buffer full")
+						c.monitor.Logger().Error("read buffer full")
 					}
 				}
 				break
@@ -290,7 +377,7 @@ func (c *WebSocketClient) readMessages() {
 
 					msg, exist := c.ackEvent[m.ID]
 					if !exist {
-						c.logger.Error("websocket can not find ack event, id:%s", m.ID)
+						c.monitor.Logger().Error("websocket can not find ack event, id:%s", m.ID)
 						return
 					}
 					var err error
@@ -304,7 +391,7 @@ func (c *WebSocketClient) readMessages() {
 			}
 		default:
 			{
-				c.logger.Error("websocket unknown type: %v", m.Type)
+				c.monitor.Logger().Error("websocket unknown type: %v", m.Type)
 			}
 		}
 	}
@@ -317,7 +404,7 @@ func (c *WebSocketClient) writeMessage() {
 			select {
 			case <-data.ctx.Done():
 				// timeout
-				c.logger.Warn("websocket write data already exceed deadline, id: %v", data.msg.ID)
+				c.monitor.Logger().Warn("websocket write data already exceed deadline, id: %v", data.msg.ID)
 				data.signal <- data.ctx.Err()
 				c.ackEventLock.Lock()
 				delete(c.ackEvent, data.msg.ID)
@@ -335,7 +422,7 @@ func (c *WebSocketClient) writeMessage() {
 				c.ackEventLock.Lock()
 				delete(c.ackEvent, data.msg.ID)
 				c.ackEventLock.Unlock()
-				c.logger.Error("websocket write err: %v", err)
+				c.monitor.Logger().Error("websocket write err: %v", err)
 			}
 		case <-c.closeChan:
 			return
@@ -363,14 +450,14 @@ func (c *WebSocketClient) keepAlive() {
 						{
 							if err == nil {
 								atomic.AddInt64(&c.metric.pingSuccess, 1)
-								c.logger.Debug("heartbeat ping ok")
+								c.monitor.Logger().Debug("heartbeat ping ok")
 							} else {
-								c.logger.Error("heartbeat ping error: %v", err)
+								c.monitor.Logger().Error("heartbeat ping error: %v", err)
 								atomic.AddInt64(&c.metric.pingErr, 1)
 							}
 						}
 					case <-ctx.Done():
-						c.logger.Error("heartbeat ping timeout")
+						c.monitor.Logger().Error("heartbeat ping timeout")
 						atomic.AddInt64(&c.metric.pingErr, 1)
 					}
 				}()
@@ -396,7 +483,7 @@ func (c *WebSocketClient) reconnect() {
 					continue
 				}
 
-				c.logger.Info("broken websocket connection, start reconnect")
+				c.monitor.Logger().Info("broken websocket connection, start reconnect")
 
 				c.close()
 				c.notifyEvent(EventTryReconnect, "")
@@ -406,11 +493,11 @@ func (c *WebSocketClient) reconnect() {
 				for {
 					// Handle reconnect attempts
 					if !c.options.Reconnect || (c.options.ReconnectAttempts != -1 && attempt >= c.options.ReconnectAttempts) {
-						c.logger.Error("max reconnect attempts reached or reconnect disabled")
+						c.monitor.Logger().Error("max reconnect attempts reached or reconnect disabled")
 						break
 					}
 
-					c.logger.Info("reconnecting in %v... (attempt %d)", c.options.ReconnectInterval, attempt)
+					c.monitor.Logger().Info("reconnecting in %v... (attempt %d)", c.options.ReconnectInterval, attempt)
 					time.Sleep(c.options.ReconnectInterval)
 
 					err := c.dial()
@@ -471,7 +558,7 @@ func (c *WebSocketClient) close() {
 		}
 	}
 	c.tokenProvider.Close()
-	c.logger.Info("close websocket client")
+	c.monitor.Logger().Info("close websocket client")
 }
 
 func IntToString(i int64) string {

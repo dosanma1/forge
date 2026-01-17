@@ -48,7 +48,7 @@ func FxModule(opts ...serverOption) fx.Option {
 					opt(cfg)
 				}
 
-				g := New(opts...)
+				g := NewServer(opts...)
 
 				lc.Append(fx.Hook{
 					OnStart: func(context.Context) error {

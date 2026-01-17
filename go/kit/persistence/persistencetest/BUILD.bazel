@@ -2,15 +2,8 @@ load("@rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = [
-        "doc.go",
-        "transactioner_mock.go",
-        "transactioner_stub.go",
-    ],
+    srcs = ["transactioner.go"],
     importpath = "github.com/dosanma1/forge/go/kit/persistence/persistencetest",
     visibility = ["//visibility:public"],
-    deps = [
-        "//go/kit/persistence:go_default_library",
-        "@com_github_stretchr_testify//mock:go_default_library",
-    ],
+    deps = ["//go/kit/persistence:go_default_library"],
 )

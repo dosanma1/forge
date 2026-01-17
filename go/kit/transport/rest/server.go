@@ -13,8 +13,8 @@ const (
 	defTimeout = 10 * time.Second
 )
 
-// New creates a new HTTP server with the given options
-func New(opts ...serverOption) *http.Server {
+// NewServer creates a new HTTP server with the given options
+func NewServer(opts ...serverOption) *http.Server {
 	cfg := new(serverConfig)
 
 	for _, opt := range append(defaultServerOpts(), opts...) {

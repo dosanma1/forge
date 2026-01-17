@@ -162,8 +162,8 @@ func updateEndpoint(ce ClientEndpoint, opts ...ClientEndpointOpt) ClientEndpoint
 	return update
 }
 
-func (e *clientEndpoint) HttpClient() *http.Client   { return e.client }
-func (e *clientEndpoint) Target() *url.URL           { return e.target }
+func (e *clientEndpoint) HttpClient() *http.Client { return e.client }
+func (e *clientEndpoint) Target() *url.URL         { return e.target }
 func (e *clientEndpoint) Path() string {
 	if e.path == "/" {
 		return ""
@@ -180,7 +180,7 @@ func (e *clientEndpoint) Decode(ctx context.Context, res *http.Response) (respon
 	return e.dec(ctx, res)
 }
 
-func (e *clientEndpoint) ReqInterceptors() []ClientRequestInterceptor   { return e.reqInterceptors }
+func (e *clientEndpoint) ReqInterceptors() []ClientRequestInterceptor  { return e.reqInterceptors }
 func (e *clientEndpoint) ResInterceptors() []ClientResponseInterceptor { return e.resInterceptors }
 func (e *clientEndpoint) ErrInterceptors() []ClientErrorInterceptor    { return e.errInterceptors }
 
@@ -359,10 +359,10 @@ type clientConfig struct {
 	errInterceptors []ClientErrorInterceptor
 }
 
-type ClientOpt func(c *clientConfig)
+type clientOption func(c *clientConfig)
 
-func defaultClientOpts() []ClientOpt {
-	return []ClientOpt{
+func defaultClientOpts() []clientOption {
+	return []clientOption{
 		WithHTTPClient(new(http.Client)),
 		WithClientReqTimeout(defaultClientReqTimeout),
 		WithClientReqInterceptors(
@@ -372,25 +372,25 @@ func defaultClientOpts() []ClientOpt {
 	}
 }
 
-func WithHTTPClient(cli *http.Client) ClientOpt {
+func WithHTTPClient(cli *http.Client) clientOption {
 	return func(c *clientConfig) {
 		c.httpClient = cli
 	}
 }
 
-func WithClientReqTimeout(timeout time.Duration) ClientOpt {
+func WithClientReqTimeout(timeout time.Duration) clientOption {
 	return func(c *clientConfig) {
 		c.httpClient.Timeout = timeout
 	}
 }
 
-func WithClientReqInterceptors(reqInterceptors ...ClientRequestInterceptor) ClientOpt {
+func WithClientReqInterceptors(reqInterceptors ...ClientRequestInterceptor) clientOption {
 	return func(c *clientConfig) {
 		c.reqInterceptors = append(c.reqInterceptors, reqInterceptors...)
 	}
 }
 
-func WithClientResInterceptors(resInterceptors ...ClientResponseInterceptor) ClientOpt {
+func WithClientResInterceptors(resInterceptors ...ClientResponseInterceptor) clientOption {
 	return func(c *clientConfig) {
 		c.resInterceptors = append(c.resInterceptors, resInterceptors...)
 	}
@@ -407,7 +407,7 @@ func NewClient(
 	clientName string,
 	baseURL *url.URL,
 	endpoints []ClientEndpoint,
-	opts ...ClientOpt,
+	opts ...clientOption,
 ) (*client, error) {
 	if len(clientName) < 1 {
 		return nil, apierrors.MissingField("clientName")

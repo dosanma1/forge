@@ -1,0 +1,40 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "error.go",
+        "lock.go",
+        "model.go",
+        "repo.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/postgres",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/application/repository:go_default_library",
+        "//go/kit/errors:go_default_library",
+        "//go/kit/filter:go_default_library",
+        "//go/kit/persistence/gormdb:go_default_library",
+        "//go/kit/resource:go_default_library",
+        "//go/kit/search/query:go_default_library",
+        "//go/kit/slicesx:go_default_library",
+        "@com_github_jackc_pgx_v5//pgconn:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
+        "@io_gorm_gorm//:go_default_library",
+        "@io_gorm_gorm//clause:go_default_library",
+        "@org_golang_x_exp//maps:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["repo_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/kit/filter:go_default_library",
+        "//go/kit/persistence/gormdb/gormdbtest:go_default_library",
+        "//go/kit/search/query:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

@@ -75,7 +75,7 @@ func New(db *sqldb.DBClient, opts ...option) (*migrator, error) {
 //   - migrations/common-pre-migration/*.sql (optional)
 //   - migrations/common-post-migration/*.sql (optional)
 func (m *migrator) Run(ctx context.Context, migrationsFS fs.FS) error {
-	m.logger.Info("🚀 Starting migration process for service: %s", m.serviceName)
+	m.logger.WithKeysAndValues("service", m.serviceName).Info("🚀 Starting migration process")
 
 	// Execute pre-migration scripts (if present)
 	if err := m.executeScripts(ctx, migrationsFS, "migrations/common-pre-migration", "pre-migration"); err != nil {
@@ -92,7 +92,7 @@ func (m *migrator) Run(ctx context.Context, migrationsFS fs.FS) error {
 		return fmt.Errorf("post-migration scripts failed: %w", err)
 	}
 
-	m.logger.Info("🎉 Migration completed successfully for service: %s", m.serviceName)
+	m.logger.WithKeysAndValues("service", m.serviceName).Info("🎉 Migration completed successfully")
 	return nil
 }
 
@@ -122,18 +122,18 @@ func (m *migrator) runMigrations(ctx context.Context, migrationsFS fs.FS) error 
 	}
 	defer func() {
 		if srcErr, dbErr := migrator.Close(); srcErr != nil || dbErr != nil {
-			m.logger.Warn("⚠️  Failed to close migrate instance: source=%v, db=%v", srcErr, dbErr)
+			m.logger.WithKeysAndValues("source_err", srcErr, "db_err", dbErr).Warn("⚠️  Failed to close migrate instance")
 		}
 	}()
 
 	// Get current version
 	currentVersion, dirty, err := migrator.Version()
 	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
-		m.logger.Warn("⚠️  Could not determine current version: %v", err)
+		m.logger.WithKeysAndValues("error", err).Warn("⚠️  Could not determine current version")
 	} else if errors.Is(err, migrate.ErrNilVersion) {
 		m.logger.Info("📊 No migrations applied yet")
 	} else {
-		m.logger.Info("📊 Current version: %d (dirty: %t)", currentVersion, dirty)
+		m.logger.WithKeysAndValues("version", currentVersion, "dirty", dirty).Info("📊 Current version")
 	}
 
 	// Run migration up
@@ -148,7 +148,7 @@ func (m *migrator) runMigrations(ctx context.Context, migrationsFS fs.FS) error 
 	// Get final version
 	finalVersion, finalDirty, err := migrator.Version()
 	if err == nil {
-		m.logger.Info("📊 Final version: %d (dirty: %t)", finalVersion, finalDirty)
+		m.logger.WithKeysAndValues("version", finalVersion, "dirty", finalDirty).Info("📊 Final version")
 	}
 
 	m.logger.Info("✅ Migrations applied successfully")
@@ -162,7 +162,7 @@ func (m *migrator) executeScripts(ctx context.Context, migrationsFS fs.FS, scrip
 	entries, err := fs.ReadDir(migrationsFS, scriptPath)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			m.logger.Info("⏭️  No %s scripts found (optional)", scriptType)
+			m.logger.WithKeysAndValues("type", scriptType).Info("⏭️  No scripts found (optional)")
 			return nil
 		}
 		return fmt.Errorf("failed to read %s directory: %w", scriptType, err)
@@ -180,18 +180,18 @@ func (m *migrator) executeScripts(ctx context.Context, migrationsFS fs.FS, scrip
 	}
 
 	if len(sqlFiles) == 0 {
-		m.logger.Info("⏭️  No %s scripts to execute", scriptType)
+		m.logger.WithKeysAndValues("type", scriptType).Info("⏭️  No scripts to execute")
 		return nil
 	}
 
 	// Sort for deterministic execution
 	sort.Strings(sqlFiles)
 
-	m.logger.Info("🔄 Executing %d %s script(s)...", len(sqlFiles), scriptType)
+	m.logger.WithKeysAndValues("count", len(sqlFiles), "type", scriptType).Info("🔄 Executing scripts")
 
 	// Execute each script
 	for _, filename := range sqlFiles {
-		m.logger.Info("🔄 Executing %s script: %s", scriptType, filename)
+		m.logger.WithKeysAndValues("type", scriptType, "filename", filename).Info("🔄 Executing script")
 
 		content, err := fs.ReadFile(migrationsFS, filepath.Join(scriptPath, filename))
 		if err != nil {
@@ -202,10 +202,10 @@ func (m *migrator) executeScripts(ctx context.Context, migrationsFS fs.FS, scrip
 			return fmt.Errorf("failed to execute script %s: %w", filename, err)
 		}
 
-		m.logger.Info("✅ Executed: %s", filename)
+		m.logger.WithKeysAndValues("filename", filename).Info("✅ Executed")
 	}
 
-	m.logger.Info("✅ %s scripts completed", scriptType)
+	m.logger.WithKeysAndValues("type", scriptType).Info("✅ Scripts completed")
 	return nil
 }
 

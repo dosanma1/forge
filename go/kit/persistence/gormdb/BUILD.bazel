@@ -6,6 +6,7 @@ go_library(
         "client.go",
         "deleter.go",
         "doc.go",
+        "locking.go",
         "monitor.go",
         "transactioner.go",
     ],

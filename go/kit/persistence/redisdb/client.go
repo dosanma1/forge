@@ -167,14 +167,13 @@ func New(m monitoring.Monitor, options ...Option) (*Client, error) {
 		return nil, newPingErr()
 	}
 
-	cmd, err = cli.ConfigSet(context.TODO(), "notify-keyspace-events", "KEA").Result()
+	cmd, err = cli.ConfigSet(context.Background(), "notify-keyspace-events", "KEA").Result()
 	if err != nil {
 		return nil, err
 	}
 	if cmd != "OK" {
 		return nil, newNotifyKeySpaceEventsErr()
 	}
-
 
 	return &Client{cli}, nil
 }

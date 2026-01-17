@@ -11,10 +11,10 @@ import (
 
 // Client represents a reusable TCP client
 type Client struct {
-	addr        string
-	conn        net.Conn
-	splitter    bufio.SplitFunc
-	reader      *bufio.Scanner
+	addr         string
+	conn         net.Conn
+	splitter     bufio.SplitFunc
+	reader       *bufio.Scanner
 	writeTimeout time.Duration
 	readTimeout  time.Duration
 
@@ -24,39 +24,39 @@ type Client struct {
 }
 
 // ClientOption allows configuring the client
-type ClientOption func(*Client)
+type clientOption func(*Client)
 
 // WithClientSplitter sets the packet splitter for the client
-func WithClientSplitter(splitter bufio.SplitFunc) ClientOption {
+func WithClientSplitter(splitter bufio.SplitFunc) clientOption {
 	return func(c *Client) {
 		c.splitter = splitter
 	}
 }
 
 // WithClientWriteTimeout sets the write timeout
-func WithClientWriteTimeout(d time.Duration) ClientOption {
+func WithClientWriteTimeout(d time.Duration) clientOption {
 	return func(c *Client) {
 		c.writeTimeout = d
 	}
 }
 
 // WithClientReadTimeout sets the read timeout
-func WithClientReadTimeout(d time.Duration) ClientOption {
+func WithClientReadTimeout(d time.Duration) clientOption {
 	return func(c *Client) {
 		c.readTimeout = d
 	}
 }
 
-// Dial creates a new TCP client and connects to the address
-func Dial(addr string, opts ...ClientOption) (*Client, error) {
+// NewClient creates a new TCP client and connects to the address
+func NewClient(addr string, opts ...clientOption) (*Client, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 
 	c := &Client{
-		addr:         addr,
-		conn:         conn,
+		addr: addr,
+		conn: conn,
 		// Default splitter: ScanLines (matching server default)
 		splitter:     bufio.ScanLines,
 		writeTimeout: 5 * time.Second,
@@ -104,7 +104,7 @@ func (c *Client) Receive(ctx context.Context) ([]byte, error) {
 	// we will rely on ReadTimeout or manual closing.
 
 	// Ideally, tests calling Receive() expect a packet soon.
-	
+
 	if c.readTimeout > 0 {
 		c.conn.SetReadDeadline(time.Now().Add(c.readTimeout))
 	} else {

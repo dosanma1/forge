@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTransactioner_Integration(t *testing.T) {
+func TestTransactionerIntegration(t *testing.T) {
 	testDB := sqldbtest.GetDB(t, sqldbtest.TestSchema)
 	db := testDB.DB()
 

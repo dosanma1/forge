@@ -72,7 +72,7 @@ func (p *singlePatcher[R]) Patch(ctx context.Context, opts ...repository.PatchOp
 		}
 
 		if len(res) > 1 {
-			p.monitor.Logger().ErrorContext(ctx, "unexpected number of patches: %d", len(res))
+			p.monitor.Logger().WithKeysAndValues("patches", len(res)).ErrorContext(ctx, "unexpected number of patches")
 			return errors.Conflict(fmt.Sprintf("unexpected number of patches: %d", len(res)))
 		}
 		return nil

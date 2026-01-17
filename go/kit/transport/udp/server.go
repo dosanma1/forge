@@ -3,11 +3,85 @@ package udp
 import (
 	"context"
 	"net"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/dosanma1/forge/go/kit/monitoring"
 )
+
+// OnConnectHook is a callback when a new session is established
+type OnConnectHook func(context.Context, Session)
+
+type serverConfig struct {
+	addrStr        string
+	handler        Handler
+	onConnect      OnConnectHook
+	readBufferSize int
+	controllers    []Controller
+	middlewares    []Middleware
+}
+
+// serverOption represents a functional option for configuring the server
+type serverOption func(*serverConfig)
+
+// defaultServerOpts returns the default options
+func defaultServerOpts() []serverOption {
+	return []serverOption{
+		WithReadBufferSize(4096),
+	}
+}
+
+// WithAddress sets the address for the server
+func WithAddress(addr string) serverOption {
+	return func(c *serverConfig) {
+		c.addrStr = addr
+	}
+}
+
+// WithAddressFromEnv sets the address from environment variable
+func WithAddressFromEnv(envVar string) serverOption {
+	return func(c *serverConfig) {
+		if addr := os.Getenv(envVar); addr != "" {
+			c.addrStr = addr
+		}
+	}
+}
+
+// WithHandler sets the handler for the server
+func WithHandler(h Handler) serverOption {
+	return func(c *serverConfig) {
+		c.handler = h
+	}
+}
+
+// WithControllers adds controllers to the server
+func WithControllers(controllers ...Controller) serverOption {
+	return func(c *serverConfig) {
+		c.controllers = append(c.controllers, controllers...)
+	}
+}
+
+// WithMiddlewares adds middlewares to the server
+func WithMiddlewares(middlewares ...Middleware) serverOption {
+	return func(c *serverConfig) {
+		c.middlewares = append(c.middlewares, middlewares...)
+	}
+}
+
+// WithOnConnect sets the callback for new connections
+func WithOnConnect(hook OnConnectHook) serverOption {
+	return func(c *serverConfig) {
+		c.onConnect = hook
+	}
+}
+
+// WithReadBufferSize sets the read buffer size
+func WithReadBufferSize(size int) serverOption {
+	return func(c *serverConfig) {
+		c.readBufferSize = size
+	}
+}
 
 // Server represents a UDP server
 type Server struct {
@@ -24,16 +98,50 @@ type Server struct {
 
 	// Options
 	readBufferSize int
+	onConnect      OnConnectHook
 }
 
 // NewServer creates a new UDP Server
-func NewServer(addr string, handler Handler, monitor monitoring.Monitor) (*Server, error) {
-	return &Server{
-		addrStr:        addr,
-		handler:        handler,
+func NewServer(monitor monitoring.Monitor, opts ...serverOption) (*Server, error) {
+	cfg := &serverConfig{}
+	for _, opt := range append(defaultServerOpts(), opts...) {
+		opt(cfg)
+	}
+
+	// Default Handler if none provided
+	if cfg.handler == nil {
+		cfg.handler = NewMux()
+	}
+
+	// Register Controllers if Handler is a Registry
+	if registry, ok := cfg.handler.(Registry); ok {
+		for _, c := range cfg.controllers {
+			c.Register(registry)
+		}
+	}
+
+	// Apply Middlewares
+	h := cfg.handler
+	for i := len(cfg.middlewares) - 1; i >= 0; i-- {
+		h = cfg.middlewares[i](h)
+	}
+
+	s := &Server{
+		addrStr:        cfg.addrStr,
+		handler:        h,
 		monitor:        monitor,
-		readBufferSize: 4096,
-	}, nil
+		readBufferSize: cfg.readBufferSize,
+		onConnect:      cfg.onConnect,
+	}
+
+	// Default logging hook
+	if s.onConnect == nil && s.monitor != nil {
+		s.onConnect = func(ctx context.Context, sess Session) {
+			s.monitor.Logger().Debug("UDP Session created", "addr", sess.RemoteAddr().String())
+		}
+	}
+
+	return s, nil
 }
 
 // Start starts the UDP listener
@@ -156,8 +264,10 @@ func (s *Server) getSession(addr *net.UDPAddr) *session {
 	sess := newSession(s.ctx, s, addr)
 	s.sessions.Store(key, sess)
 
-	// Hook: OnConnect? (For now just log)
-	s.monitor.Logger().Debug("UDP Session created", "addr", key)
+	// Execute Hook
+	if s.onConnect != nil {
+		s.onConnect(s.ctx, sess)
+	}
 
 	return sess
 }

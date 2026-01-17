@@ -3,12 +3,16 @@ load("@rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "doc.go",
         "saga.go",
         "step.go",
     ],
     importpath = "github.com/dosanma1/forge/go/kit/saga",
     visibility = ["//visibility:public"],
-    deps = ["@org_golang_x_sync//errgroup:go_default_library"],
+    deps = [
+        "//go/kit/retry:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
+    ],
 )
 
 go_test(

@@ -82,7 +82,7 @@ func startServer(
 	}
 
 	// Create server
-	server, err := New(monitor, opts...)
+	server, err := NewServer(monitor, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC server: %w", err)
 	}
@@ -181,24 +181,24 @@ type clientConfig struct {
 }
 
 // ClientOption configures a gRPC client module
-type ClientOption func(*clientConfig)
+type clientOption func(*clientConfig)
 
 // WithClientDialOptions adds gRPC dial options to the client
-func WithClientDialOptions(opts ...grpc.DialOption) ClientOption {
+func WithClientDialOptions(opts ...grpc.DialOption) clientOption {
 	return func(c *clientConfig) {
 		c.grpcOpts = append(c.grpcOpts, opts...)
 	}
 }
 
 // WithClientProviders adds additional providers to the client module
-func WithClientProviders(providers ...any) ClientOption {
+func WithClientProviders(providers ...any) clientOption {
 	return func(c *clientConfig) {
 		c.extraProviders = append(c.extraProviders, providers...)
 	}
 }
 
 // WithClientConstructorAnnotations adds Fx annotations to the client constructor
-func WithClientConstructorAnnotations(annotations ...fx.Annotation) ClientOption {
+func WithClientConstructorAnnotations(annotations ...fx.Annotation) clientOption {
 	return func(c *clientConfig) {
 		c.constructorAnnotations = append(c.constructorAnnotations, annotations...)
 	}
@@ -222,7 +222,7 @@ func WithClientConstructorAnnotations(annotations ...fx.Annotation) ClientOption
 //	        return NewAuthServiceClient(conn)
 //	    },
 //	)
-func FxClientModule(name, url string, constructor any, opts ...ClientOption) fx.Option {
+func FxClientModule(name, url string, constructor any, opts ...clientOption) fx.Option {
 	// Generate consistent naming
 	clientName := fmt.Sprintf("%sGRPCClient", name)
 	urlName := fmt.Sprintf("%sGRPCUrl", name)

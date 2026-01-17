@@ -44,7 +44,7 @@ func decodeTestObject(ctx context.Context, b []byte) (testObject, error) {
 	return obj, err
 }
 
-func helperNewConsumer(t *testing.T, conn amqp.Connection, handler amqp.Handler[testObject], opts ...amqp.ConsumerOption) amqp.Consumer {
+func helperNewConsumer(t *testing.T, conn amqp.Connection, handler amqp.Handler[testObject]) amqp.Consumer {
 	t.Helper()
 
 	log := loggertest.NewStubLogger(t)
@@ -56,7 +56,6 @@ func helperNewConsumer(t *testing.T, conn amqp.Connection, handler amqp.Handler[
 		amqp.NewQueue("consumerName", amqp.QueueName("test-queue")),
 		decodeTestObject,
 		handler,
-		opts...,
 	)
 	assert.NoError(t, err)
 	assert.NotNil(t, cli)
@@ -150,8 +149,6 @@ func TestConsumerSubscribeHandlerError(t *testing.T) {
 	}
 }
 
-
-
 func TestConsumerConsumeTimeout(t *testing.T) {
 	conn := helperNewConnection(t)
 	prod := helperNewProducer(t, conn)
@@ -164,12 +161,25 @@ func TestConsumerConsumeTimeout(t *testing.T) {
 		wg:    &wg,
 	}
 
-	cons := helperNewConsumer(t, conn, handler, amqp.ConsumerWithTimeout(10*time.Millisecond))
+	// Inline creation to pass option
+	log := loggertest.NewStubLogger(t)
+	cons, err := amqp.NewConsumer(
+		conn,
+		log,
+		amqp.NewExchange("test-exchange", amqp.ExchangeTypeTopic),
+		amqp.RoutingKey(amqp.RoutingKeyPart("test-queue"), amqp.RoutingKeyPartMatchAnyWords),
+		amqp.NewQueue("consumerName", amqp.QueueName("test-queue")),
+		decodeTestObject,
+		handler,
+		amqp.WithTimeout(10*time.Millisecond),
+	)
+	assert.NoError(t, err)
+	assert.NotNil(t, cons)
 
 	go cons.Subscribe(t.Context(), func(_ context.Context, _ error) {})
 
 	wg.Add(1)
-	err := prod.Publish(t.Context(), tObj)
+	err = prod.Publish(t.Context(), tObj)
 	assert.NoError(t, err)
 
 	wg.Wait()

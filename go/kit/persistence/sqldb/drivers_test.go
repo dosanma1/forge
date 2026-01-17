@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDriverType_Valid(t *testing.T) {
+func TestDriverTypeValid(t *testing.T) {
 	tests := []struct {
 		name   string
 		driver DriverType

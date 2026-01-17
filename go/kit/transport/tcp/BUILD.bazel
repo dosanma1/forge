@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "client.go",
         "controller.go",
+        "doc.go",
         "handler.go",
         "module.go",
         "mux.go",
@@ -24,7 +25,10 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["server_test.go"],
+    srcs = [
+        "benchmark_test.go",
+        "server_test.go",
+    ],
     deps = [
         ":go_default_library",
         "//go/kit/monitoring:go_default_library",

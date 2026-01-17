@@ -167,15 +167,15 @@ func TestWebSocketClient(t *testing.T) {
 	tp := &tokenProviderMock{endpoint: serverURL}
 
 	eventCnt := 0
-	opts := NewClientOptionBuilder().WithEventCallback(func(event Event, msg string) {
+	opts := []clientOption{WithEventCallback(func(event Event, msg string) {
 		if event == EventConnected || event == EventDisconnected {
 			eventCnt++
 		}
-	}).Build()
+	})}
 
 	m := monitoringtest.NewMonitor(t)
 
-	client := NewWebSocketClient(tp, m.Logger(), opts)
+	client := NewClient(tp, m, opts...)
 	err := client.Start()
 	assert.Nil(t, err)
 	<-time.After(time.Millisecond * 20)
@@ -202,15 +202,15 @@ func TestWebSocketClient2(t *testing.T) {
 	tp := &tokenProviderMock{endpoint: serverURL}
 
 	eventCnt := 0
-	opts := NewClientOptionBuilder().WithEventCallback(func(event Event, msg string) {
+	opts := []clientOption{WithEventCallback(func(event Event, msg string) {
 		if event == EventConnected || event == EventDisconnected {
 			eventCnt++
 		}
-	}).Build()
+	})}
 
 	m := monitoringtest.NewMonitor(t)
 
-	client := NewWebSocketClient(tp, m.Logger(), opts)
+	client := NewClient(tp, m, opts...)
 
 	for i := 0; i < 10; i++ {
 		go func() {
@@ -225,7 +225,7 @@ func TestWebSocketClient2(t *testing.T) {
 	assert.Equal(t, 0, len(client.ackEvent))
 }
 
-func TestWebSocketClient_ping(t *testing.T) {
+func TestWebSocketClientPing(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(mockWebSocketServer))
 	defer server.Close()
 
@@ -233,11 +233,9 @@ func TestWebSocketClient_ping(t *testing.T) {
 
 	tp := &tokenProviderMock{endpoint: serverURL}
 
-	opts := NewClientOptionBuilder().Build()
-
 	m := monitoringtest.NewMonitor(t)
 
-	client := NewWebSocketClient(tp, m.Logger(), opts)
+	client := NewClient(tp, m)
 	err := client.Start()
 	assert.Nil(t, err)
 
@@ -252,7 +250,7 @@ func TestWebSocketClient_ping(t *testing.T) {
 
 }
 
-func TestWebSocketClient_write_read(t *testing.T) {
+func TestWebSocketClientWriteRead(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(mockWebSocketServer))
 	defer server.Close()
 
@@ -260,11 +258,9 @@ func TestWebSocketClient_write_read(t *testing.T) {
 
 	tp := &tokenProviderMock{endpoint: serverURL}
 
-	opts := NewClientOptionBuilder().Build()
-
 	m := monitoringtest.NewMonitor(t)
 
-	client := NewWebSocketClient(tp, m.Logger(), opts)
+	client := NewClient(tp, m)
 	err := client.Start()
 	assert.Nil(t, err)
 
@@ -290,7 +286,7 @@ func TestWebSocketClient_write_read(t *testing.T) {
 
 }
 
-func TestWebSocketClient_reconnect(t *testing.T) {
+func TestWebSocketClientReconnect(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(mockWebSocketServer2))
 	defer server.Close()
 
@@ -298,13 +294,16 @@ func TestWebSocketClient_reconnect(t *testing.T) {
 
 	tp := &tokenProviderMock{endpoint: serverURL, PingInterval: 100}
 
-	opts := NewClientOptionBuilder().WithEventCallback(func(event Event, msg string) {
-		fmt.Println(event)
-	}).WithReconnectInterval(time.Millisecond * 5).Build()
+	opts := []clientOption{
+		WithEventCallback(func(event Event, msg string) {
+			fmt.Println(event)
+		}),
+		WithReconnectInterval(time.Millisecond * 5),
+	}
 
 	m := monitoringtest.NewMonitor(t)
 
-	client := NewWebSocketClient(tp, m.Logger(), opts)
+	client := NewClient(tp, m, opts...)
 	assert.Nil(t, client.Start())
 
 	<-time.After(time.Millisecond * 200)
@@ -325,7 +324,7 @@ func TestWebSocketClient_reconnect(t *testing.T) {
 
 }
 
-func TestWebSocketClient_reconnect2(t *testing.T) {
+func TestWebSocketClientReconnect2(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(mockWebSocketServer2))
 	defer server.Close()
 
@@ -334,14 +333,18 @@ func TestWebSocketClient_reconnect2(t *testing.T) {
 	tp := &tokenProviderMock{endpoint: serverURL, PingInterval: 200}
 
 	var ev atomic.Value
-	opts := NewClientOptionBuilder().WithReconnectInterval(time.Millisecond * 5).WithEventCallback(func(event Event, msg string) {
-		fmt.Println(event)
-		ev.Store(event)
-	}).WithReconnect(false).Build()
+	opts := []clientOption{
+		WithReconnectInterval(time.Millisecond * 5),
+		WithEventCallback(func(event Event, msg string) {
+			fmt.Println(event)
+			ev.Store(event)
+		}),
+		WithReconnect(false),
+	}
 
 	m := monitoringtest.NewMonitor(t)
 
-	client := NewWebSocketClient(tp, m.Logger(), opts)
+	client := NewClient(tp, m, opts...)
 	assert.Nil(t, client.Start())
 
 	<-time.After(time.Millisecond * 200)
@@ -356,7 +359,7 @@ func TestWebSocketClient_reconnect2(t *testing.T) {
 	assert.Equal(t, EventClientFail, ev.Load())
 }
 
-func TestWebSocketClient_reconnect3(t *testing.T) {
+func TestWebSocketClientReconnect3(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(mockWebSocketServer2))
 	defer server.Close()
 
@@ -365,14 +368,16 @@ func TestWebSocketClient_reconnect3(t *testing.T) {
 	tp := &tokenProviderMock{endpoint: serverURL}
 	tp.PingInterval = 50
 
-	opts := NewClientOptionBuilder().WithReconnectInterval(time.Millisecond * 5).
+	opts := []clientOption{
+		WithReconnectInterval(time.Millisecond * 5),
 		WithEventCallback(func(event Event, msg string) {
 			fmt.Println(event, msg)
-		}).Build()
+		}),
+	}
 
 	m := monitoringtest.NewMonitor(t)
 
-	client := NewWebSocketClient(tp, m.Logger(), opts)
+	client := NewClient(tp, m, opts...)
 	assert.Nil(t, client.Start())
 
 	<-time.After(time.Millisecond * 200)

@@ -118,8 +118,8 @@ func (s *Server) Addr() net.Addr {
 	return nil
 }
 
-// New creates a new gRPC server with the given options
-func New(monitor monitoring.Monitor, opts ...serverOption) (*Server, error) {
+// NewServer creates a new gRPC server with the given options
+func NewServer(monitor monitoring.Monitor, opts ...serverOption) (*Server, error) {
 	grpcOpts := make([]grpc.ServerOption, 0)
 	cfg := &serverConfig{
 		network: "tcp",

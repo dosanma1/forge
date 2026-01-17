@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["database.go"],
+    importpath = "github.com/dosanma1/forge/go/kit/persistence/gormdb/gormdbtest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/persistence/gormdb:go_default_library",
+        "@com_github_orlangure_gnomock//:go_default_library",
+        "@com_github_orlangure_gnomock//preset/postgres:go_default_library",
+        "@io_gorm_driver_postgres//:go_default_library",
+        "@io_gorm_gorm//:go_default_library",
+        "@io_gorm_gorm//logger:go_default_library",
+    ],
+)

@@ -161,8 +161,12 @@ func jsonApiDecodePatchReq[T resource.Resource](
 			return nil, errors.InvalidArgument("invalid request body")
 		}
 
-		if err := validateUpdateReqData(kind, res.Data); err != nil {
-			return nil, err
+		if res.Data.ID() == "" {
+			return nil, errors.InvalidArgument("missing resource ID")
+		}
+
+		if res.Data.Type() != kind {
+			return nil, errors.InvalidArgument("resource type mismatch")
 		}
 
 		if pathID := req.PathValue("id"); res.Data.ID() != pathID {

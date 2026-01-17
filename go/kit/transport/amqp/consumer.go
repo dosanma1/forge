@@ -70,15 +70,15 @@ type consumer[T any] struct {
 	semaphore    chan struct{}
 }
 
-func defaultConsumerOpts() []ConsumerOption {
-	return []ConsumerOption{
-		ConsumerTag(""), // empty string means that the server will generate a unique tag
-		ConsumerAutoAck(false),
-		ConsumerExclusive(false),
-		consumerNoLocal(false),
-		ConsumerNoWait(false),
-		ConsumerWithTimeout(defaultConsumeTimeout),
-		ConsumerMaxGoRoutines(defaultMaxGoRoutines),
+func defaultConsumerOpts() []consumerOption {
+	return []consumerOption{
+		WithConsumerTag(""), // empty string means that the server will generate a unique tag
+		WithAutoAck(false),
+		WithExclusive(false),
+		withNoLocal(false),
+		WithNoWait(false),
+		WithTimeout(defaultConsumeTimeout),
+		WithMaxGoRoutines(defaultMaxGoRoutines),
 	}
 }
 
@@ -90,7 +90,7 @@ func NewConsumer[T any](
 	queue *Queue,
 	dec decoder[T],
 	handler Handler[T],
-	opts ...ConsumerOption,
+	opts ...consumerOption,
 ) (*consumer[T], error) {
 	cfg := &consumerConfig{}
 	for _, opt := range append(defaultConsumerOpts(), opts...) {
@@ -318,8 +318,6 @@ func (c *consumer[T]) consume(
 	)
 }
 
-
-
 func (c *consumer[T]) Unsubscribe(ctx context.Context) error {
 	c.isSubscribed = false
 	return c.ch.Cancel(c.config.consumerTag, c.config.noWait)
@@ -337,52 +335,52 @@ type consumerConfig struct {
 	maxGoRoutines uint
 }
 
-type ConsumerOption func(*consumerConfig)
+type consumerOption func(*consumerConfig)
 
-func ConsumerBindingOpts(opts ...bindingOption) ConsumerOption {
+func WithBindingOpts(opts ...bindingOption) consumerOption {
 	return func(c *consumerConfig) {
 		c.bindingOpts = append(c.bindingOpts, opts...)
 	}
 }
 
-func ConsumerTag(tag string) ConsumerOption {
+func WithConsumerTag(tag string) consumerOption {
 	return func(c *consumerConfig) {
 		c.consumerTag = tag
 	}
 }
 
-func ConsumerAutoAck(autoAck bool) ConsumerOption {
+func WithAutoAck(autoAck bool) consumerOption {
 	return func(c *consumerConfig) {
 		c.autoAck = autoAck
 	}
 }
 
-func ConsumerExclusive(exclusive bool) ConsumerOption {
+func WithExclusive(exclusive bool) consumerOption {
 	return func(c *consumerConfig) {
 		c.exclusive = exclusive
 	}
 }
 
-func ConsumerWithTimeout(timeout time.Duration) ConsumerOption {
+func WithTimeout(timeout time.Duration) consumerOption {
 	return func(c *consumerConfig) {
 		c.timeout = timeout
 	}
 }
 
-func ConsumerMaxGoRoutines(maxGoRoutines uint) ConsumerOption {
+func WithMaxGoRoutines(maxGoRoutines uint) consumerOption {
 	return func(c *consumerConfig) {
 		c.maxGoRoutines = maxGoRoutines
 	}
 }
 
 // not supported by rabbitmq so we don't expose it for now
-func consumerNoLocal(noLocal bool) ConsumerOption {
+func withNoLocal(noLocal bool) consumerOption {
 	return func(c *consumerConfig) {
 		c.noLocal = noLocal
 	}
 }
 
-func ConsumerNoWait(noWait bool) ConsumerOption {
+func WithNoWait(noWait bool) consumerOption {
 	return func(c *consumerConfig) {
 		c.noWait = noWait
 	}

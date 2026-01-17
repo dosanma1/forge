@@ -139,22 +139,6 @@ packages:
       OpenAPIPreparer: {}
       StatusCoder: {}
 
-  # Transport - TCP
-  github.com/dosanma1/forge/go/kit/transport/tcp:
-    interfaces:
-      Controller: {}
-      ErrorHandler: {}
-      Handler: {}
-      Registry: {}
-      Session: {}
-
-  # Transport - UDP
-  github.com/dosanma1/forge/go/kit/transport/udp:
-    interfaces:
-      Handler: {}
-      Registry: {}
-      Session: {}
-
   # Transport - WebSocket
   github.com/dosanma1/forge/go/kit/transport/websocket:
     interfaces:

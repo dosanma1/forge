@@ -2,11 +2,10 @@ package tcp
 
 import (
 	"context"
-	"encoding/binary"
 	"errors"
-	"fmt"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,7 +38,7 @@ type session struct {
 	doneCh chan struct{}
 
 	mu     sync.RWMutex
-	closed bool
+	closed atomic.Bool // Lock-free closed flag
 }
 
 func newSession(conn net.Conn, writeBufferSize int, writeTimeout time.Duration) *session {
@@ -66,20 +65,9 @@ func (s *session) RemoteAddr() net.Addr {
 }
 
 func (s *session) Send(data []byte) error {
-	if len(data) >= 4 {
-		size := binary.LittleEndian.Uint16(data[0:2])
-		opcode := binary.LittleEndian.Uint16(data[2:4])
-		fmt.Printf("[TCP-SEND] Session %s sending Size=%d Opcode=0x%X Len=%d\n", s.id, size, opcode, len(data))
-	} else {
-		fmt.Printf("[TCP-SEND] Session %s sending SMALL PACKET Len=%d\n", s.id, len(data))
-	}
-
-	s.mu.RLock()
-	if s.closed {
-		s.mu.RUnlock()
+	if s.closed.Load() {
 		return ErrSessionClosed
 	}
-	s.mu.RUnlock()
 
 	select {
 	case s.sendCh <- data:
@@ -90,15 +78,11 @@ func (s *session) Send(data []byte) error {
 }
 
 func (s *session) Close() error {
-	s.mu.Lock()
-	if s.closed {
-		s.mu.Unlock()
+	if s.closed.Swap(true) {
+		// Already closed
 		return nil
 	}
-	s.closed = true
 	close(s.doneCh)
-	s.mu.Unlock()
-
 	return s.conn.Close()
 }
 

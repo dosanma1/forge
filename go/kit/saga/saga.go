@@ -2,6 +2,8 @@ package saga
 
 import (
 	"context"
+
+	"github.com/dosanma1/forge/go/kit/retry"
 )
 
 type step[T any] struct {
@@ -106,8 +108,12 @@ func traverseNode[T any](ctx context.Context, node Node[T], req T, roll []StepRu
 
 func compensate[T any](ctx context.Context, req T, steps []StepRunner[T]) T {
 	for i := len(steps) - 1; i > -1; i-- {
-		// TODO: Implement a retry mechanism and compensation steps need to be idempotent
-		req, _ = steps[i](ctx, req)
+		// execute compensation step with exponential backoff
+		// we ignore the error here because we can't do anything about it
+		// and we want to continue compensating the other steps
+		req, _ = retry.RetryWithDataAndContext(ctx, func() (T, error) {
+			return steps[i](ctx, req)
+		}, retry.WithExponentialPolicy())
 	}
 	return req
 }

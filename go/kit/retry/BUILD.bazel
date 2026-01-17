@@ -2,7 +2,10 @@ load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["retry.go"],
+    srcs = [
+        "doc.go",
+        "retry.go",
+    ],
     importpath = "github.com/dosanma1/forge/go/kit/retry",
     visibility = ["//visibility:public"],
     deps = ["@com_github_cenkalti_backoff_v5//:go_default_library"],

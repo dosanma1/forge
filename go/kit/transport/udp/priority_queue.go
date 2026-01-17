@@ -9,13 +9,13 @@ import (
 type MessagePriority uint8
 
 const (
-	// PRIORITY_LOW for high-frequency, non-critical updates (movement heartbeats, particles)
+	// PRIORITY_LOW for high-frequency, non-critical updates
 	PRIORITY_LOW MessagePriority = 0
-	// PRIORITY_NORMAL for standard gameplay traffic (movement state changes)
+	// PRIORITY_NORMAL for standard traffic
 	PRIORITY_NORMAL MessagePriority = 1
-	// PRIORITY_HIGH for important gameplay events (abilities, damage)
+	// PRIORITY_HIGH for important events
 	PRIORITY_HIGH MessagePriority = 2
-	// PRIORITY_CRITICAL for game-critical events (deaths, disconnects)
+	// PRIORITY_CRITICAL for critical events
 	PRIORITY_CRITICAL MessagePriority = 3
 )
 

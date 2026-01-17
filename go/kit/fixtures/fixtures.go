@@ -74,7 +74,7 @@ func (l *loader) Load(ctx context.Context, fixturesFS fs.FS) error {
 		return nil
 	}
 
-	l.logger.Info("📁 Loading %d fixture file(s)", len(files))
+	l.logger.WithKeysAndValues("count", len(files)).Info("📁 Loading fixture files")
 
 	// Use Transactioner for automatic commit/rollback
 	transactioner := sqldb.NewTransactioner(l.db.DB())
@@ -84,7 +84,7 @@ func (l *loader) Load(ctx context.Context, fixturesFS fs.FS) error {
 		tx := sqldb.GetTx(ctx, l.db.DB())
 
 		for _, filename := range files {
-			l.logger.Info("🔄 Executing: %s", filename)
+			l.logger.WithKeysAndValues("filename", filename).Info("🔄 Executing fixture")
 
 			content, err := fs.ReadFile(fixturesFS, filename)
 			if err != nil {
@@ -95,10 +95,10 @@ func (l *loader) Load(ctx context.Context, fixturesFS fs.FS) error {
 				return fmt.Errorf("failed to execute %s: %w", filename, err)
 			}
 
-			l.logger.Info("✅ Executed: %s", filename)
+			l.logger.WithKeysAndValues("filename", filename).Info("✅ Executed fixture")
 		}
 
-		l.logger.Info("🎉 Successfully loaded %d fixture(s)", len(files))
+		l.logger.WithKeysAndValues("count", len(files)).Info("🎉 Successfully loaded fixtures")
 		return nil // Auto-commits on success
 	})
 }

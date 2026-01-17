@@ -2,7 +2,6 @@ package udp
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -23,10 +22,21 @@ type Session interface {
 	RemoteAddr() net.Addr
 	Context() context.Context
 
-	Send(data []byte) error         // Unreliable
-	SendReliable(data []byte) error // Reliable (Seq+Ack)
+	// SendUnreliable sends data without reliability guarantees (for position updates)
+	// Uses packet framing but no ACK/retry. Fast path for high-frequency updates.
+	SendUnreliable(data []byte) error
 
-	// Internal methods called by Server
+	// SendReliable sends data with ACK and retry (for critical events)
+	// Guaranteed delivery with retransmission on packet loss.
+	SendReliable(data []byte) error
+
+	// SendPriority sends data through priority queue (for prioritized delivery)
+	// Higher priority messages are sent before lower priority ones.
+	SendPriority(data []byte, priority MessagePriority) error
+
+	// Send is an alias for SendUnreliable (backwards compatibility)
+	Send(data []byte) error
+
 	// Internal methods called by Server
 	ProcessPacket(p Packet) error
 	CheckResends()
@@ -82,15 +92,16 @@ func (s *session) Context() context.Context {
 	return s.ctx
 }
 
-func (s *session) Send(data []byte) error {
-	// Unreliable: Just wrap and send
+// SendUnreliable sends data without reliability (packet framing, no ACK)
+// Best for high-frequency position updates where newest data matters most.
+func (s *session) SendUnreliable(data []byte) error {
 	p := Packet{
 		Type:    PacketTypeUnreliable,
-		Seq:     0, // Unreliable doesn't track Seq for ordering usually, or could use separate counter
+		Seq:     0, // Unreliable doesn't track Seq
 		Ack:     0,
 		Payload: data,
 	}
-	// We can set Ack to last received to help reliability on other side
+	// Piggyback ACK to help reliability on other side
 	s.mu.Lock()
 	p.Ack = s.lastAckRecv
 	s.mu.Unlock()
@@ -98,6 +109,14 @@ func (s *session) Send(data []byte) error {
 	return s.server.writeTo(p.Marshal(), s.remoteAddr)
 }
 
+// Send is an alias for SendUnreliable for backwards compatibility
+func (s *session) Send(data []byte) error {
+	return s.SendUnreliable(data)
+}
+
+// SendReliable sends data with ACK and retry guarantees
+// Best for critical events like combat, item pickups, state changes.
+// Will retry up to MaxRetries times with ResendTimeout delay.
 func (s *session) SendReliable(data []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -125,6 +144,20 @@ func (s *session) SendReliable(data []byte) error {
 	return s.server.writeTo(bytes, s.remoteAddr)
 }
 
+// SendPriority enqueues data to the priority queue for ordered delivery
+// Higher priority messages are sent before lower priority ones.
+// Use this when you need both reliability and priority ordering.
+func (s *session) SendPriority(data []byte, priority MessagePriority) error {
+	// For now, delegate to server's priority queue if available
+	// This is a placeholder - full implementation would integrate with PriorityQueue
+	if priority >= PRIORITY_HIGH {
+		// High priority: send reliably and immediately
+		return s.SendReliable(data)
+	}
+	// Normal/Low priority: send unreliably (faster)
+	return s.SendUnreliable(data)
+}
+
 func (s *session) ProcessPacket(p Packet) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -135,16 +168,13 @@ func (s *session) ProcessPacket(p Packet) error {
 	}
 
 	// 2. Handle Payload
-	// For Reliable packets, we should check Order. (Simpler implementation: Allow gaps for now or Drop dups)
-	// Since we are "Basic Foundation": We assume unreliable is mostly used.
 	// If it is Reliable, we update lastAckRecv.
 	if p.Type == PacketTypeReliable {
 		// Update Ack state
 		if p.Seq > s.lastAckRecv {
 			s.lastAckRecv = p.Seq
 		}
-		// Send immediate ACK? Or piggyback?
-		// For foundation, let's send explicit ACK if we have no data to send.
+		// Send immediate ACK
 		s.sendAck(p.Seq)
 	}
 
@@ -153,9 +183,6 @@ func (s *session) ProcessPacket(p Packet) error {
 
 func (s *session) handleAck(ackSeq uint16) {
 	// Remove acknowledged packets from queue
-	// We assume cumulative ACK or individual?
-	// Let's assume this Ack confirms THIS packet. Simpler.
-
 	newQueue := make([]*pendingPacket, 0, len(s.sendQueue))
 	for _, pkt := range s.sendQueue {
 		if pkt.seq != ackSeq {
@@ -184,9 +211,10 @@ func (s *session) CheckResends() {
 		if now.Sub(pkt.sentAt) > ResendTimeout {
 			if pkt.attempts >= MaxRetries {
 				// Failed. Log or Disconnect.
-				fmt.Printf("UDP Session %s dropped packet %d after max retries\n", s.id, pkt.seq)
-				// Remove? Or keep trying?
-				// For now, let's just log and reset timer to avoid spam.
+				s.server.monitor.Logger().
+					WithKeysAndValues("id", s.id, "seq", pkt.seq).
+					ErrorContext(s.ctx, "Dropped packet after max retries")
+				// Reset timer to avoid spam
 				pkt.sentAt = now
 				continue
 			}

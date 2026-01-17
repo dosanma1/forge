@@ -1,13 +1,14 @@
 package udp
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPriorityQueue_EnqueueDequeue(t *testing.T) {
+func TestPriorityQueueEnqueueDequeue(t *testing.T) {
 	pq := NewPriorityQueue()
 
 	// Enqueue messages at different priorities
@@ -38,7 +39,7 @@ func TestPriorityQueue_EnqueueDequeue(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestPriorityQueue_MultipleSamePriority(t *testing.T) {
+func TestPriorityQueueMultipleSamePriority(t *testing.T) {
 	pq := NewPriorityQueue()
 
 	// Enqueue multiple high-priority messages
@@ -60,7 +61,7 @@ func TestPriorityQueue_MultipleSamePriority(t *testing.T) {
 	assert.Equal(t, []byte("high3"), msg.Data)
 }
 
-func TestPriorityQueue_Len(t *testing.T) {
+func TestPriorityQueueLen(t *testing.T) {
 	pq := NewPriorityQueue()
 
 	assert.Equal(t, 0, pq.Len())
@@ -78,7 +79,7 @@ func TestPriorityQueue_Len(t *testing.T) {
 	assert.Equal(t, 0, pq.Len())
 }
 
-func TestPriorityQueue_LenByPriority(t *testing.T) {
+func TestPriorityQueueLenByPriority(t *testing.T) {
 	pq := NewPriorityQueue()
 
 	pq.Enqueue([]byte("low1"), nil, PRIORITY_LOW)
@@ -91,7 +92,7 @@ func TestPriorityQueue_LenByPriority(t *testing.T) {
 	assert.Equal(t, 0, pq.LenByPriority(PRIORITY_CRITICAL))
 }
 
-func TestPriorityQueue_Stats(t *testing.T) {
+func TestPriorityQueueStats(t *testing.T) {
 	pq := NewPriorityQueue()
 
 	// Empty queue stats
@@ -111,7 +112,7 @@ func TestPriorityQueue_Stats(t *testing.T) {
 	assert.Greater(t, stats.OldestMessageAge, 10*time.Millisecond)
 }
 
-func TestPriorityQueue_DequeueBlocking(t *testing.T) {
+func TestPriorityQueueDequeueBlocking(t *testing.T) {
 	pq := NewPriorityQueue()
 
 	// Start goroutine that dequeues (will block)
@@ -139,7 +140,7 @@ func TestPriorityQueue_DequeueBlocking(t *testing.T) {
 	}
 }
 
-func TestPriorityQueue_ConcurrentAccess(t *testing.T) {
+func TestPriorityQueueConcurrentAccess(t *testing.T) {
 	pq := NewPriorityQueue()
 
 	// Spawn multiple producers
@@ -152,7 +153,7 @@ func TestPriorityQueue_ConcurrentAccess(t *testing.T) {
 	}
 
 	// Spawn multiple consumers
-	consumed := 0
+	var consumed int32
 	done := make(chan bool)
 
 	for i := 0; i < 5; i++ {
@@ -163,9 +164,17 @@ func TestPriorityQueue_ConcurrentAccess(t *testing.T) {
 					time.Sleep(1 * time.Millisecond)
 					continue
 				}
-				consumed++
-				if consumed >= 1000 {
-					done <- true
+				newVal := atomic.AddInt32(&consumed, 1)
+				if newVal >= 1000 {
+					// Use non-blocking send or ensure only one signals
+					// Here we just signal done and return.
+					// Since multiple might hit >= 1000 if over-produced (not here)
+					// or race to msg. This is a simple test condition.
+					// To avoid blocking channel if multiple hit it:
+					select {
+					case done <- true:
+					default:
+					}
 					return
 				}
 			}
@@ -175,7 +184,7 @@ func TestPriorityQueue_ConcurrentAccess(t *testing.T) {
 	// Wait for all messages to be consumed
 	select {
 	case <-done:
-		assert.Equal(t, 1000, consumed)
+		assert.Equal(t, int32(1000), atomic.LoadInt32(&consumed))
 	case <-time.After(5 * time.Second):
 		t.Fatal("Concurrent test timed out")
 	}

@@ -4,8 +4,63 @@ import (
 	"context"
 )
 
+// Event defines the types of WebSocket events
+type Event int
+
+const (
+	EventConnected        Event = iota // Connection established event
+	EventDisconnected                  // Connection closed event
+	EventTryReconnect                  // Try to reconnect event
+	EventMessageReceived               // Message received event
+	EventErrorReceived                 // Error occurred event
+	EventPongReceived                  // Pong message received event
+	EventReadBufferFull                // The read buffer of WebSocket is full.
+	EventWriteBufferFull               // The write buffer of WebSocket is full.
+	EventCallbackError                 // An event triggered when an error occurs during a callback operation
+	EventReSubscribeOK                 // ReSubscription success event
+	EventReSubscribeError              // ReSubscription error event
+	EventClientFail                    // Client failure event.
+	EventClientShutdown                // Client shutdown event.
+)
+
+func (e Event) String() string {
+	switch e {
+	case EventConnected:
+		return "EventConnected"
+	case EventDisconnected:
+		return "EventDisconnected"
+	case EventTryReconnect:
+		return "EventTryReconnect"
+	case EventMessageReceived:
+		return "EventMessageReceived"
+	case EventErrorReceived:
+		return "EventErrorReceived"
+	case EventPongReceived:
+		return "EventPongReceived"
+	case EventReadBufferFull:
+		return "EventReadBufferFull"
+	case EventWriteBufferFull:
+		return "EventWriteBufferFull"
+	case EventCallbackError:
+		return "EventCallbackError"
+	case EventReSubscribeOK:
+		return "EventReSubscribeOK"
+	case EventReSubscribeError:
+		return "EventReSubscribeError"
+	case EventClientFail:
+		return "EventClientFail"
+	case EventClientShutdown:
+		return "EventClientShutdown"
+	default:
+		return "UnknownEvent"
+	}
+}
+
+// Callback is a generic callback function type that handles all WebSocket events
+type Callback func(event Event, msg string)
+
 // EventCallback is a generic callback function type that handles all WebSocket events
-type EventCallback func(event Event, msg string)
+type EventCallback = Callback
 
 // MessageType defines the types of WebSocket messages
 type MessageType string

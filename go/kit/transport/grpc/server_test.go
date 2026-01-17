@@ -17,7 +17,7 @@ import (
 func TestNewServerWithDefaults(t *testing.T) {
 	t.Run("creates server with default configuration", func(t *testing.T) {
 		monitor := monitoringtest.NewMonitor(t)
-		server, err := transportgrpc.New(monitor, transportgrpc.WithAddress(":0"))
+		server, err := transportgrpc.NewServer(monitor, transportgrpc.WithAddress(":0"))
 
 		require.NoError(t, err)
 		assert.NotNil(t, server)
@@ -28,7 +28,7 @@ func TestNewServerWithDefaults(t *testing.T) {
 func TestNewServerWithAddress(t *testing.T) {
 	t.Run("applies custom address", func(t *testing.T) {
 		monitor := monitoringtest.NewMonitor(t)
-		server, err := transportgrpc.New(
+		server, err := transportgrpc.NewServer(
 			monitor,
 			transportgrpc.WithAddress(":0"), // Use port 0 for automatic assignment
 		)
@@ -41,7 +41,7 @@ func TestNewServerWithAddress(t *testing.T) {
 func TestNewServerWithNetwork(t *testing.T) {
 	t.Run("applies custom network", func(t *testing.T) {
 		monitor := monitoringtest.NewMonitor(t)
-		server, err := transportgrpc.New(
+		server, err := transportgrpc.NewServer(
 			monitor,
 			transportgrpc.WithAddress(":0"),
 			transportgrpc.WithNetwork("tcp"),
@@ -55,12 +55,12 @@ func TestNewServerWithNetwork(t *testing.T) {
 func TestNewServerWithMiddlewares(t *testing.T) {
 	t.Run("applies middleware", func(t *testing.T) {
 		monitor := monitoringtest.NewMonitor(t)
-		
+
 		middleware := transportgrpc.MiddlewareFunc(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 			return handler(ctx, req)
 		})
 
-		server, err := transportgrpc.New(
+		server, err := transportgrpc.NewServer(
 			monitor,
 			transportgrpc.WithAddress(":0"),
 			transportgrpc.WithMiddlewares(middleware),
@@ -74,8 +74,8 @@ func TestNewServerWithMiddlewares(t *testing.T) {
 func TestNewServerWithKeepalive(t *testing.T) {
 	t.Run("applies keepalive parameters", func(t *testing.T) {
 		monitor := monitoringtest.NewMonitor(t)
-		
-		server, err := transportgrpc.New(
+
+		server, err := transportgrpc.NewServer(
 			monitor,
 			transportgrpc.WithAddress(":0"),
 			transportgrpc.WithKeepalive(&keepalive.ServerParameters{
@@ -94,8 +94,8 @@ func TestNewServerWithLogger(t *testing.T) {
 	t.Run("server uses provided logger", func(t *testing.T) {
 		logger := loggertest.NewStubLogger(t)
 		monitor := monitoringtest.NewMonitor(t, monitoringtest.WithLogger(logger))
-		
-		server, err := transportgrpc.New(monitor, transportgrpc.WithAddress(":0"))
+
+		server, err := transportgrpc.NewServer(monitor, transportgrpc.WithAddress(":0"))
 
 		require.NoError(t, err)
 		assert.NotNil(t, server)
@@ -105,7 +105,7 @@ func TestNewServerWithLogger(t *testing.T) {
 func TestNewServerCreatesHealthCheckByDefault(t *testing.T) {
 	t.Run("health check controller is registered by default", func(t *testing.T) {
 		monitor := monitoringtest.NewMonitor(t)
-		server, err := transportgrpc.New(monitor, transportgrpc.WithAddress(":0"))
+		server, err := transportgrpc.NewServer(monitor, transportgrpc.WithAddress(":0"))
 
 		require.NoError(t, err)
 		assert.NotNil(t, server)

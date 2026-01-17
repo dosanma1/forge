@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRegistry_Integration(t *testing.T) {
+func TestRegistryIntegration(t *testing.T) {
 	// Use integration DB
 	testDB := sqldbtest.GetDB(t, sqldbtest.TestSchema)
 	db := testDB.DB()
@@ -40,7 +40,7 @@ func TestRegistry_Integration(t *testing.T) {
 		stmt, err := registry.Get(id)
 		require.NoError(t, err)
 		assert.NotNil(t, stmt)
-		
+
 		// Verify statement works
 		var result int
 		err = stmt.QueryRow().Scan(&result)
@@ -54,11 +54,11 @@ func TestRegistry_Integration(t *testing.T) {
 		assert.Nil(t, stmt)
 		assert.Contains(t, err.Error(), "not registered")
 	})
-	
+
 	t.Run("MustRegister success", func(t *testing.T) {
 		id2 := sqldb.StatementID("select_two")
 		query2 := "SELECT 2"
-		
+
 		assert.NotPanics(t, func() {
 			registry.MustRegister(ctx, id2, query2)
 		})
@@ -75,7 +75,7 @@ func TestRegistry_Integration(t *testing.T) {
 			registry.MustGet("unknown")
 		})
 	})
-	
+
 	// Close happens in defer, validated by lack of error in test cleanup typically,
 	// but we can call it explicitly for testing.
 	t.Run("Close success", func(t *testing.T) {

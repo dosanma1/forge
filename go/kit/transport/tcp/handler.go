@@ -49,10 +49,13 @@ type HandlerConfig struct {
 	errorHandler ErrorHandler
 }
 
-// Handler handles a generic request/packet
+// Handler handles a TCP session and payload
 type Handler interface {
-	Handle(ctx context.Context, session Session, payload []byte) error
+	Handle(context.Context, Session, []byte) error
 }
+
+// Middleware is a function that wraps a Handler
+type Middleware func(Handler) Handler
 
 // HandlerFunc allows a function to be used as a Handler
 type HandlerFunc func(ctx context.Context, session Session, payload []byte) error

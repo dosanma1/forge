@@ -49,8 +49,8 @@ func TestLoggerFactory(t *testing.T) {
 
 			// Test basic functionality
 			l.Info("Test message")
-			l.Debug("Debug message", "test", "value")
-			l.Error("Error message", "key", "value")
+			l.WithKeysAndValues("test", "value").Debug("Debug message")
+			l.WithKeysAndValues("key", "value").Error("Error message")
 
 			// Test level checking
 			if !l.IsLevelEnabled(logger.LogLevelError) {
