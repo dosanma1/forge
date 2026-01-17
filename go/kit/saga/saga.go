@@ -107,7 +107,6 @@ func traverseNode[T any](ctx context.Context, node Node[T], req T, roll []StepRu
 func compensate[T any](ctx context.Context, req T, steps []StepRunner[T]) T {
 	for i := len(steps) - 1; i > -1; i-- {
 		// TODO: Implement a retry mechanism and compensation steps need to be idempotent
-		// https://linear.app/messagemycustomer/issue/MMC-452/[saga]-implement-a-retry-mechanism-and-compensation-steps-need-to-be
 		req, _ = steps[i](ctx, req)
 	}
 	return req
