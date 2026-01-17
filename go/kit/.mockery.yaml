@@ -98,21 +98,6 @@ packages:
     interfaces:
       Logger: {}
 
-  # Persistence
-  github.com/dosanma1/forge/go/kit/persistence:
-    interfaces:
-      Transactioner:
-        config:
-          structname: MockTransactioner
-
-  github.com/dosanma1/forge/go/kit/persistence/sqldb:
-    interfaces:
-      Client: {}
-      ContextAwarePinger: {}
-      DatabaseProvider: {}
-      Pinger: {}
-      Querier: {}
-
   # Resource
   github.com/dosanma1/forge/go/kit/resource:
     interfaces:
@@ -134,11 +119,6 @@ packages:
       Connection: {}
       Consumer: {}
       Handler: {}
-
-  # Transport - Common
-  github.com/dosanma1/forge/go/kit/transport:
-    interfaces:
-      ErrorHandler: {}
 
   # Transport - gRPC
   github.com/dosanma1/forge/go/kit/transport/grpc:

@@ -149,8 +149,6 @@ type monitorConfig struct {
 	logLevel           gormlogger.LogLevel
 }
 
-// MonitorOption defines the contract for the options applied on initializion
-// when calling NewLogger.
 type MonitorOption func(c *monitorConfig)
 
 func withLogErrSkippers(shouldLogFunc func(error) bool) MonitorOption {
@@ -159,8 +157,6 @@ func withLogErrSkippers(shouldLogFunc func(error) bool) MonitorOption {
 	}
 }
 
-// SlowQueriesThreshold defines the boundary of what is considered as a slow query
-// (those queries will be logged as warnings).
 func SlowQueriesThreshold(slowQueryThreshold time.Duration) MonitorOption {
 	return func(c *monitorConfig) {
 		c.SlowQueryThreshold = slowQueryThreshold

@@ -154,8 +154,8 @@ func TestRepoPatchApplyIntegration(t *testing.T) {
 		testDB.DBClient,
 		map[string]string{
 			"id":           "id",
-			"name":         "name", // "name" (input) -> "name" (db col/struct field)
-			"external_age": "age",  // "external_age" (input) -> "age" (db col/struct field)
+			"name":         "name",
+			"external_age": "age",
 		},
 	)
 	require.NoError(t, err)
@@ -167,11 +167,6 @@ func TestRepoPatchApplyIntegration(t *testing.T) {
 		"name":         "Patched Name",
 		"external_age": 55,
 	}
-
-	// PatchApply returns a *gorm.DB that we must execute
-	// Note: PatchApply calls Updates(mapped), so it executes immediately if it's a chain?
-	// Looking at repo.go: return r...Models(model).Updates(mapped)
-	// Updates() in GORM executes the query.
 
 	err = repo.PatchApply(ctx, nil, &TestEntity{EID: "patch-1"}, toPatch).Error
 	require.NoError(t, err)
