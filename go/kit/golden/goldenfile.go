@@ -35,7 +35,11 @@ func getGoldenFile(t *testing.T, filePath string, flg int, mode fs.FileMode) *os
 func updateFile(t *testing.T, file *os.File, bs []byte) {
 	t.Helper()
 
-	_, err := file.Write(bs)
+	_, err := file.Seek(0, 0)
+	assert.NoError(t, err)
+	err = file.Truncate(0)
+	assert.NoError(t, err)
+	_, err = file.Write(bs)
 	assert.NoError(t, err)
 }
 
