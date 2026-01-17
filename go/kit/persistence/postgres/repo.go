@@ -7,12 +7,10 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-	"time"
 
 	"golang.org/x/exp/maps"
 	"gorm.io/gorm"
 
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 
 	apierrors "github.com/dosanma1/forge/go/kit/errors"
@@ -179,7 +177,8 @@ func (r *Repo) filterApply(tx *gorm.DB, filters query.Filters[any], tableName st
 			}
 		case filter.OpBetween:
 			vals := btwArgs(filt.Value())
-			sqlQuery.WriteString(fmt.Sprintf("%s %s '%v' AND '%v'", colName, filt.Operator(), vals[0], vals[1]))
+			sqlQuery.WriteString(fmt.Sprintf("%s %s ? AND ?", colName, filt.Operator()))
+			args = append(args, vals...)
 		default:
 			sqlQuery.WriteString(simpleArg(colName, filt.Operator()))
 			if kind := reflect.ValueOf(filt.Value()).Kind(); kind == reflect.Slice || kind == reflect.Array {
@@ -275,7 +274,7 @@ func sliceArg(operator filter.Operator, colName string, vals []string) string {
 	subquery := strings.Builder{}
 	if operator == filter.OpContainsLike {
 		for i := 0; i < len(vals); i++ {
-			subquery.WriteString("'%%%%' || ? || '%%%%'")
+			subquery.WriteString("'%' || ? || '%'")
 			if i < len(vals)-1 {
 				subquery.WriteRune(',')
 			}
@@ -303,24 +302,10 @@ func sliceArg(operator filter.Operator, colName string, vals []string) string {
 }
 
 func btwArgs(a any) []any {
-	//nolint:gomnd //between will always have 2 positions
 	args := make([]any, 2)
 
 	val := reflect.ValueOf(a)
 	if val.Kind() != reflect.Slice {
-		return args
-	}
-
-	// Fast path for common types to avoid reflection overhead where possible,
-	// though we still need to assign to interface{} array.
-	// For time.Time we need special formatting.
-	switch v := a.(type) {
-	case []time.Time:
-		for i := range v {
-			if i < 2 {
-				args[i] = v[i].Format("2006-01-02 15:04:05")
-			}
-		}
 		return args
 	}
 
@@ -329,23 +314,4 @@ func btwArgs(a any) []any {
 		args[i] = val.Index(i).Interface()
 	}
 	return args
-}
-
-// -----------------------------------------------------------------------------
-// Errors
-// -----------------------------------------------------------------------------
-
-// ErrDuplicateKey is the Postgres error code for unique constraint violation
-const ErrDuplicateKey = "23505"
-
-func ErrorIs(err error, code string) bool {
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == code {
-		return true
-	}
-	return false
-}
-
-func NewErrUnknown(err error) error {
-	return apierrors.InternalError(fmt.Sprintf("query failed, please check the database adapter logs, %s", err.Error()))
 }
