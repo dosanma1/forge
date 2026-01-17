@@ -9,12 +9,13 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/dosanma1/forge/go/kit/application/repository"
 	"github.com/dosanma1/forge/go/kit/auth"
 	"github.com/dosanma1/forge/go/kit/errors"
 	"github.com/dosanma1/forge/go/kit/filter"
+	"github.com/dosanma1/forge/go/kit/resource"
 	"github.com/dosanma1/forge/go/kit/search/query"
 )
-
 
 type DecodeRequestFunc func(context.Context, *http.Request) (request interface{}, err error)
 
@@ -51,7 +52,6 @@ func NewHTTPDecoder[O any](
 		return out, nil
 	}
 }
-
 
 func QueryOptsFromReq(parseOpts ...query.ParseOpt) func(ctx context.Context, r *http.Request) ([]query.Option, error) {
 	return func(_ context.Context, r *http.Request) ([]query.Option, error) {
@@ -129,4 +129,42 @@ func DecodeTokenFromCtx(ctx context.Context, r *http.Request) (interface{}, erro
 
 func DecodeEmptyReq(ctx context.Context, r *http.Request) (interface{}, error) {
 	return nil, nil
+}
+
+func decodePatchReq[T resource.Resource](
+	kind resource.Type,
+	mapper func(T) []repository.PatchOption,
+) func(_ context.Context, req *http.Request) ([]repository.PatchOption, error) {
+	return func(_ context.Context, req *http.Request) ([]repository.PatchOption, error) {
+		updateReq := new(T)
+		dec := json.NewDecoder(req.Body)
+		// dec.DisallowUnknownFields()
+		err := dec.Decode(&updateReq)
+		if err != nil {
+			return nil, errors.InvalidArgument("invalid request body")
+		}
+
+		r := func(t *T) T { return *t }(updateReq)
+
+		if err := validateUpdateReqData(kind, r); err != nil {
+			return nil, err
+		}
+
+		if pathID := req.PathValue("id"); r.ID() != pathID {
+			return nil, errors.InvalidArgument("request ID mismatch")
+		}
+
+		return mapper(*updateReq), nil
+	}
+}
+
+func validateUpdateReqData[R resource.Resource](kind resource.Type, data R) error {
+	if data.ID() == "" {
+		return errors.InvalidArgument("missing resource ID")
+	}
+
+	if data.Type() != kind {
+		return errors.InvalidArgument("resource type mismatch")
+	}
+	return nil
 }
