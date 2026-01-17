@@ -64,17 +64,13 @@ func (r *Repo) QueryApply(ctx context.Context, q query.Query, ops ...queryApplyO
 	return r.queryApply(ctx, q, "", ops...)
 }
 
-func (r *Repo) QueryApplyWithTableName(ctx context.Context, q query.Query, tableName string, ops ...queryApplyOption) (tx *gorm.DB) {
-	return r.queryApply(ctx, q, tableName, ops...)
-}
+
 
 func (r *Repo) CountApply(ctx context.Context, model any, q query.Query) (tx *gorm.DB) {
 	return r.countApply(ctx, model, q, "")
 }
 
-func (r *Repo) CountApplyWithTableName(ctx context.Context, model any, q query.Query, tableName string) (tx *gorm.DB) {
-	return r.countApply(ctx, model, q, tableName)
-}
+
 
 func (r *Repo) PatchApply(ctx context.Context, q query.Query, model any, toPatch map[string]any) (tx *gorm.DB) {
 	mapped := make(map[string]any, len(toPatch))
