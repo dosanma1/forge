@@ -133,3 +133,87 @@ func TestRepoFilterApplyIntegration(t *testing.T) {
 		assert.Equal(t, "Charlie", results[0].EName)
 	})
 }
+
+func TestRepoPatchApplyIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	testDB := gormdbtest.GetDB(t, gormdbtest.TestSchema)
+	require.NotNil(t, testDB)
+	require.NoError(t, testDB.DB.AutoMigrate(&TestEntity{}))
+
+	// Seed one record
+	seed := TestEntity{EID: "patch-1", EName: "Original", EAge: 50, ECreatedAt: time.Now()}
+	require.NoError(t, testDB.DB.Create(&seed).Error)
+
+	// Mapper has "name" -> "name", "age" -> "age"
+	// But let's verify if we had a mapping like "external_age" -> "age"
+	// For now, we test the existing mapper: "name" -> "name"
+	repo, err := NewRepo(
+		testDB.DBClient,
+		map[string]string{
+			"id":           "id",
+			"name":         "name", // "name" (input) -> "name" (db col/struct field)
+			"external_age": "age",  // "external_age" (input) -> "age" (db col/struct field)
+		},
+	)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Case 1: Patch using mapped key "external_age" -> should update "age"
+	toPatch := map[string]any{
+		"name":         "Patched Name",
+		"external_age": 55,
+	}
+
+	// PatchApply returns a *gorm.DB that we must execute
+	// Note: PatchApply calls Updates(mapped), so it executes immediately if it's a chain?
+	// Looking at repo.go: return r...Models(model).Updates(mapped)
+	// Updates() in GORM executes the query.
+
+	err = repo.PatchApply(ctx, nil, &TestEntity{EID: "patch-1"}, toPatch).Error
+	require.NoError(t, err)
+
+	// Verify update
+	var loaded TestEntity
+	err = testDB.DB.First(&loaded, "id = ?", "patch-1").Error
+	require.NoError(t, err)
+	assert.Equal(t, "Patched Name", loaded.EName)
+	assert.Equal(t, 55, loaded.EAge)
+}
+
+func TestRepoCountApplyIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	testDB := gormdbtest.GetDB(t, gormdbtest.TestSchema)
+	require.NotNil(t, testDB)
+	require.NoError(t, testDB.DB.AutoMigrate(&TestEntity{}))
+
+	// Seed records
+	seedData := []TestEntity{
+		{EID: "c1", EName: "A", EAge: 10},
+		{EID: "c2", EName: "A", EAge: 20},
+		{EID: "c3", EName: "B", EAge: 30},
+	}
+	require.NoError(t, testDB.DB.Create(&seedData).Error)
+
+	repo, err := NewRepo(
+		testDB.DBClient,
+		map[string]string{"name": "name"},
+	)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	q := query.New()
+	query.AddFilter(q, filter.OpEq, "name", "A")
+
+	var count int64
+	err = repo.CountApply(ctx, &TestEntity{}, q).Count(&count).Error
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+}
