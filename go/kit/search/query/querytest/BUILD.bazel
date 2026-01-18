@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "cursor_mock.go",
+        "matchers.go",
         "query_mock.go",
     ],
     importpath = "github.com/dosanma1/forge/go/kit/search/query/querytest",
