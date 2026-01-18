@@ -2,6 +2,7 @@ package filter
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/dosanma1/forge/go/kit/errors"
 	"github.com/google/uuid"
@@ -60,7 +61,7 @@ func ValidateNotZero(f FieldFilter[any]) error {
 	if val == nil {
 		return errors.InvalidArgument(fmt.Sprintf("field %s cannot be nil", f.Name()))
 	}
-	
+
 	// Check for zero values based on type
 	switch v := val.(type) {
 	case string:
@@ -90,20 +91,63 @@ func ValidateNotZero(f FieldFilter[any]) error {
 func ValidateValOneOf[T comparable](allowed ...T) func(FieldFilter[any]) error {
 	return func(f FieldFilter[any]) error {
 		val := f.Value()
-		
+
 		// Try to cast to T
 		typedVal, ok := val.(T)
 		if !ok {
 			return errors.InvalidArgument(fmt.Sprintf("field %s has invalid type, expected %T", f.Name(), *new(T)))
 		}
-		
+
 		// Check if value is in allowed list
 		for _, allowedVal := range allowed {
 			if typedVal == allowedVal {
 				return nil
 			}
 		}
-		
+
 		return errors.InvalidArgument(fmt.Sprintf("field %s has invalid value, must be one of the allowed values", f.Name()))
 	}
+}
+
+// AnyValid returns a validator that passes if at least one of the validators passes
+func AnyValid(validators ...func(FieldFilter[any]) error) func(FieldFilter[any]) error {
+	return func(f FieldFilter[any]) error {
+		var lastErr error
+		for _, v := range validators {
+			if err := v(f); err == nil {
+				return nil
+			} else {
+				lastErr = err
+			}
+		}
+		return lastErr
+	}
+}
+
+func ValidateNil(f FieldFilter[any]) error {
+	if f.Value() != nil {
+		return errors.InvalidArgument(fmt.Sprintf("field %s must be nil", f.Name()))
+	}
+	return nil
+}
+
+func ValidateIntegerString(f FieldFilter[any]) error {
+	val := f.Value()
+	s, ok := val.(string)
+	if !ok {
+		// Handle slice of strings?
+		if sl, ok := val.([]string); ok {
+			for _, item := range sl {
+				if _, err := strconv.Atoi(item); err != nil {
+					return errors.InvalidArgument(fmt.Sprintf("invalid integer string in list for field %s", f.Name()))
+				}
+			}
+			return nil
+		}
+		return errors.InvalidArgument(fmt.Sprintf("invalid type for field %s, expected string", f.Name()))
+	}
+	if _, err := strconv.Atoi(s); err != nil {
+		return errors.InvalidArgument(fmt.Sprintf("invalid integer string for field %s", f.Name()))
+	}
+	return nil
 }

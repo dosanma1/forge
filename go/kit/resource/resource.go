@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -130,4 +131,16 @@ func (t *resource) UpdatedAt() time.Time {
 
 func (t *resource) DeletedAt() *time.Time {
 	return t.deletedAt
+}
+
+// Helpers
+
+func IDToUint64(id string) uint64 {
+	i, _ := strconv.ParseUint(id, 10, 64)
+	return i
+}
+
+func IDToInt(id string) int {
+	i, _ := strconv.Atoi(id)
+	return i
 }
