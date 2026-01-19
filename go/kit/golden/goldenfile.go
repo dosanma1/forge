@@ -57,7 +57,11 @@ func AssertEqualFile(t *testing.T, filePath string, content io.Reader, updateGol
 	assert.NoError(t, err)
 
 	//nolint: gomnd // not a magic constant
-	f := getGoldenFile(t, filePath, os.O_RDWR, 0o644)
+	flags := os.O_RDWR
+	if !updateGoldenFile {
+		flags = os.O_RDONLY
+	}
+	f := getGoldenFile(t, filePath, flags, 0o644)
 	if updateGoldenFile {
 		t.Logf("updating golden file: %s", filePath)
 		updateFile(t, f, got)
