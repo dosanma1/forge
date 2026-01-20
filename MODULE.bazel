@@ -38,6 +38,8 @@ use_repo(
     "com_github_jackc_pgx_v5",
     "com_github_kelseyhightower_envconfig",
     "com_github_lib_pq",
+    "com_github_nats_io_nats_go",
+    "com_github_nats_io_nats_server_v2",
     "com_github_orlangure_gnomock",
     "com_github_rabbitmq_amqp091_go",
     "com_github_redis_go_redis_v9",

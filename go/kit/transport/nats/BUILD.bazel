@@ -1,0 +1,36 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "connection.go",
+        "consumer.go",
+        "module.go",
+        "producer.go",
+    ],
+    importpath = "github.com/dosanma1/forge/go/kit/transport/nats",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/monitoring/logger:go_default_library",
+        "@com_github_nats_io_nats_go//:go_default_library",
+        "@org_uber_go_fx//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "connection_test.go",
+        "consumer_test.go",
+        "nats_test.go",
+        "producer_test.go",
+    ],
+    deps = [
+        ":go_default_library",
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "//go/kit/transport/nats/natstest:go_default_library",
+        "@com_github_nats_io_nats_go//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

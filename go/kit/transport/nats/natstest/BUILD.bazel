@@ -1,0 +1,17 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["helpers.go"],
+    importpath = "github.com/dosanma1/forge/go/kit/transport/nats/natstest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/kit/monitoring/logger:go_default_library",
+        "//go/kit/monitoring/logger/loggertest:go_default_library",
+        "//go/kit/transport/nats:go_default_library",
+        "@com_github_nats_io_nats_go//:go_default_library",
+        "@com_github_nats_io_nats_server_v2//server:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)
