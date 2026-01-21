@@ -11,7 +11,6 @@ import (
 	"github.com/dosanma1/forge/go/kit/transport/nats"
 
 	"github.com/nats-io/nats-server/v2/server"
-	natslib "github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,18 +42,18 @@ func StartEmbeddedServer(t *testing.T) *server.Server {
 }
 
 // NewConnectionForTest starts an embedded server and returns a client connection to it.
-func NewConnectionForTest(t *testing.T) *natslib.Conn {
+func NewConnectionForTest(t *testing.T) nats.Connection {
 	t.Helper()
 
 	s := StartEmbeddedServer(t)
-	nc, err := natslib.Connect(s.ClientURL())
+	conn, err := nats.NewConnection(nats.WithConnURL(s.ClientURL()))
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		nc.Close()
+		conn.Close()
 	})
 
-	return nc
+	return conn
 }
 
 type producerConstructor[P any] func(nats.Connection, logger.Logger) (nats.Producer[P], error)
@@ -73,10 +72,7 @@ func TestEncoderAndDecoder[P, C, T any](
 	opts ...nats.PublishOpt,
 ) {
 	// NATS Transport uses nats.Connection interface wrapper
-	// We need to create it wrapping real connection
-	nc := NewConnectionForTest(t)
-	conn, err := nats.NewConnection(nats.WithConnURL(nc.ConnectedUrl()))
-	require.NoError(t, err)
+	conn := NewConnectionForTest(t)
 	defer conn.Close()
 
 	log := loggertest.NewStubLogger(t)
