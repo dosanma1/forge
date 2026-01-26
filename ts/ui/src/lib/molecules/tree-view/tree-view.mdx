@@ -1,0 +1,78 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcTree } from './tree-view.component';
+import * as TreeViewStories from './tree-view.stories';
+
+<Meta of={TreeViewStories} />
+
+# Tree View
+
+The Tree View component displays hierarchical data in an expandable/collapsible tree structure, commonly used for file explorers, navigation menus, and organizational charts.
+
+## Features
+
+- **Hierarchical Display**: Multi-level tree structure with proper indentation
+- **Expandable Nodes**: Click to expand/collapse parent nodes
+- **Custom Icons**: Support for different icons per node and expanded state
+- **Selection State**: Track and display selected nodes
+- **Click Events**: Handle node clicks for interactions
+- **Accessible**: Keyboard navigation and ARIA attributes
+
+## Node Structure
+
+Each tree node should have the following properties:
+
+```typescript
+interface TreeNode {
+	id: string; // Unique identifier
+	name: string; // Display name
+	level: number; // Hierarchy level (0-based)
+	expandable: boolean; // Can this node expand?
+	isExpanded?: boolean; // Is it currently expanded?
+	icon?: string; // Icon when collapsed
+	expandedIcon?: string; // Icon when expanded
+}
+```
+
+## Usage
+
+```typescript
+import { MmcTree, TreeNode } from 'ui';
+
+@Component({
+	template: `
+		<mmc-tree-view
+			[data]="treeData"
+			[selectedNodeId]="selectedId"
+			(nodeClick)="onNodeClick($event)"
+		></mmc-tree-view>
+	`,
+})
+export class MyComponent {
+	treeData: TreeNode[] = [
+		{ id: '1', name: 'Root', level: 0, expandable: true },
+		{ id: '1-1', name: 'Child', level: 1, expandable: false },
+	];
+
+	onNodeClick(node: TreeNode) {
+		console.log('Clicked:', node);
+	}
+}
+```
+
+## Stories
+
+### Default
+
+Basic tree view with expandable folders and files.
+
+<Canvas of={TreeViewStories.Default} />
+
+### With Selection
+
+Tree view with a pre-selected node highlighted.
+
+<Canvas of={TreeViewStories.WithSelection} />
+
+## API
+
+<ArgTypes of={MmcTree} />

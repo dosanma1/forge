@@ -1,0 +1,33 @@
+:host {
+	display: inline-block;
+	width: 100%;
+}
+
+// Custom scrollbar for options list
+.options-list {
+	scrollbar-width: thin;
+	scrollbar-color: rgb(203 213 225) transparent;
+
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background-color: rgb(203 213 225);
+		border-radius: 3px;
+	}
+
+	&::-webkit-scrollbar-thumb:hover {
+		background-color: rgb(148 163 184);
+	}
+}
+
+// Focus styles for keyboard navigation
+button[role='option']:focus {
+	outline: 2px solid rgb(59 130 246);
+	outline-offset: -2px;
+}

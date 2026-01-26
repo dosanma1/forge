@@ -1,0 +1,66 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Atoms/About" />
+
+# Atoms
+
+## Building Blocks of the UI
+
+Atoms are the basic building blocks of the interface - the smallest, most fundamental components. They cannot be broken down any further without ceasing to be functional.
+
+## Philosophy
+
+In Atomic Design, atoms are analogous to atoms in chemistry. They're simple, standalone elements that serve as the foundation for everything else. Each atom has a single, well-defined purpose.
+
+## Examples in this Library
+
+### Form Controls
+
+- **Button** - Clickable action triggers with multiple styles
+- **Input** - Text input fields for various data types
+- **Checkbox** - Two-state selection control
+- **Radio** - Single selection from multiple options
+- **Switch** - Toggle between on/off states
+- **Textarea** - Multi-line text input
+
+### Content & Display
+
+- **Label** - Text labels for form fields
+- **Badge** - Status indicators and tags
+- **Avatar** - User profile images with fallbacks
+- **Icon** - SVG icons from Lucide
+- **Spinner** - Loading indicators
+- **Divider** - Visual separators
+
+### Interactive
+
+- **Menu** - Dropdown menu items
+- **Popover** - Floating content containers
+- **Tooltip** - Contextual help text
+
+## Design Principles
+
+1. **Single Responsibility**: Each atom does one thing well
+2. **Reusability**: Can be used anywhere in the application
+3. **No Business Logic**: Pure presentational components
+4. **Themeable**: Support light, dark, and custom themes
+5. **Accessible**: Built with ARIA attributes and keyboard navigation
+
+## Usage
+
+Atoms are typically composed together to form molecules and organisms. They can also be used standalone when a simple, atomic component is all that's needed.
+
+```typescript
+// Example: Using atoms standalone
+<button mmcButton>Click me</button>
+<mmc-checkbox [(ngModel)]="checked"></mmc-checkbox>
+<input mmcInput type="text" />
+```
+
+## Built With
+
+Many atoms in this library leverage:
+
+- **ng-primitives** - For accessible, headless UI primitives
+- **@angular/cdk** - For advanced component behaviors
+- **Tailwind CSS** - For consistent styling

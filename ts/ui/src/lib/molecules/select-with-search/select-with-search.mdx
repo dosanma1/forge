@@ -1,0 +1,27 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { SelectWithSearchComponent } from './select-with-search.component';
+import * as SelectWithSearchStories from './select-with-search.component.stories';
+
+<Meta title="Molecules/Select with Search" />
+
+# Select with Search
+
+#### Enhanced select dropdown with search/filter capability.
+
+<Canvas sourceState="hidden" of={SelectWithSearchStories.Default} />
+
+## Features
+
+- ✅ Built-in search/filter
+- ✅ Keyboard navigation
+- ✅ Works with Angular forms
+
+## Import
+
+```typescript
+import { SelectWithSearchComponent } from '@mmc/ui';
+```
+
+## API Reference
+
+<ArgTypes of={SelectWithSearchComponent} />

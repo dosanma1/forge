@@ -1,0 +1,201 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcActivityTimeline } from './activity-timeline.component';
+import * as ActivityTimelineStories from './activity-timeline.stories';
+
+<Meta title="Organisms/Activity Timeline" />
+
+# Activity Timeline
+
+#### A component for displaying chronological activity feeds with support for various activity types, expandable groups, and attribute changes.
+
+<Canvas sourceState="hidden" of={ActivityTimelineStories.Default} />
+
+## Features
+
+- ✅ Multiple activity types (status changes, emails, calendar events, etc.)
+- ✅ Expandable groups to show/hide additional items
+- ✅ Expandable attribute changes to show specific modifications
+- ✅ Visual timeline with connector lines
+- ✅ Curved branching for expandable groups
+- ✅ Stacked card effect for items preceding expandable groups
+- ✅ Grouped activities by time period
+- ✅ User avatars and icons
+
+## Import
+
+Get started with importing the component:
+
+```typescript
+import { MmcActivityTimeline } from '@mmc/ui';
+```
+
+## Activity Types
+
+### Status Change
+
+Displays when a user changes a status field.
+
+```typescript
+{
+  id: '1',
+  type: 'status_change',
+  timestamp: '1 day ago',
+  user: {
+    name: 'Daniel James',
+    avatarUrl: 'https://example.com/avatar.jpg'
+  },
+  meta: {
+    value: 'Deal Closed'
+  }
+}
+```
+
+### Email
+
+Displays an email card with preview text.
+
+```typescript
+{
+  id: '2',
+  type: 'email',
+  timestamp: '2 days ago',
+  title: 'Welcome to Attio',
+  description: 'Email preview text...',
+  users: [
+    { name: 'Nico Greenberg', avatarUrl: 'https://example.com/nico.jpg' },
+    { name: 'Yvonne Thompson', avatarUrl: 'https://example.com/yvonne.jpg' }
+  ]
+}
+```
+
+### Attribute Change (Expandable)
+
+Shows attribute modifications with expandable details. Click to reveal the specific changes.
+
+```typescript
+{
+  id: '3',
+  type: 'attribute_change',
+  timestamp: '2 days ago',
+  user: {
+    name: 'Nico Greenberg',
+    avatarUrl: 'https://example.com/nico.jpg'
+  },
+  meta: {
+    count: 3
+  },
+  attributeChanges: [
+    { attribute: 'Status', oldValue: 'In Progress', newValue: 'Completed' },
+    { attribute: 'Priority', oldValue: 'Medium', newValue: 'High' },
+    { attribute: 'Assignee', oldValue: 'John Doe', newValue: 'Jane Smith' }
+  ]
+}
+```
+
+### Calendar Event
+
+Displays an event card with date and participants.
+
+```typescript
+{
+  id: '4',
+  type: 'calendar_event',
+  timestamp: '10:00 - 11:40 AM',
+  title: 'Due Diligence Update',
+  users: [
+    { name: 'NAM' },
+    { name: 'AM' },
+    { name: 'M' }
+  ],
+  meta: {
+    count: 4
+  }
+}
+```
+
+### Add to List
+
+Shows when an item is added to a list.
+
+```typescript
+{
+  id: '5',
+  type: 'add_to_list',
+  timestamp: '3 days ago'
+}
+```
+
+### Merge
+
+Displays when duplicate items are merged.
+
+```typescript
+{
+  id: '6',
+  type: 'merge',
+  timestamp: '6 days ago'
+}
+```
+
+### Expandable Group
+
+A collapsible section that reveals hidden items when clicked. The button disappears after expansion.
+
+```typescript
+{
+  id: '7',
+  type: 'expandable_group',
+  title: 'Show 3 more emails from this week',
+  collapsedItems: [
+    // Array of activity items to show when expanded
+  ]
+}
+```
+
+## Basic Usage
+
+```html
+<mmc-activity-timeline [groups]="activityGroups"></mmc-activity-timeline>
+```
+
+```typescript
+activityGroups: ActivityGroup[] = [
+  {
+    title: 'This week',
+    items: [
+      // Activity items...
+    ]
+  }
+];
+```
+
+## API Reference
+
+<ArgTypes of={MmcActivityTimeline} />
+
+## Accessibility
+
+- Semantic HTML structure
+- Keyboard accessible interactive elements
+- ARIA labels for icons
+- Screen reader friendly
+- Proper focus management
+
+## Visual Features
+
+### Timeline Connector
+
+A vertical line connects all activities in a chronological flow.
+
+### Branching Effect
+
+Expandable groups branch off from the main timeline with a curved connector line.
+
+### Stacked Cards
+
+Email and calendar event cards show a stacked effect when followed by an expandable group, creating a visual sense of depth.
+
+### Expandable Details
+
+- **Expandable Groups**: Click to reveal hidden items inline. The button disappears after expansion.
+- **Attribute Changes**: Click to expand and see specific attribute modifications with old → new value comparison.

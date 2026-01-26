@@ -1,0 +1,20 @@
+<div class="flex border-border" [class]="
+		orientation() === 'horizontal'
+			? 'flex-col overflow-x-auto border-b'
+			: 'flex-row border-r'
+	">
+
+	@switch (variant()) {
+	@case ('underlined') {
+	<mmc-tabs-underlined></mmc-tabs-underlined>
+	}
+	@default {
+	<mmc-tabs-pill></mmc-tabs-pill>
+	}
+	}
+</div>
+@if (showTabContent()) {
+<div [@tabChange]="activeTabComponent()" class="w-full">
+	<ng-template [ngTemplateOutlet]="activeTabComponent().templateRef()"></ng-template>
+</div>
+}

@@ -1,0 +1,74 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import * as SliderStories from './slider.stories';
+
+<Meta title="Atoms/Slider" />
+
+# Slider
+
+A slider component that allows users to select a value from a range by dragging a thumb along a track.
+
+## Features
+
+- **Value Range**: Configure minimum, maximum, and step values
+- **Accessible**: Full keyboard navigation support
+- **Form Integration**: Works seamlessly with Angular forms via `ControlValueAccessor`
+- **Customizable**: Easily styled with Tailwind CSS classes
+
+## Usage
+
+### Default Slider
+
+<Canvas of={SliderStories.Default} />
+
+### Range Slider
+
+Configure minimum and maximum values to create a custom range.
+
+<Canvas of={SliderStories.Range} />
+
+### With Steps
+
+Control the granularity of value selection with step increments.
+
+<Canvas of={SliderStories.Steps} />
+
+### Disabled State
+
+<Canvas of={SliderStories.Disabled} />
+
+## API
+
+### Inputs
+
+- `min` - Minimum value (default: 0)
+- `max` - Maximum value (default: 100)
+- `step` - Step increment (default: 1)
+- `disabled` - Whether the slider is disabled
+- `orientation` - Slider orientation: `horizontal` or `vertical`
+- `class` - Additional CSS classes
+
+### Outputs
+
+- `valueChange` - Emitted when the value changes
+
+## Keyboard Navigation
+
+- **Arrow Left/Down**: Decrease value by one step
+- **Arrow Right/Up**: Increase value by one step
+- **Shift + Arrow**: Change value by 10 steps
+- **Home**: Jump to minimum value
+- **End**: Jump to maximum value
+
+## Form Integration
+
+The slider component implements `ControlValueAccessor` and can be used with Angular forms:
+
+```typescript
+import { FormControl } from '@angular/forms';
+
+volumeControl = new FormControl(50);
+```
+
+```html
+<mmc-slider [formControl]="volumeControl" [min]="0" [max]="100"></mmc-slider>
+```

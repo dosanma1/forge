@@ -1,0 +1,28 @@
+<div class="relative w-full">
+    <!-- Added border-b for the full-width line and pb-3 for spacing between pills and line -->
+    <div [class]="tabsCmp.tabListClasses()" class="w-full gap-1 relative border-b border-border pb-3">
+        @for (tab of tabsCmp.tabs(); track $index) {
+        <button #tabButton mmcButton variant="outline" (click)="tabsCmp.selectTab($index)"
+            [class]="getTabButtonClasses($index)" class="py-1">
+            <div class="flex items-center gap-2 whitespace-nowrap">
+                @if (tab.icon()) {
+                <mmc-icon size="sm" [name]="tab.icon()" />
+                }
+                @if (tab.name()) {
+                <span> {{ tab.name() }} </span>
+                }
+                @if (tab.badge()) {
+                <mmc-badge variant="secondary" class="ml-1 rounded-md px-1.5 py-0.5 text-xs font-medium">
+                    {{ tab.badge() }}
+                </mmc-badge>
+                }
+            </div>
+            <!-- Nested Underline -->
+            @if (tabsCmp.activeTabIndex() === $index) {
+            <!-- -bottom-[13px] to account for pb-3 (12px) + 1px border overlap -->
+            <div class="absolute -bottom-[14px] left-0 w-full h-[2px] bg-foreground z-20 pointer-events-none"></div>
+            }
+        </button>
+        }
+    </div>
+</div>

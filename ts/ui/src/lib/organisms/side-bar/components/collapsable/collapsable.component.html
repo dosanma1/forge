@@ -1,0 +1,92 @@
+@if (isSideBarOpened) {
+	<button
+		mmcButton
+		variant="ghost"
+		class="text-sm h-6 w-full justify-between gap-x-3 rounded-lg p-2 transition-all duration-300 truncate"
+		(click)="open()"
+	>
+		<span class="duration-200">
+			{{ item().title }}
+		</span>
+		<mmc-icon
+			name="lucideChevronRight"
+			size="sm"
+			class="duration-300"
+			[ngClass]="{
+				'rotate-90': isOpen(),
+			}"
+		/>
+	</button>
+} @else {
+	<button
+		mmcButton
+		variant="ghost"
+		[mmcMenuTriggerFor]="menu"
+		[menuPosition]="menuPosition()"
+		class="text-sm h-7 w-full justify-start gap-x-3 rounded-lg p-2 transition-all duration-300 truncate"
+	>
+		<i class="inline-flex">
+			<mmc-icon size="sm" [name]="item().icon" />
+		</i>
+	</button>
+}
+
+@if (item().children && canShowChildrens()) {
+	<ul
+		role="list"
+		class="border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5"
+	>
+		@for (childrenItem of item().children; track $index) {
+			<button
+				mmcButton
+				variant="ghost"
+				[routerLink]="
+					routerLink(
+						childrenItem.link,
+						childrenItem.preserveSubPathByRegex
+					)
+				"
+				routerLinkActive="bg-secondary"
+				class="h-7 w-full justify-start gap-x-3 rounded-lg p-2 transition-all duration-300 truncate"
+			>
+				@if (childrenItem.icon) {
+					<i class="inline-flex">
+						<mmc-icon
+							size="sm"
+							[name]="childrenItem.icon"
+						></mmc-icon>
+					</i>
+				}
+				<span>{{ childrenItem.title }}</span>
+			</button>
+		}
+	</ul>
+}
+
+<ng-template #menu>
+	<div mmcMenu class="w-56 max-h-56 overflow-y-auto">
+		<div role="group">
+			@for (childrenItem of item().children; track $index) {
+				<button
+					mmcMenuItem
+					[routerLink]="[childrenItem.link]"
+					routerLinkActive="bg-secondary"
+				>
+					<div
+						class="flex flex-row justify-start items-center gap-x-3"
+					>
+						@if (childrenItem.icon) {
+							<i class="inline-flex">
+								<mmc-icon
+									size="sm"
+									[name]="childrenItem.icon"
+								></mmc-icon>
+							</i>
+						}
+						<p>{{ childrenItem.title }}</p>
+					</div>
+				</button>
+			}
+		</div>
+	</div>
+</ng-template>

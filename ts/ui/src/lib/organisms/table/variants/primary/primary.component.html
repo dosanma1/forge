@@ -1,0 +1,105 @@
+<div class="flex backdrop:relative w-full overflow-auto">
+	<div class="relative w-full overflow-auto">
+		<table
+			class="table table-fixed border-separate border-spacing-0 [&_tr:not(:last-child)_td]:border-b"
+			mmcTable
+		>
+			<thead mmcTableHeader>
+				@for (
+					headerGroup of tableCmp.table.getHeaderGroups();
+					track headerGroup.id
+				) {
+					<tr class="hover:bg-transparent" mmTableRow>
+						@for (header of headerGroup.headers; track header.id) {
+							<th
+								class="relative h-9 select-none bg-sidebar border-y border-border first:border-l first:rounded-l-lg last:border-r last:rounded-r-lg"
+								[style.width.px]="header.getSize()"
+								mmcTableHead
+							>
+								@if (!header.isPlaceholder) {
+									<div
+										[class]="
+											tableCmp.cn(
+												header.column.getCanSort() &&
+													'flex h-full cursor-pointer select-none items-center gap-2'
+											)
+										"
+										[attr.tabIndex]="
+											header.column.getCanSort()
+												? 0
+												: undefined
+										"
+										(click)="
+											header.column.getToggleSortingHandler()?.(
+												$event
+											)
+										"
+									>
+										<span
+											class="truncate"
+											*flexRender="
+												header.column.columnDef.header;
+												props: header.getContext();
+												let headerValue
+											"
+										>
+											{{ headerValue }}
+										</span>
+									</div>
+								}
+							</th>
+						}
+					</tr>
+				}
+			</thead>
+			<tbody aria-hidden="true" class="table-row h-1"></tbody>
+			<tbody mmcTableBody>
+				@if (
+					tableCmp.table && tableCmp.table.getRowModel().rows.length
+				) {
+					@for (
+						row of tableCmp.table.getRowModel().rows;
+						track row.id
+					) {
+						<tr
+							[attr.data-state]="
+								row.getIsSelected() && 'selected'
+							"
+							mmcTableRow
+							class="border-0 [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg h-px hover:bg-accent/50"
+						>
+							@for (
+								cell of row.getVisibleCells();
+								track cell.id
+							) {
+								<td mmcTableCell class="last:py-0 h-[inherit]">
+									<ng-container
+										*flexRender="
+											cell.column.columnDef.cell;
+											props: cell.getContext();
+											let cellValue
+										"
+									>
+										<div
+											class="truncate"
+											[innerHTML]="cellValue"
+										></div>
+									</ng-container>
+								</td>
+							}
+						</tr>
+					}
+				} @else {
+					<tr
+						mmcTableRow
+						class="hover:bg-transparent [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
+					>
+						<td class="h-24 text-center" mmcTableCell>
+							No results.
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>

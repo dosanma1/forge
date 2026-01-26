@@ -1,0 +1,108 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcTextarea } from './textarea.directive';
+import * as TextareaStories from './textarea.stories';
+
+<Meta title="Atoms/Textarea" />
+
+# Textarea
+
+#### A multi-line text input field for longer text content.
+
+<Canvas sourceState="hidden" of={TextareaStories.Default} />
+
+## Features
+
+- ✅ Multi-line text input
+- ✅ Resizable or fixed height
+- ✅ Disabled state
+- ✅ Works with Angular forms
+- ✅ Customizable with Tailwind classes
+
+## Import
+
+Get started with importing the directive:
+
+```typescript
+import { MmcTextarea } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<textarea
+	mmcTextarea
+	placeholder="Type something..."
+	class="min-h-20"
+></textarea>
+```
+
+### With Label
+
+```html
+<div class="grid gap-2">
+	<label mmcLabel for="message">Your message</label>
+	<textarea
+		mmcTextarea
+		id="message"
+		placeholder="Leave a comment..."
+		class="min-h-24"
+	></textarea>
+	<p class="text-sm text-muted-foreground">
+		Your message will be copied to the support team.
+	</p>
+</div>
+```
+
+### With Reactive Forms
+
+```typescript
+import { FormControl } from '@angular/forms';
+
+export class MyComponent {
+	message = new FormControl('');
+}
+```
+
+```html
+<textarea mmcTextarea [formControl]="message" class="min-h-32"></textarea>
+```
+
+### Resizable
+
+```html
+<textarea
+	mmcTextarea
+	placeholder="This textarea can be resized"
+	class="min-h-32 resize"
+></textarea>
+```
+
+### Fixed Height
+
+```html
+<textarea
+	mmcTextarea
+	placeholder="This textarea has a fixed height"
+	class="h-32 resize-none"
+></textarea>
+```
+
+## API Reference
+
+<ArgTypes of={MmcTextarea} />
+
+## Accessibility
+
+- Supports all native textarea attributes
+- Works with labels using `id` and `for` attributes
+- Respects ARIA attributes
+- Keyboard accessible
+
+## All Examples
+
+<Canvas of={TextareaStories.Disabled} />
+<Canvas of={TextareaStories.WithValue} />
+<Canvas of={TextareaStories.Resizable} />
+<Canvas of={TextareaStories.WithLabel} />

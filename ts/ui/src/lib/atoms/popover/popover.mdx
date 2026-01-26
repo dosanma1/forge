@@ -1,0 +1,50 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcPopover } from './popover.component';
+import * as PopoverStories from './popover.stories';
+
+<Meta title="Atoms/Popover" />
+
+# Popover
+
+#### A floating panel that appears relative to a trigger element.
+
+<Canvas sourceState="hidden" of={PopoverStories.Default} />
+
+## Features
+
+- ✅ Flexible positioning
+- ✅ Click or hover triggered
+- ✅ Keyboard dismissible
+- ✅ Built with ng-primitives
+
+## Import
+
+```typescript
+import { MmcPopover, MmcPopoverTrigger, MmcPopoverContent } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<ng-container ngpPopover>
+	<button ngpPopoverTrigger mmcButton>Open</button>
+	<ng-template ngpPopoverContent>
+		<mmc-popover>
+			<p>Popover content</p>
+		</mmc-popover>
+	</ng-template>
+</ng-container>
+```
+
+## API Reference
+
+<ArgTypes of={MmcPopover} />
+
+## Accessibility
+
+- Keyboard navigable
+- Esc to dismiss
+- Focus management
+- ARIA attributes

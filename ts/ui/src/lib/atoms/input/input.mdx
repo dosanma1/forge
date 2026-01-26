@@ -1,0 +1,98 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcInput } from './input.directive';
+import * as InputStories from './input.stories';
+
+<Meta title="Atoms/Input" />
+
+# Input
+
+#### A text input field that allows users to enter and edit text.
+
+<Canvas sourceState="hidden" of={InputStories.Default} />
+
+## Features
+
+- ✅ Multiple input types (text, email, password, number, etc.)
+- ✅ Validation states and error messaging
+- ✅ Disabled state
+- ✅ Works with Angular forms
+- ✅ Customizable with Tailwind classes
+
+## Import
+
+Get started with importing the directive:
+
+```typescript
+import { MmcInput } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<input mmcInput type="text" placeholder="Enter your name" />
+```
+
+### With Label
+
+```html
+<div class="grid gap-2">
+	<label mmcLabel for="email">Email</label>
+	<input mmcInput id="email" type="email" placeholder="you@example.com" />
+</div>
+```
+
+### With Reactive Forms
+
+```typescript
+import { FormControl, Validators } from '@angular/forms';
+
+export class MyComponent {
+	email = new FormControl('', [Validators.required, Validators.email]);
+}
+```
+
+```html
+<input mmcInput type="email" [formControl]="email" />
+```
+
+### With Error State
+
+```html
+<div class="grid gap-2">
+	<label mmcLabel for="email">Email</label>
+	<input
+		mmcInput
+		id="email"
+		type="email"
+		class="border-destructive"
+		[class.border-destructive]="email.invalid && email.touched"
+	/>
+	@if (email.invalid && email.touched){
+		<p class="text-sm text-destructive">
+			Please enter a valid email address
+		</p>
+	}
+</div>
+```
+
+## API Reference
+
+<ArgTypes of={MmcInput} />
+
+## Accessibility
+
+- Supports all native input attributes
+- Works with labels using `id` and `for` attributes
+- Respects ARIA attributes
+- Keyboard accessible
+
+## All Examples
+
+<Canvas of={InputStories.Disabled} />
+<Canvas of={InputStories.WithError} />
+<Canvas of={InputStories.Password} />
+<Canvas of={InputStories.Number} />
+<Canvas of={InputStories.WithIcon} />
+<Canvas of={InputStories.WithButton} />

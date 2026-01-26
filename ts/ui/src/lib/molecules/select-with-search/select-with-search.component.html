@@ -1,0 +1,101 @@
+<div [class]="'relative ' + width()">
+	<button
+		type="button"
+		mmcButton
+		mmcPopoverOrigin
+		#origin="mmcPopoverOrigin"
+		variant="outline"
+		(click)="togglePanel()"
+		[disabled]="disabled()"
+		[loading]="loading()"
+		[class]="classNames()"
+	>
+		<div class="flex items-center flex-1 min-w-0">
+			@if (hasSelection) {
+				<span class="truncate text-left">
+					{{ selectedLabel }}
+				</span>
+			} @else {
+				<span class="truncate text-left text-muted-foreground">
+					{{ placeholder() }}
+				</span>
+			}
+		</div>
+
+		<div class="inline-flex items-center gap-1 ml-2">
+			@if (withIcon()) {
+				<mmc-icon
+					name="lucideChevronDown"
+					size="sm"
+					class="duration-300 transition-transform"
+					[ngClass]="{
+						'rotate-180': isOpen(),
+					}"
+				/>
+			}
+		</div>
+	</button>
+
+	<mmc-popover
+		[outsideClose]="true"
+		[restoreFocus]="true"
+		[blockScroll]="true"
+		[styled]="true"
+		[stretchToOrigin]="true"
+		(opened)="panelOpened()"
+		(closed)="panelClosed()"
+		[(isOpen)]="isOpen"
+		[origin]="origin"
+		[offsetY]="8"
+		[positionY]="positionY()"
+	>
+		<ng-template>
+			<div
+				class="border-input bg-popover text-popover-foreground relative z-50 w-full min-w-32 rounded-md border shadow-lg"
+			>
+				<!-- Search Input -->
+				<div class="p-2 border-b border-input">
+					<mmc-input-search
+						[placeholder]="searchPlaceholder()"
+						[debounceTime]="debounceTime()"
+						[(query)]="searchTerm"
+					/>
+				</div>
+
+				<!-- Options List -->
+				<div
+					class="max-h-52 overflow-y-auto p-1"
+					role="listbox"
+					[attr.aria-label]="placeholder()"
+				>
+					@if (filteredOptions().length === 0) {
+						<div
+							class="px-3 py-2 text-sm text-muted-foreground text-center"
+						>
+							@if (searchTerm()) {
+								No results found for "{{ searchTerm() }}"
+							} @else {
+								No options available
+							}
+						</div>
+					} @else {
+						@for (option of filteredOptions(); track option.value) {
+							<button
+								type="button"
+								role="option"
+								class="w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								[class.bg-muted]="
+									selectedOption()?.value === option.value
+								"
+								[disabled]="option.disabled"
+								(click)="selectOption(option)"
+							>
+								{{ option.label }}
+							</button>
+						}
+					}
+				</div>
+			</div>
+		</ng-template>
+	</mmc-popover>
+</div>

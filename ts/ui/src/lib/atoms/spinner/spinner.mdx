@@ -1,0 +1,96 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcSpinner } from './spinner.component';
+import * as SpinnerStories from './spinner.stories';
+
+<Meta title="Atoms/Spinner" />
+
+# Spinner
+
+#### A loading indicator that shows an animated spinning icon.
+
+<Canvas sourceState="hidden" of={SpinnerStories.Default} />
+
+## Features
+
+- ✅ Customizable size
+- ✅ Inherits text color
+- ✅ Accessible with screen reader text
+- ✅ Can be composed with other elements
+
+## Import
+
+Get started with importing the component:
+
+```typescript
+import { MmcSpinner } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-spinner></mmc-spinner>
+```
+
+### Custom Size
+
+```html
+<!-- Small -->
+<mmc-spinner class="size-4"></mmc-spinner>
+
+<!-- Medium (default is size-5) -->
+<mmc-spinner class="size-6"></mmc-spinner>
+
+<!-- Large -->
+<mmc-spinner class="size-12"></mmc-spinner>
+```
+
+### With Text
+
+```html
+<div class="flex items-center gap-2">
+	<mmc-spinner class="size-4"></mmc-spinner>
+	<span>Loading...</span>
+</div>
+```
+
+### In Button
+
+```html
+<button mmcButton disabled>
+	<mmc-spinner class="size-4"></mmc-spinner>
+	Please wait
+</button>
+```
+
+### Custom Color
+
+The spinner inherits the text color from its parent:
+
+```html
+<div class="text-primary">
+	<mmc-spinner></mmc-spinner>
+</div>
+
+<div class="text-destructive">
+	<mmc-spinner></mmc-spinner>
+</div>
+```
+
+## API Reference
+
+<ArgTypes of={MmcSpinner} />
+
+## Accessibility
+
+- Includes hidden "Loading..." text for screen readers
+- Uses `role="status"` for proper semantics
+- Color contrast should be verified when customizing
+
+## All Examples
+
+<Canvas of={SpinnerStories.Small} />
+<Canvas of={SpinnerStories.Large} />
+<Canvas of={SpinnerStories.WithText} />
+<Canvas of={SpinnerStories.InButton} />

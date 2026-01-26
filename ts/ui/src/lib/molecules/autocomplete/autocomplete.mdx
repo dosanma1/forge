@@ -1,0 +1,85 @@
+import { Meta, Canvas, Controls } from '@storybook/addon-docs/blocks';
+import * as AutocompleteStories from './autocomplete.stories';
+
+<Meta of={AutocompleteStories} />
+
+# Autocomplete
+
+The Autocomplete component provides a searchable dropdown input with filtered options, ideal for selection from large datasets.
+
+## Features
+
+- **Search Functionality**: Filter options as you type
+- **Loading State**: Display spinner during async data fetching
+- **Keyboard Navigation**: Arrow keys to navigate, Enter to select
+- **Clear Button**: Quick way to reset selection
+- **Disabled State**: Prevent interaction when needed
+- **Form Integration**: Works with Angular Reactive Forms
+- **Custom Width**: Configurable dropdown width
+
+## Option Structure
+
+```typescript
+interface AutocompleteOption {
+	value: any; // The actual value
+	label: string; // Display text
+}
+```
+
+## Usage
+
+```typescript
+import { AutocompleteComponent } from 'ui';
+import { FormControl } from '@angular/forms';
+
+@Component({
+	template: `
+		<mmc-autocomplete
+			[formControl]="control"
+			[options]="options"
+			[placeholder]="'Search...'"
+			[loading]="isLoading"
+			[disabled]="isDisabled"
+			[width]="'w-72'"
+			(searchChange)="onSearch($event)"
+		></mmc-autocomplete>
+	`,
+})
+export class MyComponent {
+	control = new FormControl();
+	options = [
+		{ value: '1', label: 'Option 1' },
+		{ value: '2', label: 'Option 2' },
+	];
+	isLoading = false;
+
+	onSearch(term: string) {
+		this.isLoading = true;
+		// Fetch filtered options...
+	}
+}
+```
+
+## Stories
+
+### Default
+
+Basic autocomplete with static options.
+
+<Canvas of={AutocompleteStories.Default} />
+
+### Loading
+
+Shows loading spinner during async operations.
+
+<Canvas of={AutocompleteStories.Loading} />
+
+### Disabled
+
+Disabled state preventing user interaction.
+
+<Canvas of={AutocompleteStories.Disabled} />
+
+## API
+
+<Controls />

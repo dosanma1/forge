@@ -1,0 +1,81 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Installation" />
+
+# Trading Bot UI Library
+
+Welcome to the **Trading Bot UI Component Library** - a comprehensive collection of accessible, themeable Angular components built with modern best practices.
+
+## What's Inside
+
+This library follows the **Atomic Design** methodology to organize components into a scalable, maintainable system:
+
+- **Atoms** - Basic building blocks (buttons, inputs, icons)
+- **Molecules** - Simple combinations of atoms (alerts, selects, dialogs)
+- **Organisms** - Complex interface sections (tables, navigation, theme manager)
+
+## Quick Start
+
+### Installation
+
+The UI library is already integrated into your workspace. To use components:
+
+```typescript
+import { MmcButton, MmcInput, MmcCheckbox } from 'projects/ui';
+
+@Component({
+  standalone: true,
+  imports: [MmcButton, MmcInput, MmcCheckbox],
+  template: `
+    <button mmcButton>Click me</button>
+    <input mmcInput type="text" />
+    <mmc-checkbox [(ngModel)]="checked"></mmc-checkbox>
+  `
+})
+export class MyComponent {}
+```
+
+### Theming
+
+All components support light, dark, and custom themes through the Theme Manager:
+
+```typescript
+import { ThemeManager } from 'projects/ui';
+
+constructor(private themeManager: ThemeManager) {
+  this.themeManager.setTheme('dark');
+}
+```
+
+## Features
+
+- ✅ **Accessible** - Built with ARIA attributes and keyboard navigation
+- ✅ **Themeable** - Support for light, dark, and custom color themes
+- ✅ **Modern Stack** - Uses ng-primitives and @angular/cdk for robust primitives
+- ✅ **Form Integration** - Works seamlessly with Angular forms
+- ✅ **TypeScript** - Fully typed for excellent developer experience
+- ✅ **Tailwind CSS** - Styled with Tailwind for easy customization
+
+## Explore the Library
+
+Use the sidebar to explore components by category:
+
+- **Atoms** - Start here for basic components
+- **Molecules** - Discover composed components
+- **Organisms** - Explore complex UI sections
+
+Each component page includes:
+- Live examples you can interact with
+- Code snippets to copy
+- API documentation
+- Accessibility notes
+
+## Learn More
+
+- [Atomic Design Methodology](https://github.com/your-org/trading-bot/blob/main/frontend/projects/ui/ATOMIC_DESIGN.md)
+- [Component Guidelines](#)
+- [Contributing Guide](#)
+
+---
+
+**Need Help?** Check the component documentation or reach out to the team.

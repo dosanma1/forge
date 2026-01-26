@@ -1,0 +1,29 @@
+{
+  "name": "@forge/log",
+  "version": "0.0.1",
+  "description": "Forge logging service library for Angular applications",
+  "scripts": {
+    "build": "ng build --configuration development",
+    "build:prod": "ng build --configuration production",
+    "watch": "ng build --watch",
+    "test": "ng test"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^20.1.6",
+    "@angular/cli": "^20.2.0",
+    "@angular/common": "^20.1.7",
+    "@angular/compiler": "^20.1.7",
+    "@angular/compiler-cli": "^20.1.7",
+    "@angular/core": "^20.1.7",
+    "ng-packagr": "^20.0.0",
+    "typescript": "^5.9.2"
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,96 @@
+<button mmcButton variant="outline" cdkOverlayOrigin #menuOverlayTrigger="cdkOverlayOrigin" (click)="toggle()">
+	<mmc-icon size="sm" name="lucideArrowUpDown" />
+	<div class="hidden lg:flex">
+		@if (!isSortEmpty()) {
+		<div class="flex items-center">
+			Sort by:
+			<span class="font-semibold ml-1">{{
+				sortFields.value[0].field.name
+				}}</span>
+			@if (sortFields.value.length > 1) {
+			<mmc-badge variant="secondary" class="ml-2">+{{ sortFields.value.length - 1 }}</mmc-badge>
+			}
+		</div>
+		} @else {
+		Sort by
+		}
+	</div>
+</button>
+
+<ng-template cdkConnectedOverlay [cdkConnectedOverlayOrigin]="menuOverlayTrigger" [cdkConnectedOverlayOpen]="isOpen()"
+	[cdkConnectedOverlayHasBackdrop]="true" [cdkConnectedOverlayBackdropClass]="'cdk-overlay-transparent-backdrop'"
+	(backdropClick)="close()">
+	<div class="rounded-lg text-base border border-border bg-background shadow-lg shadow-foreground/5 divide-y">
+		<div class="space-y-1 p-3">
+			<div cdkDropList (cdkDropListDropped)="drop($event)" [cdkDropListData]="sortFields.value"
+				class="space-y-1 max-h-52 overflow-auto" [formGroup]="form">
+				<ng-container formArrayName="sortFields">
+					@for (sortField of sortFieldControls; track $index) {
+					<div cdkDrag [cdkDragData]="sortField.value" class="flex items-center gap-x-1 p-1"
+						[formGroup]="sortField">
+						<div class="sort-drag-placeholder" *cdkDragPlaceholder></div>
+						<mmc-icon size="sm" class="cursor-move" name="lucideGripVertical" [ngClass]="{
+									hidden: sortFieldControls.length <= 1,
+								}" cdkDragHandle />
+						<ng-container formGroupName="field">
+							<mmc-select variant="outline" class="w-60" placeholder="Field name" formControlName="name">
+								<ng-template mmcSelectLabel let-options>
+									@let icon =
+									findIconBySortFieldName(
+									options[0].value()
+									);
+									@if (icon) {
+									<mmc-icon class="mr-2" size="sm" [name]="icon">
+									</mmc-icon>
+									}
+									{{ options[0].content }}
+								</ng-template>
+								@for (
+								field of availableFields();
+								track $index
+								) {
+								<mmc-option [value]="field.name">
+									@if (field.icon) {
+									<mmc-icon class="mr-2" size="sm" [name]="field.icon" />
+									}
+									{{ field.name }}
+								</mmc-option>
+								}
+							</mmc-select>
+						</ng-container>
+						<mmc-select variant="outline" class="w-36" placeholder="Direction" formControlName="direction">
+							<ng-template mmcSelectLabel let-options>
+								@if (options[0].value() == 'ASC') {
+								<mmc-icon class="mr-2" size="sm" name="lucideArrowUpNarrowWide" />
+								} @else {
+								<mmc-icon class="mr-2" size="sm" name="lucideArrowDownNarrowWide" />
+								}
+								{{ options[0].content }}
+							</ng-template>
+							@for (direction of directions(); track $index) {
+							<mmc-option [value]="direction">
+								@if (direction == 'ASC') {
+								<mmc-icon class="mr-2" size="sm" name="lucideArrowUpNarrowWide" />
+								} @else {
+								<mmc-icon class="mr-2" size="sm" name="lucideArrowDownNarrowWide" />
+								}
+								{{ formatSortDirectionText(direction) }}
+							</mmc-option>
+							}
+						</mmc-select>
+						<button mmcButton variant="ghost" size="icon" (click)="deleteSortField($index)">
+							<mmc-icon size="sm" name="lucideX" />
+						</button>
+					</div>
+					}
+				</ng-container>
+			</div>
+			<div class="w-full">
+				<button mmcButton variant="outline" (click)="addSortField()">
+					<mmc-icon size="sm" name="lucidePlus" />
+					Add sort
+				</button>
+			</div>
+		</div>
+	</div>
+</ng-template>

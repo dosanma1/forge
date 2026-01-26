@@ -1,0 +1,60 @@
+<div
+	class="flex flex-col"
+	[ngClass]="{
+		'items-end': outgoingMsg,
+		'items-start': incomingMsg,
+	}"
+>
+	<div
+		class="relative max-w-3/4 px-3 py-2 rounded-lg"
+		[ngClass]="{
+			'bg-blue-500 text-blue-50': outgoingMsg,
+			'bg-gray-500 text-gray-50': incomingMsg,
+		}"
+	>
+		@if (tail()) {
+			<div
+				class="absolute bottom-0 w-3"
+				[ngClass]="{
+					'text-blue-500 -right-1 -mr-px mb-px': outgoingMsg,
+					'text-gray-500 -left-1 -ml-px mb-px -scale-x-100':
+						incomingMsg,
+				}"
+			>
+				<ng-container *ngTemplateOutlet="chatBubbleTail"></ng-container>
+			</div>
+		}
+		<ng-content></ng-content>
+	</div>
+	@if (time()) {
+		<div
+			class="my-0.5 text-sm font-medium text-secondary-foreground"
+			[ngClass]="{ 'mr-3': outgoingMsg, 'ml-3': incomingMsg }"
+		>
+			{{ time() | date: 'HH:mm' }}
+		</div>
+	}
+</div>
+
+<ng-template #chatBubbleTail>
+	<svg
+		width="100%"
+		height="100%"
+		viewBox="0 0 66 66"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<g
+			id="Page-1"
+			stroke="none"
+			stroke-width="1"
+			fill="none"
+			fill-rule="evenodd"
+		>
+			<path
+				d="M1.01522827,0.516204834 C-8.83532715,54.3062744 61.7609863,70.5215302 64.8009949,64.3061218 C68.8074951,54.8859711 30.1663208,52.9997559 37.5036011,0.516204834 L1.01522827,0.516204834 Z"
+				fill="currentColor"
+				fill-rule="nonzero"
+			></path>
+		</g>
+	</svg>
+</ng-template>

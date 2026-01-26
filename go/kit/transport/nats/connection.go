@@ -49,7 +49,7 @@ type connection struct {
 	nc *nats.Conn
 }
 
-func NewConnection(opts ...connOption) (Connection, error) {
+func NewConnection(opts ...connOption) (*connection, error) {
 	config := &config{}
 	for _, opt := range append(defaultOpts(), opts...) {
 		opt(config)

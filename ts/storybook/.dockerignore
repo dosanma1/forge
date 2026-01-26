@@ -1,0 +1,73 @@
+# Node.js dependencies (will be installed in container)
+
+node_modules/
+.npm
+.yarn/
+
+# Build outputs (only final dist needed)
+
+.angular/
+coverage/
+.nyc_output/
+storybook-static/
+
+# Storybook specific
+
+.storybook/cache/
+
+# Development files
+
+.vscode/
+.idea/
+_.swp
+_~
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# Git
+
+.git
+.gitignore
+
+# Logs
+
+\*.log
+logs/
+
+# Environment files
+
+.env
+.env.\*
+
+# Testing files
+
+_.spec.ts
+_.test.ts
+karma.conf.js
+e2e/
+
+# Documentation
+
+_.md
+README_
+
+# TypeScript
+
+\*.tsbuildinfo
+
+# Docker
+
+Dockerfile\*
+.dockerignore
+
+# Development scripts
+
+scripts/
+
+# Temporary files
+
+tmp/
+temp/

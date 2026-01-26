@@ -1,0 +1,43 @@
+{
+  "name": "@forge/ui",
+  "version": "0.0.1",
+  "description": "Forge UI component library with TailwindCSS",
+  "scripts": {
+    "build": "ng build --configuration development",
+    "build:prod": "ng build --configuration production",
+    "watch": "ng build --watch"
+  },
+  "peerDependencies": {
+    "@angular/common": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/forms": "^20.0.0",
+    "clsx": "^2.1.1",
+    "rxjs": "~7.8.0",
+    "tailwind-merge": "^3.0.1"
+  },
+  "dependencies": {
+    "@tanstack/angular-table": "^8.21.3",
+    "class-variance-authority": "^0.7.1",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^20.1.6",
+    "@angular/cdk": "^20.1.5",
+    "@angular/cli": "^20.2.0",
+    "@angular/common": "^20.1.7",
+    "@angular/compiler": "^20.1.7",
+    "@angular/compiler-cli": "^20.1.7",
+    "@angular/core": "^20.1.7",
+    "@angular/forms": "^20.1.7",
+    "@tailwindcss/forms": "^0.5.10",
+    "autoprefixer": "^10.4.21",
+    "clsx": "^2.1.1",
+    "ng-packagr": "^20.0.0",
+    "postcss": "^8.5.3",
+    "rxjs": "~7.8.2",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.2"
+  },
+  "sideEffects": false
+}
