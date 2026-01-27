@@ -1,0 +1,61 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { SelectComponent } from './select.component';
+import * as SelectStories from './select.stories';
+
+<Meta title="Molecules/Select" />
+
+# Select
+
+#### A dropdown component for selecting from a list of options.
+
+<Canvas sourceState="hidden" of={SelectStories.Default} />
+
+## Features
+
+- ✅ Keyboard navigation
+- ✅ Single and multi-select
+- ✅ Works with Angular forms
+- ✅ Customizable options
+- ✅ Search/filter capability
+
+## Import
+
+```typescript
+import { SelectComponent, OptionComponent } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-select [(ngModel)]="selected" placeholder="Choose an option">
+	<mmc-option value="1">Option 1</mmc-option>
+	<mmc-option value="2">Option 2</mmc-option>
+	<mmc-option value="3">Option 3</mmc-option>
+</mmc-select>
+```
+
+### With Reactive Forms
+
+```typescript
+selectedOption = new FormControl('');
+```
+
+```html
+<mmc-select [formControl]="selectedOption">
+	<mmc-option value="apple">Apple</mmc-option>
+	<mmc-option value="banana">Banana</mmc-option>
+</mmc-select>
+```
+
+## API Reference
+
+<ArgTypes of={SelectComponent} />
+
+## Accessibility
+
+- Arrow key navigation
+- Type-ahead search
+- Screen reader support
+- ARIA combobox pattern

@@ -1,0 +1,103 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcRadioGroup } from './radio-group.component';
+import { MmcRadioItem } from './radio-item.component';
+import * as RadioStories from './radio.stories';
+
+<Meta title="Atoms/Radio" />
+
+# Radio
+
+#### A set of checkable buttons where only one can be checked at a time.
+
+<Canvas sourceState="hidden" of={RadioStories.Default} />
+
+## Features
+
+- ✅ Vertical and horizontal orientations
+- ✅ Full keyboard navigation (arrow keys)
+- ✅ Can be controlled or uncontrolled
+- ✅ Works with Angular forms
+- ✅ Individual items can be disabled
+
+## Import
+
+Get started with importing the components:
+
+```typescript
+import { MmcRadioGroup, MmcRadioItem } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-radio-group orientation="vertical">
+	<mmc-radio-item value="1">Option 1</mmc-radio-item>
+	<mmc-radio-item value="2">Option 2</mmc-radio-item>
+	<mmc-radio-item value="3">Option 3</mmc-radio-item>
+</mmc-radio-group>
+```
+
+### With Reactive Forms
+
+```typescript
+import { FormControl } from '@angular/forms';
+
+export class MyComponent {
+	selectedOption = new FormControl('2');
+}
+```
+
+```html
+<mmc-radio-group [formControl]="selectedOption">
+	<mmc-radio-item value="1">Option 1</mmc-radio-item>
+	<mmc-radio-item value="2">Option 2</mmc-radio-item>
+	<mmc-radio-item value="3">Option 3</mmc-radio-item>
+</mmc-radio-group>
+```
+
+### Horizontal Orientation
+
+```html
+<mmc-radio-group orientation="horizontal">
+	<mmc-radio-item value="1">One</mmc-radio-item>
+	<mmc-radio-item value="2">Two</mmc-radio-item>
+	<mmc-radio-item value="3">Three</mmc-radio-item>
+</mmc-radio-group>
+```
+
+### With Disabled Item
+
+```html
+<mmc-radio-group>
+	<mmc-radio-item value="1">Option 1</mmc-radio-item>
+	<mmc-radio-item value="2" [disabled]="true"
+		>Option 2 (Disabled)</mmc-radio-item
+	>
+	<mmc-radio-item value="3">Option 3</mmc-radio-item>
+</mmc-radio-group>
+```
+
+## API Reference
+
+### RadioGroup
+
+<ArgTypes of={MmcRadioGroup} />
+
+### RadioItem
+
+<ArgTypes of={MmcRadioItem} />
+
+## Accessibility
+
+- Follows WAI-ARIA radio group pattern
+- Arrow keys navigate between items
+- Space selects the focused item
+- Proper ARIA attributes and roles
+
+## All Examples
+
+<Canvas of={RadioStories.Horizontal} />
+<Canvas of={RadioStories.PreSelected} />
+<Canvas of={RadioStories.WithDisabled} />

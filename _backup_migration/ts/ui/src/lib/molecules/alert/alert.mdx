@@ -1,0 +1,65 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcAlert } from './alert.component';
+import * as AlertStories from './alert.stories';
+
+<Meta title="Molecules/Alert" />
+
+# Alert
+
+#### Displays important messages with optional actions.
+
+<Canvas sourceState="hidden" of={AlertStories.Default} />
+
+## Features
+
+- ✅ Multiple variants (info, success, warning, error)
+- ✅ Icon support
+- ✅ Dismissible option
+- ✅ Action buttons
+
+## Import
+
+```typescript
+import { MmcAlert } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-alert variant="info">
+	<mmc-icon name="lucideInfo" class="size-4"></mmc-icon>
+	<div>
+		<h4 class="font-semibold">Information</h4>
+		<p>This is an informational alert.</p>
+	</div>
+</mmc-alert>
+```
+
+### Variants
+
+```html
+<mmc-alert variant="success">Your changes have been saved</mmc-alert>
+<mmc-alert variant="warning">Please review your information</mmc-alert>
+<mmc-alert variant="error">An error occurred</mmc-alert>
+```
+
+### With Dismiss Button
+
+```html
+<mmc-alert>
+	<span>Message</span>
+	<button mmcButton size="sm" (click)="dismiss()">Dismiss</button>
+</mmc-alert>
+```
+
+## API Reference
+
+<ArgTypes of={MmcAlert} />
+
+## Accessibility
+
+- Proper ARIA roles
+- Color contrast compliant
+- Screen reader friendly

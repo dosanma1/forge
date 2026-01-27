@@ -1,0 +1,21 @@
+mmc-layout,
+mmc-settings {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	width: 100%;
+	height: 100%;
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
+
+	/* Base styles for components that load as a route */
+	router-outlet {
+		+ * {
+			overflow: hidden;
+			position: relative;
+			flex: 1 1 auto;
+			width: 100%;
+		}
+	}
+}

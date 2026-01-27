@@ -1,0 +1,13 @@
+<ng-content></ng-content>
+<div
+	class="shadow bg-background rounded-lg border-border"
+	[ngClass]="classNames()"
+	#popover
+	[hidden]="!isOpen()"
+	[@toggle]="isOpen()"
+	(@toggle.done)="onDone($event)"
+>
+	@if (isOpen()) {
+		<ng-container [ngTemplateOutlet]="content()"></ng-container>
+	}
+</div>

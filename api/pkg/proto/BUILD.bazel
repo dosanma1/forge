@@ -1,0 +1,10 @@
+"""Proto package BUILD configuration"""
+
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "proto",
+    srcs = ["doc.go"],
+    importpath = "github.com/dosanma1/forge/backend/services/api/pkg/proto",
+    visibility = ["//visibility:public"],
+)

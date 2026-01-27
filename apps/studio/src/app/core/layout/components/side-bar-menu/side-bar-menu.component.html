@@ -1,0 +1,122 @@
+<ng-template>
+	<div mmcMenu class="w-56">
+		<div role="group">
+			<button
+				mmcMenuItem
+				[mmcMenuTriggerFor]="pauseNotificationsMenu"
+				class="justify-between"
+			>
+				<p>Pause notifications</p>
+				<i class="inline-flex">
+					<mmc-icon size="sm" name="lucideChevronRight" />
+				</i>
+			</button>
+		</div>
+		<div role="group">
+			<button mmcMenuItem (click)="onActionClick(eAction.SETTINGS)">
+				<p>Settings</p>
+			</button>
+		</div>
+		<div role="group">
+			<button
+				mmcMenuItem
+				(click)="onActionClick(eAction.DOWNLOAD_DESKTOP_APP)"
+			>
+				<p>Download desktop app</p>
+			</button>
+			<button
+				mmcMenuItem
+				[mmcMenuTriggerFor]="switchWorkspaceMenu"
+				class="justify-between"
+			>
+				<p>Switch workspace</p>
+				<i class="inline-flex">
+					<mmc-icon size="sm" name="lucideChevronRight" />
+				</i>
+			</button>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #pauseNotificationsMenu>
+	<div mmcMenu class="w-56">
+		<div role="group">
+			@for (item of pauseNotificationsTimeFrameKeys; track $index) {
+				<button
+					mmcMenuItem
+					class="justify-between"
+					(click)="onActionClick(eAction.PAUSE_NOTIFICATIONS, item)"
+				>
+					<div
+						class="flex flex-row justify-start items-center gap-x-3"
+					>
+						<p>{{ pauseNotificationsTimeFrame[item] }}</p>
+					</div>
+				</button>
+			}
+		</div>
+		<div role="group">
+			<button
+				mmcMenuItem
+				(click)="onActionClick(eAction.NOTIFICATION_SCHEDULE)"
+			>
+				<p>Set a notification schedule</p>
+			</button>
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #switchWorkspaceMenu>
+	<div mmcMenu class="w-56">
+		<div role="group">
+			@for (workspace of sortedWorkspaces(); track workspace.ID()) {
+				<button
+					mmcMenuItem
+					class="justify-between"
+					(click)="
+						onActionClick(eAction.SWITCH_WORKSPACE, workspace.ID())
+					"
+				>
+					<div class="flex flex-row justify-start items-center">
+						<mmc-avatar class="mr-2 size-4">
+							@if (workspace.imageURL) {
+								<mmc-avatar-image
+									[src]="workspace.imageURL"
+									[imgAlt]="workspace.name"
+								/>
+							}
+							<mmc-avatar-fallback class="bg-transparent">
+								<mmc-icon
+									size="sm"
+									name="lucideBuilding2"
+								></mmc-icon>
+							</mmc-avatar-fallback>
+						</mmc-avatar>
+						<p>{{ workspace.name }}</p>
+					</div>
+					@if (workspace.ID() === activeWorkspace().ID()) {
+						<i class="inline-flex">
+							<mmc-icon size="sm" name="lucideCheck" />
+						</i>
+					}
+				</button>
+			}
+			<button
+				mmcMenuItem
+				variant="link"
+				(click)="onActionClick(eAction.VIEW_ALL_WORKSPACES)"
+				class="justify-center h-auto"
+			>
+				<p>View all workspaces</p>
+			</button>
+		</div>
+		<div role="group">
+			<button
+				mmcMenuItem
+				(click)="onActionClick(eAction.CREATE_OR_JOIN_WORKSPACE)"
+			>
+				<p>Create or join a workspace</p>
+			</button>
+		</div>
+	</div>
+</ng-template>

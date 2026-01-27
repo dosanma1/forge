@@ -1,0 +1,113 @@
+<div [class]="containerClasses()">
+	<!-- Steps indicator -->
+	<div class="flex items-center">
+		@for (step of steps(); track step.id; let i = $index) {
+			<!-- Step circle and content -->
+			<div
+				class="flex items-center"
+				[class.flex-1]="i < steps().length - 1"
+			>
+				<!-- Step indicator -->
+				<div
+					[class]="getStepClasses(i)"
+					[attr.data-state]="getStepState(i)"
+					[attr.data-loading]="isStepLoading(i)"
+				>
+					<!-- Step number/icon -->
+					<div
+						class="relative flex size-6 shrink-0 items-center justify-center"
+					>
+						<!-- Step number (default state) -->
+						<span
+							class="text-xs font-medium transition-all duration-200"
+							[class.opacity-0]="
+								isStepCompleted(i) || isStepLoading(i)
+							"
+							[class.scale-0]="
+								isStepCompleted(i) || isStepLoading(i)
+							"
+						>
+							{{ i + 1 }}
+						</span>
+
+						<!-- Check icon (completed state) -->
+						@if (isStepCompleted(i)) {
+							<span class="absolute inline-flex">
+								<mmc-icon
+									size="sm"
+									name="lucideCheck"
+									class="scale-100 opacity-100 transition-all"
+								/>
+							</span>
+						}
+
+						<!-- Loading spinner (loading state) -->
+						@if (isStepLoading(i)) {
+							<span class="absolute transition-all inline-flex">
+								<mmc-spinner
+									class="w-3.5 h-3.5 text-current animate-spin"
+								/>
+							</span>
+						}
+					</div>
+				</div>
+
+				<!-- Step separator (line) -->
+				@if (i < steps().length - 1) {
+					<div
+						[class]="getSeparatorClasses(i)"
+						[attr.data-state]="getStepState(i)"
+					></div>
+				}
+			</div>
+		}
+	</div>
+
+	<!-- Step content -->
+	@if (stepTemplate()) {
+		<div class="step-content">
+			<ng-container
+				[ngTemplateOutlet]="stepTemplate()!"
+				[ngTemplateOutletContext]="{
+					currentStep: currentStep(),
+					steps: steps(),
+					isFirst: currentStep() === 0,
+					isLast: currentStep() === steps().length - 1,
+				}"
+			/>
+		</div>
+	} @else {
+		<div class="step-content">
+			<ng-content />
+		</div>
+	}
+
+	<!-- Navigation buttons -->
+	@if (showNavigation()) {
+		<div class="flex justify-between mt-8">
+			<button
+				type="button"
+				[disabled]="currentStep() === 0 || loading()"
+				(click)="previousStep()"
+				[class]="buttonClasses()"
+				class="bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+				Prev step
+			</button>
+
+			<button
+				type="button"
+				[disabled]="loading() || isCurrentStepDisabled()"
+				(click)="nextStep()"
+				[class]="buttonClasses()"
+				class="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+				@if (isLastStep()) {
+					Finish
+				} @else {
+					Next step
+				}
+			</button>
+		</div>
+	}
+</div>

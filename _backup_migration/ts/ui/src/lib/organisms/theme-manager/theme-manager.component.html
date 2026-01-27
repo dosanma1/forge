@@ -1,0 +1,48 @@
+<mmc-select placeholder="Select a theme" variant="outline" class="w-[199px]" [ngModel]="themeManager.theme()"
+	(ngModelChange)="onChangeTheme($event)">
+	@for (theme of allThemes(); track $index) {
+	<mmc-option [value]="theme.value">
+		<div class="relative mr-1 ml-1 inline-block h-4 w-4 pt-1">
+			<div class="absolute top-[2px] left-[2px] h-2 w-2 rounded-full bg-foreground forced-colors:hidden"></div>
+			<div class="absolute right-[2px] bottom-[2px] h-2 w-2 rounded-full bg-background forced-colors:hidden">
+			</div>
+		</div>
+		{{ theme.name }}
+	</mmc-option>
+	}
+</mmc-select>
+
+@if (themeManager.theme() === 'custom') {
+<div class="mt-2 flex flex-col gap-4 p-4 border rounded-md bg-card">
+	<div class="flex items-center justify-between">
+		<label class="text-sm font-medium">Primary</label>
+		<input type="color" class="h-8 w-16 cursor-pointer rounded border" [value]="customColors().primary"
+			(input)="updateCustomColor('primary', $any($event.target).value)" />
+	</div>
+	<div class="flex items-center justify-between">
+		<label class="text-sm font-medium">Background</label>
+		<input type="color" class="h-8 w-16 cursor-pointer rounded border" [value]="customColors().background"
+			(input)="updateCustomColor('background', $any($event.target).value)" />
+	</div>
+	<div class="flex items-center justify-between">
+		<label class="text-sm font-medium">Foreground</label>
+		<input type="color" class="h-8 w-16 cursor-pointer rounded border" [value]="customColors().foreground"
+			(input)="updateCustomColor('foreground', $any($event.target).value)" />
+	</div>
+	<div class="flex items-center justify-between">
+		<label class="text-sm font-medium">Secondary</label>
+		<input type="color" class="h-8 w-16 cursor-pointer rounded border" [value]="customColors().secondary"
+			(input)="updateCustomColor('secondary', $any($event.target).value)" />
+	</div>
+	<div class="flex items-center justify-between">
+		<label class="text-sm font-medium">Accent</label>
+		<input type="color" class="h-8 w-16 cursor-pointer rounded border" [value]="customColors().accent"
+			(input)="updateCustomColor('accent', $any($event.target).value)" />
+	</div>
+	<div class="flex items-center justify-between">
+		<label class="text-sm font-medium">Muted</label>
+		<input type="color" class="h-8 w-16 cursor-pointer rounded border" [value]="customColors().muted"
+			(input)="updateCustomColor('muted', $any($event.target).value)" />
+	</div>
+</div>
+}

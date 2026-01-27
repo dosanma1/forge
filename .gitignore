@@ -1,30 +1,46 @@
-# Bazel files
-/bazel-*
-.bazelrc.user
+# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# Go
-bin/
-*.exe
-*.test
-*.prof
-vendor/
-go.work.sum
+# compiled output
+dist
+tmp
+out-tsc
 
-# Node
-node_modules/
-dist/
-coverage/
+# dependencies
+node_modules
 
-# Editors
-.idea/
-.vscode/
-*.swp
-*.swo
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+
+# System Files
 .DS_Store
+Thumbs.db
 
-# Forge
-.forge/
+.nx/cache
+.nx/workspace-data
 
-# Secrets
-.decrypted-*.yaml
-.decrypted~*.yaml
+.angular
+
+__screenshots__/

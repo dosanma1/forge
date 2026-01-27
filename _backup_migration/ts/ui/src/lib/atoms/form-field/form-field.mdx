@@ -1,0 +1,57 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcFormField } from './form-field.component';
+import * as FormFieldStories from './form-field.stories';
+
+<Meta title="Atoms/Form Field" />
+
+# Form Field
+
+#### A container for form controls with consistent spacing and layout.
+
+<Canvas sourceState="hidden" of={FormFieldStories.Default} />
+
+## Features
+
+- ✅ Consistent spacing for form elements
+- ✅ Flexible layout system
+- ✅ Customizable with Tailwind classes
+
+## Import
+
+```typescript
+import { MmcFormField } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-form-field>
+	<label mmcLabel>Username</label>
+	<input mmcInput type="text" placeholder="Enter your username" />
+</mmc-form-field>
+```
+
+### With Checkbox
+
+```html
+<mmc-form-field class="flex flex-row items-center gap-2">
+	<mmc-checkbox></mmc-checkbox>
+	<label mmcLabel>Remember me</label>
+</mmc-form-field>
+```
+
+### Vertical Stack
+
+```html
+<mmc-form-field class="grid gap-2">
+	<label mmcLabel>Email</label>
+	<input mmcInput type="email" />
+	<p class="text-sm text-muted-foreground">We'll never share your email.</p>
+</mmc-form-field>
+```
+
+## API Reference
+
+<ArgTypes of={MmcFormField} />

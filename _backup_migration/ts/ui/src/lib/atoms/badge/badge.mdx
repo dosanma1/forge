@@ -1,0 +1,109 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcBadge } from './badge.component';
+import * as BadgeStories from './badge.stories';
+
+<Meta title="Atoms/Badge" />
+
+# Badge
+
+#### A small component used to display status, categories, or counts.
+
+<Canvas sourceState="hidden" of={BadgeStories.Default} />
+
+## Features
+
+- ✅ Multiple variants (default, secondary, destructive, outline)
+- ✅ Different sizes (default, sm)
+- ✅ Removable option
+- ✅ Can contain icons or numbers
+- ✅ Works as a link
+
+## Import
+
+Get started with importing the component:
+
+```typescript
+import { MmcBadge } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-badge>Label</mmc-badge>
+```
+
+### Variants
+
+```html
+<mmc-badge variant="default">Default</mmc-badge>
+<mmc-badge variant="secondary">Secondary</mmc-badge>
+<mmc-badge variant="destructive">Destructive</mmc-badge>
+<mmc-badge variant="outline">Outline</mmc-badge>
+```
+
+### Sizes
+
+```html
+<mmc-badge size="default">Default Size</mmc-badge>
+<mmc-badge size="sm">Small Size</mmc-badge>
+```
+
+### With Icon
+
+```html
+<mmc-badge>
+	<mmc-icon name="lucideZap" size="xs" class="-ms-0.5 opacity-60"></mmc-icon>
+	Featured
+</mmc-badge>
+```
+
+### With Number
+
+```html
+<mmc-badge>
+	Notifications
+	<span class="text-primary-foreground/60 text-xs font-medium">73</span>
+</mmc-badge>
+```
+
+### Only Number (Circular)
+
+```html
+<mmc-badge class="rounded-full">6</mmc-badge>
+```
+
+### As Link
+
+```html
+<a mmcBadge href="#documentation">Link Badge</a>
+```
+
+### Removable
+
+```html
+<mmc-badge [removable]="true" (remove)="onRemove()"> Removable </mmc-badge>
+```
+
+## API Reference
+
+<ArgTypes of={MmcBadge} />
+
+## Accessibility
+
+- Semantic HTML elements
+- Proper color contrast
+- Screen reader friendly
+- Keyboard accessible when interactive
+
+## All Examples
+
+<Canvas of={BadgeStories.Secondary} />
+<Canvas of={BadgeStories.Destructive} />
+<Canvas of={BadgeStories.Outline} />
+<Canvas of={BadgeStories.Link} />
+<Canvas of={BadgeStories.WithIcon} />
+<Canvas of={BadgeStories.WithNumber} />
+<Canvas of={BadgeStories.OnlyNumber} />
+<Canvas of={BadgeStories.Removable} />

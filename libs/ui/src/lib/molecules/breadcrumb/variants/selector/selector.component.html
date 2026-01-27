@@ -1,0 +1,105 @@
+<nav class="flex items-center gap-1" aria-label="Breadcrumb">
+	@if (logo(); as logoData) {
+		<button
+			mmcButton
+			variant="ghost"
+			size="icon"
+			class="size-8"
+			(click)="onLogoClick()"
+		>
+			@if (logoData.imageUrl) {
+				<img
+					[src]="logoData.imageUrl"
+					[alt]="logoData.alt || 'Logo'"
+					class="size-5"
+				/>
+			} @else if (logoData.icon) {
+				<mmc-icon [name]="logoData.icon" size="sm" />
+			}
+		</button>
+		<span class="text-muted-foreground text-sm">/</span>
+	}
+	@for (segment of segments(); track segment.id; let isLast = $last) {
+		<div class="flex items-center gap-0.5">
+			<!-- Segment label - clickable for navigation -->
+			<button
+				mmcButton
+				variant="ghost"
+				size="sm"
+				class="h-8 gap-1.5 pl-2 pr-1 text-sm font-medium text-foreground hover:bg-accent"
+				(click)="onSegmentClick(segment.id, segment.selectedId)"
+			>
+				@if (getSelectedItem(segment); as selectedItem) {
+					@if (selectedItem.imageUrl) {
+						<img
+							[src]="selectedItem.imageUrl"
+							[alt]="selectedItem.label"
+							class="size-4 rounded-sm object-cover"
+						/>
+					} @else if (selectedItem.icon) {
+						<mmc-icon [name]="selectedItem.icon" size="sm" />
+					}
+					<span class="max-w-32 truncate">{{ selectedItem.label }}</span>
+				} @else {
+					<span class="text-muted-foreground">Select {{ segment.label }}</span>
+				}
+			</button>
+			<!-- Chevron - dropdown trigger -->
+			<button
+				mmcButton
+				variant="ghost"
+				size="icon"
+				class="size-6 text-muted-foreground hover:bg-accent"
+				[mmcMenuTriggerFor]="segmentMenu"
+			>
+				<mmc-icon name="lucideChevronDown" size="sm" />
+			</button>
+
+			<ng-template #segmentMenu>
+				<div mmcMenu class="min-w-48 max-w-64">
+					<div role="group">
+						@for (item of segment.items; track item.id) {
+							<button
+								mmcMenuItem
+								class="gap-2 justify-between"
+								(click)="onItemSelect(segment.id, item.id)"
+							>
+								<div class="flex items-center gap-2 min-w-0">
+									@if (item.imageUrl) {
+										<img
+											[src]="item.imageUrl"
+											[alt]="item.label"
+											class="size-4 rounded-sm object-cover flex-shrink-0"
+										/>
+									} @else if (item.icon) {
+										<mmc-icon [name]="item.icon" size="sm" class="flex-shrink-0" />
+									}
+									<span class="truncate">{{ item.label }}</span>
+								</div>
+								@if (item.id === segment.selectedId) {
+									<mmc-icon name="lucideCheck" size="sm" class="text-primary flex-shrink-0" />
+								}
+							</button>
+						}
+					</div>
+					@if (segment.showAddButton) {
+						<div role="group">
+							<button
+								mmcMenuItem
+								class="gap-2 text-muted-foreground"
+								(click)="onAddClick(segment.id)"
+							>
+								<mmc-icon name="lucidePlus" size="sm" />
+								<span>{{ segment.addButtonLabel || 'Add new' }}</span>
+							</button>
+						</div>
+					}
+				</div>
+			</ng-template>
+
+			@if (!isLast) {
+				<span class="text-muted-foreground text-sm">/</span>
+			}
+		</div>
+	}
+</nav>

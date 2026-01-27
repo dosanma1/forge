@@ -1,0 +1,115 @@
+<div class="flex flex-col flex-auto min-h-full bg-background">
+	<!-- Header with back button -->
+	<div class="w-full p-4 flex justify-between items-center">
+		<button mmcButton variant="ghost" routerLink="/projects">
+			<mmc-icon size="sm" name="lucideChevronLeft" />
+			<span>Back to Projects</span>
+		</button>
+	</div>
+
+	<!-- Main content -->
+	<div class="flex flex-col items-center justify-center flex-grow">
+		<div class="max-w-md w-full p-6">
+			<h1 class="text-2xl font-bold text-center mb-6">
+				Create a new project
+			</h1>
+
+			<p class="text-center text-muted-foreground mb-8">
+				Create a new Forge project in a directory on your machine.
+			</p>
+
+			<div class="bg-card rounded-lg shadow-sm p-6">
+				<form
+					[formGroup]="projectForm"
+					(ngSubmit)="onSubmit()"
+					class="space-y-6"
+				>
+					<!-- Error Message -->
+					@if (projectService.error()) {
+						<div
+							class="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded relative"
+							role="alert"
+						>
+							<span class="block sm:inline">{{ projectService.error() }}</span>
+						</div>
+					}
+
+					<!-- Project Name Field -->
+					<div>
+						<label
+							mmcLabel
+							for="name"
+							class="block text-sm font-medium text-card-foreground"
+						>
+							Project Name
+						</label>
+						<div class="mt-1">
+							<input
+								mmcInput
+								id="name"
+								type="text"
+								formControlName="name"
+								placeholder="my-project"
+								autocomplete="off"
+								[ngClass]="{
+									'!border-destructive': submitted && f['name'].errors,
+								}"
+							/>
+						</div>
+						@if (submitted && f['name'].errors?.['required']) {
+							<p class="mt-2 text-sm text-destructive">
+								Project name is required
+							</p>
+						}
+					</div>
+
+					<!-- Project Path Field -->
+					<div>
+						<label
+							mmcLabel
+							for="path"
+							class="block text-sm font-medium text-card-foreground"
+						>
+							Project Path
+						</label>
+						<div class="mt-1">
+							<input
+								mmcInput
+								id="path"
+								type="text"
+								formControlName="path"
+								placeholder="/Users/you/projects/my-project"
+								autocomplete="off"
+								[ngClass]="{
+									'!border-destructive': submitted && f['path'].errors,
+								}"
+							/>
+						</div>
+						<p class="mt-1 text-xs text-muted-foreground">
+							The directory where the project will be created
+						</p>
+						@if (submitted && f['path'].errors?.['required']) {
+							<p class="mt-2 text-sm text-destructive">
+								Project path is required
+							</p>
+						}
+					</div>
+
+					<!-- Submit Button -->
+					<div>
+						<button
+							mmcButton
+							type="submit"
+							[disabled]="projectService.isLoading()"
+							[loading]="projectService.isLoading()"
+							loadingMsg="Creating project..."
+							class="w-full"
+						>
+							Create project
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

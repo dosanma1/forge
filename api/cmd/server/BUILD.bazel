@@ -1,0 +1,57 @@
+"""Server binary BUILD configuration"""
+
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+go_library(
+    name = "server_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/dosanma1/forge/backend/services/api/cmd/server",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "server",
+    embed = [":server_lib"],
+    visibility = ["//visibility:public"],
+)
+
+# Package the binary for the container
+pkg_tar(
+    name = "server_tar",
+    srcs = [":server"],
+    package_dir = "/app",
+)
+
+# Build OCI image using distroless base
+oci_image(
+    name = "image",
+    base = "@distroless_base",
+    entrypoint = ["/app/server"],
+    tars = [":server_tar"],
+    exposed_ports = ["8080/tcp"],
+    env = {
+        "PORT": "8080",
+    },
+    visibility = ["//visibility:public"],
+)
+
+# Export image as Docker-format tarball for Skaffold compatibility
+oci_load(
+    name = "image.tar",
+    image = ":image",
+    repo_tags = ["api:latest"],
+    format = "docker",  # Docker format with manifest.json for Skaffold
+)
+
+# Extract the actual tarball file for Skaffold Bazel builder
+# Skaffold requires the target name to end with .tar
+filegroup(
+    name = "image_tarball.tar",
+    srcs = [":image.tar"],
+    output_group = "tarball",
+    visibility = ["//visibility:public"],
+)
+
+

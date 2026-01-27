@@ -1,0 +1,19 @@
+@switch (variant()) {
+	@case ('simple') {
+		<mmc-side-bar-simple />
+	}
+	@case ('default') {
+		<mmc-side-bar-default>
+			<ng-content select="[sideBarContentHeaderExpanded]"></ng-content>
+			<ng-content select="[sideBarContentHeaderCollapsed]"></ng-content>
+			<ng-content></ng-content>
+		</mmc-side-bar-default>
+	}
+	@default {
+		<mmc-side-bar-default>
+			<ng-content select="[sideBarContentHeaderExpanded]"></ng-content>
+			<ng-content select="[sideBarContentHeaderCollapsed]"></ng-content>
+			<ng-content></ng-content>
+		</mmc-side-bar-default>
+	}
+}

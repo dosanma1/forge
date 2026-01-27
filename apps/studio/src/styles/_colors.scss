@@ -1,0 +1,16 @@
+@use 'libs/ui/src/styles/colors';
+/* Colors are in oklch but without the tagget to be after */
+
+:root,
+[data-theme='light'] {
+	/* Primary colors */
+	--primary: 0.705 0.213 47.604;
+	--primary-foreground: 0.985 0 0;
+}
+
+.dark,
+html[data-theme='dark'] {
+	/* Primary colors */
+	--primary: 0.705 0.213 47.604;
+	--primary-foreground: 0.985 0 0;
+}

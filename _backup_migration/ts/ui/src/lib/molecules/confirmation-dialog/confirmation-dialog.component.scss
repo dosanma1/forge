@@ -1,0 +1,11 @@
+/* Confirmation Dialog styles to ensure proper positioning */
+.mmc-confirmation-dialog-panel {
+	position: fixed !important;
+	inset: 0 !important;
+	pointer-events: none;
+	z-index: 50;
+}
+
+.mmc-confirmation-dialog-panel > * {
+	pointer-events: auto;
+}

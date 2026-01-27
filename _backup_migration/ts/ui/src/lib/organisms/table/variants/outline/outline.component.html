@@ -1,0 +1,83 @@
+<div class="relative w-full overflow-auto">
+	<div class="space-y-4">
+		<div class="bg-background overflow-hidden rounded-md border">
+			<table class="table-fixed" mmcTable>
+				<thead mmcTableHeader>
+					@for (
+					headerGroup of tableCmp.table.getHeaderGroups();
+					track headerGroup.id
+					) {
+					<tr class="hover:bg-transparent" mmcTableRow>
+						@for (
+						header of headerGroup.headers;
+						track header.id
+						) {
+						<th class="h-11" [style.width.px]="header.getSize()" mmcTableHead>
+							@if (!header.isPlaceholder) {
+							<div [class]="
+												tableCmp.cn(
+													header.column.getCanSort() &&
+														'flex h-full cursor-pointer items-center justify-between gap-2 select-none'
+												)
+											" [attr.tabIndex]="
+												header.column.getCanSort()
+													? 0
+													: undefined
+											" (click)="
+												header.column.getToggleSortingHandler()?.(
+													$event
+												)
+											">
+								<span class="truncate" *flexRender="
+													header.column.columnDef
+														.header;
+													props: header.getContext();
+													let headerValue
+												">
+									{{ headerValue }}
+								</span>
+							</div>
+							}
+						</th>
+						}
+					</tr>
+					}
+				</thead>
+				<tbody mmcTableBody>
+					@if (tableCmp.table.getRowModel().rows.length) {
+					@for (
+					row of tableCmp.table.getRowModel().rows;
+					track row.id
+					) {
+					<tr [attr.data-state]="
+									row.getIsSelected() && 'selected'
+								" mmcTableRow>
+						@for (
+						cell of row.getVisibleCells();
+						track cell.id
+						) {
+						<td mmcTableCell>
+							<ng-container *flexRender="
+												cell.column.columnDef.cell;
+												props: cell.getContext();
+												let cellValue
+											">
+								<div class="truncate" [innerHTML]="cellValue"></div>
+							</ng-container>
+						</td>
+						}
+					</tr>
+					}
+					} @else {
+					<tr mmcTableRow
+						class="hover:bg-transparent [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg">
+						<td class="h-24 text-center" [attr.colspan]="tableCmp.columns().length" mmcTableCell>
+							No results.
+						</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

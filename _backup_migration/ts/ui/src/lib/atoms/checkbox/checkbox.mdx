@@ -1,0 +1,81 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcCheckbox } from './checkbox.component';
+import * as CheckboxStories from './checkbox.stories';
+
+<Meta title="Atoms/Checkbox" />
+
+# Checkbox
+
+#### A control that allows the user to toggle between checked and unchecked states.
+
+<Canvas sourceState="hidden" of={CheckboxStories.Default} />
+
+## Features
+
+- ✅ Supports indeterminate state
+- ✅ Full keyboard navigation
+- ✅ Can be controlled or uncontrolled
+- ✅ Works with Angular forms (`NgModel`, `FormControl`)
+
+## Import
+
+Get started with importing the component:
+
+```typescript
+import { MmcCheckbox } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<label class="flex items-center gap-2">
+	<mmc-checkbox [(ngModel)]="checked"></mmc-checkbox>
+	Accept terms and conditions
+</label>
+```
+
+### With Reactive Forms
+
+```typescript
+import { FormControl } from '@angular/forms';
+
+export class MyComponent {
+	acceptTerms = new FormControl(false);
+}
+```
+
+```html
+<label class="flex items-center gap-2">
+	<mmc-checkbox [formControl]="acceptTerms"></mmc-checkbox>
+	I agree to the terms
+</label>
+```
+
+### Indeterminate State
+
+```html
+<mmc-checkbox [indeterminate]="true"></mmc-checkbox>
+```
+
+## API Reference
+
+<ArgTypes of={MmcCheckbox} />
+
+## Accessibility
+
+The checkbox component is built with accessibility in mind:
+
+- Uses proper ARIA attributes
+- Keyboard navigable (Space to toggle)
+- Screen reader friendly
+- Follows WAI-ARIA checkbox pattern
+
+## All Examples
+
+<Canvas of={CheckboxStories.Checked} />
+<Canvas of={CheckboxStories.Unchecked} />
+<Canvas of={CheckboxStories.Disabled} />
+<Canvas of={CheckboxStories.DisabledChecked} />
+<Canvas of={CheckboxStories.WithLabel} />

@@ -1,0 +1,35 @@
+<nav class="flex" aria-label="Breadcrumb">
+	<ol
+		role="list"
+		class="text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5"
+	>
+		@for (breadcrumb of breadcrumbCmp.breadcrumbService.breadcrumb(); track $index) {
+			@if ($last) {
+				<li class="inline-flex items-center gap-1.5">
+					<span
+						role="link"
+						aria-disabled="true"
+						aria-current="page"
+						class="text-foreground font-normal text-md"
+					>
+						{{ breadcrumb.label }}
+					</span>
+				</li>
+			} @else {
+				<li class="inline-flex items-center gap-1.5">
+					<button
+						role="link"
+						mmcButton
+						variant="link"
+						size="sm"
+						class="h-auto text-inherit hover:text-foreground hover:no-underline transition-colors px-0"
+						[routerLink]="[breadcrumb.url]"
+					>
+						{{ breadcrumb.label }}
+					</button>
+				</li>
+				<li role="presentation" class="text-inherit">/</li>
+			}
+		}
+	</ol>
+</nav>

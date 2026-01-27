@@ -1,0 +1,12 @@
+<button
+	mmcButton
+	variant="ghost"
+	[routerLink]="[item()?.link || '']"
+	routerLinkActive="bg-sidebar-accent"
+	class="h-7 w-full justify-start gap-x-3 rounded-lg p-2 transition-all duration-300 truncate"
+>
+	<i class="inline-flex">
+		<mmc-icon size="sm" [name]="item()?.icon || ''" />
+	</i>
+	<span [hidden]="!isSideBarOpened">{{ item()?.title }}</span>
+</button>

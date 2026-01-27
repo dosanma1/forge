@@ -1,0 +1,28 @@
+<!-- Top bar with breadcrumb selector (full width) -->
+<header class="sticky top-0 z-50 flex h-12 shrink-0 items-center border-b border-border bg-background px-4">
+	<mmc-breadcrumb
+		variant="selector"
+		[segments]="breadcrumbSegments()"
+		[logo]="logo"
+		(itemSelected)="onBreadcrumbSelect($event)"
+		(addClicked)="onBreadcrumbAdd($event)"
+		(logoClick)="onLogoClick()"
+		(segmentClick)="onSegmentClick($event)"
+	/>
+</header>
+
+<!-- Content area with sidebar and main -->
+<div class="flex flex-1 overflow-hidden relative">
+	<mmc-side-bar
+		variant="simple"
+		[navigation]="navigationItems()"
+	/>
+
+	<!-- Main content -->
+	<main
+		class="flex-1 overflow-auto transition-[margin] duration-300"
+		[class.ml-14]="sidebarService.state() === 'hover'"
+	>
+		<router-outlet></router-outlet>
+	</main>
+</div>

@@ -1,0 +1,76 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Molecules/About" />
+
+# Molecules
+
+## Combining Atoms into Functional Units
+
+Molecules are groups of atoms bonded together to create the smallest fundamental units of a compound. They take on their own properties and serve as the backbone of the design system.
+
+## Philosophy
+
+In Atomic Design, molecules are simple groups of UI elements functioning together as a unit. While atoms have a single purpose, molecules begin to take on more complex behaviors through composition.
+
+## Examples in this Library
+
+### User Interaction
+
+- **Alert** - Notification messages with icons and actions
+- **Confirmation Dialog** - Modal dialogs for user confirmations
+- **Drawer** - Slide-out panels for additional content
+- **Tab** - Tabbed navigation and content organization
+
+### Form Components
+
+- **Form Field** - Label + Input + Error message composition
+- **Select** - Dropdown selection with search
+- **Select with Search** - Enhanced select with filtering
+- **Listbox** - Keyboard-navigable option lists
+
+### Compound Controls
+
+- **Inputs** - Grouped input fields with labels
+- **Button Group** - Related buttons grouped together
+
+## Design Principles
+
+1. **Composition**: Built from multiple atoms working together
+2. **Single Purpose**: Each molecule serves a specific function
+3. **Reusable Patterns**: Common UI patterns abstracted into components
+4. **Contextual**: Provide more context than atoms alone
+5. **Stateful**: May manage their own internal state
+
+## Usage
+
+Molecules are used to create common UI patterns that appear throughout the application. They encapsulate both structure and basic behavior.
+
+```typescript
+// Example: Alert molecule (Icon + Text + Close button)
+<mmc-alert variant="info">
+  <mmc-icon name="lucideInfo"></mmc-icon>
+  <span>Your changes have been saved</span>
+  <button mmcButton size="sm">Dismiss</button>
+</mmc-alert>
+
+// Example: Form field molecule (Label + Input + Error)
+<mmc-form-field>
+  <label mmcLabel>Email</label>
+  <input mmcInput type="email" />
+  <span class="error">Invalid email</span>
+</mmc-form-field>
+```
+
+## When to Use Molecules vs Atoms
+
+- **Use an Atom** when you need a single, standalone element
+- **Use a Molecule** when you need a combination of atoms that frequently appear together
+- Molecules should still be relatively simple - if it's getting complex, consider an organism
+
+## Accessibility
+
+All molecules inherit accessibility features from their atomic components and add:
+
+- Proper ARIA relationships between related elements
+- Keyboard navigation for compound controls
+- Screen reader announcements for state changes

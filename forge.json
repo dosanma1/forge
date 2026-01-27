@@ -15,14 +15,65 @@
     },
     "newProjectRoot": ".",
     "projects": {
+        "api": {
+            "projectType": "service",
+            "language": "go",
+            "root": "api",
+            "tags": ["backend", "service"],
+            "architect": {
+                "build": {
+                    "builder": "@forge/bazel:build",
+                    "options": {
+                        "dockerfile": "Dockerfile",
+                        "goVersion": "1.24.0",
+                        "registry": "gcr.io/your-project",
+                        "target": "/..."
+                    },
+                    "configurations": {
+                        "development": {},
+                        "local": {
+                            "race": true
+                        },
+                        "production": {
+                            "optimization": true,
+                            "registry": "gcr.io/your-project"
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "deploy": {
+                    "deployer": "@forge/helm:deploy",
+                    "options": {
+                        "configPath": "deploy/helm",
+                        "healthPath": "/health",
+                        "namespace": "default",
+                        "port": 8080
+                    },
+                    "configurations": {
+                        "development": {
+                            "namespace": "dev"
+                        },
+                        "local": {
+                            "namespace": "default"
+                        },
+                        "production": {
+                            "namespace": "prod"
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                }
+            },
+            "metadata": {
+                "deployment": {
+                    "target": "helm"
+                }
+            }
+        },
         "go-kit": {
             "projectType": "library",
             "language": "go",
             "root": "go/kit",
-            "tags": [
-                "library",
-                "shared"
-            ],
+            "tags": ["library", "shared"],
             "architect": {
                 "build": {
                     "builder": "@forge/bazel:build",

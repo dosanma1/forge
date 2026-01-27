@@ -1,0 +1,71 @@
+<!-- Scrollable Menu -->
+<ul
+	role="list"
+	class="flex flex-col flex-1 [overflow:overlay] justify-start gap-y-0.5 py-2 space-y-[1px] px-2"
+>
+	@for (item of sidebarCmp.navigation(); track item.id) {
+		@switch (item.type) {
+			@case ('group') {
+				<mmc-group [item]="item"></mmc-group>
+			}
+			@case ('collapsable') {
+				<mmc-collapsable [item]="item"></mmc-collapsable>
+			}
+			@case ('basic') {
+				<mmc-basic [item]="item"></mmc-basic>
+			}
+		}
+	}
+</ul>
+
+<!-- Sidebar Control Button (always at bottom) -->
+@if (sidebarCmp.collapsible()) {
+	<div class="p-2 shrink-0 mt-auto">
+		<button
+			mmcButton
+			variant="ghost"
+			size="icon"
+			class="size-8"
+			[mmcMenuTriggerFor]="sidebarControlMenu"
+		>
+			<mmc-icon name="lucidePanelLeft" size="sm" />
+		</button>
+
+		<ng-template #sidebarControlMenu>
+			<div mmcMenu class="w-48">
+				<div role="group">
+					<div class="px-3 py-2">
+						<span class="text-xs text-muted-foreground">Sidebar control</span>
+					</div>
+					<button
+						mmcMenuItemRadio
+						class="focus:bg-transparent aria-checked:bg-transparent"
+						[selected]="sidebarService.state() === 'expanded'"
+						(click)="setSidebarState('expanded')"
+					>
+						<span mmcMenuItemIndicator [show]="sidebarService.state() === 'expanded'"></span>
+						Expanded
+					</button>
+					<button
+						mmcMenuItemRadio
+						class="focus:bg-transparent aria-checked:bg-transparent"
+						[selected]="sidebarService.state() === 'collapsed'"
+						(click)="setSidebarState('collapsed')"
+					>
+						<span mmcMenuItemIndicator [show]="sidebarService.state() === 'collapsed'"></span>
+						Collapsed
+					</button>
+					<button
+						mmcMenuItemRadio
+						class="focus:bg-transparent aria-checked:bg-transparent"
+						[selected]="sidebarService.state() === 'hover'"
+						(click)="setSidebarState('hover')"
+					>
+						<span mmcMenuItemIndicator [show]="sidebarService.state() === 'hover'"></span>
+						Expand on hover
+					</button>
+				</div>
+			</div>
+		</ng-template>
+	</div>
+}

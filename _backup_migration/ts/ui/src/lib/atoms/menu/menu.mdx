@@ -1,0 +1,45 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import * as MenuStories from './menu.stories';
+
+<Meta title="Atoms/Menu" />
+
+# Menu
+
+#### A list of actions or options.
+
+<Canvas sourceState="hidden" of={MenuStories.Default} />
+
+## Features
+
+- ✅ Keyboard navigation
+- ✅ Built with ng-primitives
+- ✅ Accessible menu pattern
+
+## Import
+
+```typescript
+import { MmcMenu, MmcMenuItem } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<ng-container ngpMenu>
+	<button ngpMenuTrigger mmcButton>Open Menu</button>
+	<ng-template ngpMenuContent>
+		<mmc-menu>
+			<mmc-menu-item>Action 1</mmc-menu-item>
+			<mmc-menu-item>Action 2</mmc-menu-item>
+		</mmc-menu>
+	</ng-template>
+</ng-container>
+```
+
+## Accessibility
+
+- Arrow key navigation
+- Enter/Space to select
+- Esc to close
+- ARIA menu pattern

@@ -1,0 +1,94 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { FontManagerComponent } from './font-manager.component';
+import * as FontManagerStories from './font-manager.stories';
+
+<Meta of={FontManagerStories} />
+
+# Font Manager
+
+The Font Manager component allows users to adjust the global font size of the application using percentage-based scaling. Changes are persisted to localStorage and proportionally affect all text sizes.
+
+## Features
+
+- **5 Font Size Options**: Choose from Smaller, Small, Default, Large, and Larger
+- **Percentage-Based Scaling**: Proportionally scales all text relative to the base font size
+- **Persistent Settings**: Font size preferences are saved to localStorage
+- **Global Application**: Changes affect the entire application's text proportionally
+- **Accessible**: Helps users with visual preferences customize text readability
+
+## Font Size Options
+
+<table>
+	<thead>
+		<tr>
+			<th>Size</th>
+			<th>Percentage</th>
+			<th>Example (16px base)</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Smaller</td>
+			<td>75%</td>
+			<td>12px</td>
+			<td>Reduces all text by 25%</td>
+		</tr>
+		<tr>
+			<td>Small</td>
+			<td>87.5%</td>
+			<td>14px</td>
+			<td>Reduces all text by 12.5%</td>
+		</tr>
+		<tr>
+			<td>Default</td>
+			<td>100%</td>
+			<td>16px</td>
+			<td>Base size (no change)</td>
+		</tr>
+		<tr>
+			<td>Large</td>
+			<td>112.5%</td>
+			<td>18px</td>
+			<td>Increases all text by 12.5%</td>
+		</tr>
+		<tr>
+			<td>Larger</td>
+			<td>125%</td>
+			<td>20px</td>
+			<td>Increases all text by 25%</td>
+		</tr>
+	</tbody>
+</table>
+
+## Usage
+
+```typescript
+import { FontManagerComponent } from '@forge/ui';
+
+@Component({
+  template: `
+    <mmc-font-manager></mmc-font-manager>
+  `
+})
+```
+
+## Stories
+
+<Canvas of={FontManagerStories.Default} />
+
+### With Description
+
+Shows the font manager with additional descriptive text.
+
+<Canvas of={FontManagerStories.WithDescription} />
+
+### In Settings Panel
+
+Example of how the font manager looks integrated into a settings panel.
+
+<Canvas of={FontManagerStories.InSettingsPanel} />
+
+## API
+
+<ArgTypes of={FontManagerComponent} />

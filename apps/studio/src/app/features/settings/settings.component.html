@@ -1,0 +1,11 @@
+<mmc-side-bar [navigation]="navigationItems" [collapsible]="false">
+	<ng-container sideBarContentHeaderExpanded>
+		<button mmcButton variant="ghost" [routerLink]="back()">
+			<span class="sr-only">Back</span>
+			<mmc-icon size="sm" name="lucideChevronLeft" />
+			<span>Settings</span>
+		</button>
+	</ng-container>
+</mmc-side-bar>
+
+<router-outlet></router-outlet>

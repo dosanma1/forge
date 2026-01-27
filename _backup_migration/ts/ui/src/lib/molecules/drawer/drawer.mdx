@@ -1,0 +1,39 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { MmcDrawer } from './drawer.component';
+import * as DrawerStories from './drawer.stories';
+
+<Meta title="Molecules/Drawer" />
+
+# Drawer
+
+#### A slide-out panel for additional content.
+
+<Canvas sourceState="hidden" of={DrawerStories.ProfileEdit} />
+
+## Features
+
+- ✅ Slides from any edge (top, right, bottom, left)
+- ✅ Overlay backdrop
+- ✅ Keyboard dismissible (Esc)
+- ✅ Focus trap
+
+## Import
+
+```typescript
+import { MmcDrawer } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-drawer [(open)]="isOpen">
+	<h2>Drawer Title</h2>
+	<p>Drawer content...</p>
+</mmc-drawer>
+```
+
+## API Reference
+
+<ArgTypes of={MmcDrawer} />

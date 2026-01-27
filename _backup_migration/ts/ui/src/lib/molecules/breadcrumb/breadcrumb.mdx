@@ -1,0 +1,66 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+import * as BreadcrumbStories from './breadcrumb.stories';
+
+<Meta title="Molecules/Breadcrumb" />
+
+# Breadcrumb
+
+A navigation component that shows the current page's location within a hierarchical structure.
+
+## Features
+
+- **Automatic Path Detection**: Integrates with Angular Router to show current navigation path
+- **Customizable Separators**: Use icons or text to separate breadcrumb items
+- **Accessible**: Semantic HTML with proper ARIA labels
+- **Flexible**: Works with both automatic routing and manual configuration
+
+## Usage
+
+### Default Breadcrumb
+
+<Canvas of={BreadcrumbStories.Default} />
+
+## Integration with Router
+
+The breadcrumb component automatically generates breadcrumbs from your Angular route configuration:
+
+```typescript
+const routes: Routes = [
+	{
+		path: 'dashboard',
+		data: { breadcrumb: 'Dashboard' },
+		children: [
+			{
+				path: 'settings',
+				data: { breadcrumb: 'Settings' },
+				component: SettingsComponent,
+			},
+		],
+	},
+];
+```
+
+## API
+
+### BreadcrumbService
+
+The `BreadcrumbService` manages breadcrumb state and can be used to:
+
+- Get current breadcrumbs from router
+- Set custom breadcrumbs manually
+- Subscribe to breadcrumb changes
+
+```typescript
+import { BreadcrumbService } from '@mmc/ui';
+
+constructor(private breadcrumbService: BreadcrumbService) {}
+
+// Get current breadcrumbs
+const breadcrumbs = this.breadcrumbService.breadcrumbs();
+
+// Set custom breadcrumbs
+this.breadcrumbService.setBreadcrumbs([
+  { label: 'Home', url: '/' },
+  { label: 'Products', url: '/products' }
+]);
+```

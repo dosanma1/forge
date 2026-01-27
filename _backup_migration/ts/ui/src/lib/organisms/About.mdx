@@ -1,0 +1,90 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Organisms/About" />
+
+# Organisms
+
+## Complex UI Sections
+
+Organisms are groups of molecules and/or atoms joined together to form relatively complex, distinct sections of an interface. They are the building blocks of application layouts.
+
+## Philosophy
+
+In Atomic Design, organisms are distinct interface sections that typically contain a header, content area, and often represent standalone features or functionalities.
+
+## Examples in this Library
+
+### Navigation & Layout
+
+- **Side Bar** - Application navigation with menu items and user profile
+- **Theme Manager** - Theme selection with color customization
+
+### Data Management
+
+- **Table** - Complex data tables with sorting, filtering, and pagination
+- **Sort** - Sorting controls for data collections
+
+## Design Principles
+
+1. **Distinct Sections**: Clear, recognizable interface sections
+2. **Composed Functionality**: Combines multiple molecules and atoms
+3. **Context-Specific**: Often tied to specific application features
+4. **Reusable Patterns**: Can be reused across different contexts
+5. **Business Logic**: May contain application-specific logic
+
+## Complexity Levels
+
+Organisms represent a significant jump in complexity from molecules:
+
+- **Molecules**: 2-4 atoms working together
+- **Organisms**: Multiple molecules + atoms forming complete interface sections
+
+## Usage
+
+Organisms are used when you need a complete, standalone section of the UI. They're typically more specific to your application's domain.
+
+```typescript
+// Example: Theme Manager organism
+<mmc-theme-manager [themes]="themeOptions">
+  // Combines: Select dropdown + Color pickers + State management
+</mmc-theme-manager>
+
+// Example: Data Table organism
+<mmc-table
+  [data]="users"
+  [columns]="columnConfig"
+  [sortable]="true"
+  [filterable]="true">
+  // Combines: Headers + Rows + Sort controls + Pagination
+</mmc-table>
+
+// Example: Sidebar organism
+<mmc-side-bar>
+  // Combines: Navigation menu + User profile + Theme switcher
+</mmc-side-bar>
+```
+
+## When to Use Organisms
+
+- **Complete Features**: The component represents a complete, recognizable feature
+- **High Complexity**: Requires coordination between multiple molecules
+- **Application-Specific**: Contains domain logic or application-specific behavior
+- **Standalone**: Can function independently as a section of the interface
+
+## Beyond Organisms
+
+In the complete Atomic Design methodology:
+
+- **Templates**: Page-level structure combining organisms
+- **Pages**: Specific instances of templates with real content
+
+These are typically implemented at the application level rather than in the component library.
+
+## State Management
+
+Organisms often manage more complex state than molecules:
+
+- User interactions across multiple sub-components
+- Data fetching and caching
+- Application-specific business logic
+- Integration with services and stores

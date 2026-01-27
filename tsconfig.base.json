@@ -1,0 +1,32 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "strict": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@forge/ui": ["libs/ui/src/index.ts"],
+      "@forge/log": ["libs/log/src/index.ts"],
+      "@forge/storage": ["libs/storage/src/index.ts"],
+      "@forge/angular-jsonapi": ["libs/angular-jsonapi/src/index.ts"],
+      "@forge/ts-jsonapi": ["libs/ts-jsonapi/src/index.ts"],
+      "@forge/resource-state-manager": ["libs/resource-state-manager/src/index.ts"],
+      "@desktop-app/*": ["apps/studio/src/app/*"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

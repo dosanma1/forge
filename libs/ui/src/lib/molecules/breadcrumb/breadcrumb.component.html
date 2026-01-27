@@ -1,0 +1,18 @@
+@switch (variant()) {
+	@case ('selector') {
+		<mmc-breadcrumb-selector
+			[segments]="segments()"
+			[logo]="logo()"
+			(itemSelected)="onItemSelected($event)"
+			(addClicked)="onAddClicked($event)"
+			(logoClick)="onLogoClick()"
+			(segmentClick)="onSegmentClick($event)"
+		/>
+	}
+	@case ('simple') {
+		<mmc-breadcrumb-simple />
+	}
+	@default {
+		<mmc-breadcrumb-simple />
+	}
+}

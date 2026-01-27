@@ -1,0 +1,58 @@
+@if (isSideBarOpened) {
+<div class="text-sm h-6 w-full transition-all duration-300 truncate">
+	{{ item()?.title }}
+</div>
+} @else {
+<button mmcButton variant="ghost" [mmcMenuTriggerFor]="menu" [menuPosition]="menuPosition()"
+	class="text-sm h-7 w-full justify-start gap-x-3 rounded-lg p-2 transition-all duration-300 truncate">
+	@if (item()?.icon) {
+	<i class="inline-flex">
+		<mmc-icon size="sm" [name]="item()?.icon || ''" />
+	</i>
+	} @else {
+	<span
+		class="inline-flex items-center justify-center size-4 rounded bg-muted text-[10px] font-semibold text-muted-foreground">
+		{{ (item()?.title?.charAt(0) || '').toUpperCase() }}
+	</span>
+	}
+</button>
+}
+
+@if (item()?.children && canShowChildrens()) {
+<ul role="list" class="flex flex-1 flex-col justify-start gap-y-1 pt-[0.5px ] space-y-[1px]">
+	@for (childrenItem of (item()?.children || []); track $index) {
+	<button mmcButton variant="ghost" [routerLink]="[childrenItem.link]" routerLinkActive="bg-secondary"
+		class="h-7 w-full justify-start gap-x-3 rounded-lg p-2 transition-all duration-300 truncate">
+		<!-- TODO: Add initials avatars -->
+		<i class="inline-flex">
+			<mmc-icon size="sm" [name]="childrenItem.icon || ''" />
+		</i>
+		<span>{{ childrenItem.title || '' }}</span>
+	</button>
+	}
+</ul>
+}
+
+<ng-template #menu>
+	<div mmcMenu class="w-56 max-h-56 overflow-y-auto">
+		<div role="group">
+			@for (childrenItem of (item()?.children || []); track $index) {
+			<button mmcMenuItem [routerLink]="[childrenItem.link]" routerLinkActive="bg-secondary">
+				<div class="flex flex-row justify-start items-center gap-x-3">
+					@if (childrenItem.icon) {
+					<i class="inline-flex">
+						<mmc-icon size="sm" [name]="childrenItem.icon || ''" />
+					</i>
+					} @else {
+					<span
+						class="inline-flex items-center justify-center size-4 rounded bg-muted text-[10px] font-semibold text-muted-foreground">
+						{{ (childrenItem.title?.charAt(0) || '').toUpperCase() }}
+					</span>
+					}
+					<p>{{ childrenItem.title || '' }}</p>
+				</div>
+			</button>
+			}
+		</div>
+	</div>
+</ng-template>

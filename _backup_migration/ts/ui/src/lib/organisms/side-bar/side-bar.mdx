@@ -1,0 +1,36 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+import { SideBarComponent } from './side-bar.component';
+import * as SideBarStories from './side-bar.stories';
+
+<Meta title="Organisms/Side Bar" />
+
+# Side Bar
+
+#### Application navigation sidebar with menu items.
+
+<Canvas sourceState="hidden" of={SideBarStories.Default} />
+
+## Features
+
+- ✅ Collapsible navigation
+- ✅ Icon + text menu items
+- ✅ Active state tracking
+- ✅ User profile section
+
+## Import
+
+```typescript
+import { SideBarComponent } from '@mmc/ui';
+```
+
+## Examples
+
+### Basic Usage
+
+```html
+<mmc-side-bar [items]="menuItems" [user]="currentUser"> </mmc-side-bar>
+```
+
+## API Reference
+
+<ArgTypes of={SideBarComponent} />

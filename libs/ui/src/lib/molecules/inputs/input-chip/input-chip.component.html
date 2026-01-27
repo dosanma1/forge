@@ -1,0 +1,45 @@
+<div [ngClass]="classNames()">
+	<div class="relative flex flex-wrap left-0 px-3 focus-within:z-10">
+		<div class="flex flex-row flex-wrap gap-2 py-1.5 flex-auto">
+			@for (value of values(); track value; let i = $index) {
+				<mmc-badge
+					variant="outline"
+					class="flex flex-wrap overflow-hidden"
+				>
+					{{ value }}
+					@if (removable()) {
+						<span class="sr-only">Remove</span>
+						<mmc-icon
+							size="xs"
+							name="lucideX"
+							class="ml-2 cursor-pointer"
+							(click)="removeItem(i)"
+						></mmc-icon>
+					}
+				</mmc-badge>
+			}
+		</div>
+		<input
+			#inputField
+			mmcInput
+			[placeholder]="placeholder()"
+			[autocomplete]="autocomplete()"
+			(keydown)="onKeyDown($event, inputField.value)"
+			class="block w-full outline-none border-none bg-transparent border-0"
+		/>
+		<!-- class="block w-full rounded-md border-none bg-transparent outline-none border-0 text-gray-900 placeholder:text-gray-400 sm:text-sm sm:leading-6" -->
+		@if (removableAll() && (values()?.length || 0) > 0) {
+			<button
+				class="cursor-pointer absolute bottom-0 right-0 flex items-center pb-3 pr-3"
+				(click)="removeAll()"
+			>
+				<span class="sr-only">Remove All</span>
+				<mmc-icon
+					size="sm"
+					name="lucideX"
+					class="text-muted-foreground"
+				></mmc-icon>
+			</button>
+		}
+	</div>
+</div>

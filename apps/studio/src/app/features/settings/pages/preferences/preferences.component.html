@@ -1,0 +1,60 @@
+<mmc-settings-main-layout>
+	<div
+		settingsMainLayoutHeader
+		class="block text-left text-foreground text-3xl/8 font-medium"
+	>
+		Preferences
+	</div>
+	<div
+		settingsMainLayoutSubHeader
+		class="block text-left text-md/5 font-medium text-muted-foreground"
+	>
+		Changes to your profile will apply to all of your workspaces.
+	</div>
+	<section settingsMainLayoutBody class="rounded-lg border border-border">
+		<ul class="m-0 list-none divide-y-2">
+			<li
+				class="relative flex min-h-10 px-4 py-3 gap-1 justify-between items-center"
+			>
+				<div
+					class="flex flex-col flex-wrap min-w-0 flex-grow gap-[2px] opacity-100"
+				>
+					<div
+						class="flex flex-initial flex-row items-center gap-4 min-w-0"
+					>
+						<label
+							class="text-left break-words text-md/normal font-medium"
+						>
+							Theme
+						</label>
+					</div>
+				</div>
+				<div class="flex gap-1 relative opacity-100">
+					<mmc-select
+						placeholder="Select a theme"
+						variant="outline"
+						class="w-[199px]"
+						[ngModel]="themeManager.theme()"
+						(ngModelChange)="onChangeTheme($event)"
+					>
+						@for (theme of themes(); track $index) {
+							<mmc-option [value]="theme.value">
+								<div
+									class="relative mr-1 ml-1 inline-block h-4 w-4 pt-1"
+								>
+									<div
+										class="absolute top-[2px] left-[2px] h-2 w-2 rounded-full bg-foreground forced-colors:hidden"
+									></div>
+									<div
+										class="absolute right-[2px] bottom-[2px] h-2 w-2 rounded-full bg-background forced-colors:hidden"
+									></div>
+								</div>
+								{{ theme.name }}
+							</mmc-option>
+						}
+					</mmc-select>
+				</div>
+			</li>
+		</ul>
+	</section>
+</mmc-settings-main-layout>

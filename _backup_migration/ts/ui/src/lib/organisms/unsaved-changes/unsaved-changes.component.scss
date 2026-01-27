@@ -1,0 +1,15 @@
+@keyframes jiggle {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-1deg); }
+  50% { transform: translateX(5px) rotate(1deg); }
+  75% { transform: translateX(-5px) rotate(-1deg); }
+  100% { transform: translateX(0); }
+}
+
+.jiggle-animation {
+  animation: jiggle 0.4s ease-in-out;
+}
+
+:host {
+  display: block;
+}

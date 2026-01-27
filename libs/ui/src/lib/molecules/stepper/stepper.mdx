@@ -1,0 +1,90 @@
+import { Meta, Canvas, Controls } from '@storybook/addon-docs/blocks';
+import * as StepperStories from './stepper.stories';
+
+<Meta of={StepperStories} />
+
+# Stepper
+
+The Stepper component guides users through a multi-step process, providing visual feedback on progress and navigation controls.
+
+## Features
+
+- **Progress Visualization**: Clear indication of current, completed, and upcoming steps
+- **Navigation Controls**: Optional next/previous buttons
+- **Loading States**: Show loading indicator during async operations
+- **Custom Content**: Project any content for each step via ng-template
+- **Status Icons**: Check marks for completed steps, spinner for loading
+- **Responsive**: Adapts to different screen sizes
+
+## Step Structure
+
+Each step should have:
+
+```typescript
+interface Step {
+	id: string; // Unique identifier
+	title: string; // Step title
+	description?: string; // Optional description
+	completed?: boolean; // Is this step completed?
+}
+```
+
+## Usage
+
+```typescript
+import { MmcStepper } from '@forge/ui';
+
+@Component({
+	template: `
+		<mmc-stepper
+			[steps]="steps"
+			[currentStep]="currentStep"
+			[loading]="loading"
+			[showNavigation]="true"
+			(stepChange)="onStepChange($event)"
+		>
+			<ng-template let-step="step" let-index="index">
+				<!-- Custom content for each step -->
+				<div>Step {{ index + 1 }}: {{ step.title }}</div>
+			</ng-template>
+		</mmc-stepper>
+	`,
+})
+export class MyComponent {
+	steps = [
+		{ id: '1', title: 'Step 1', description: 'First step' },
+		{ id: '2', title: 'Step 2', description: 'Second step' },
+		{ id: '3', title: 'Step 3', description: 'Final step' },
+	];
+	currentStep = 0;
+	loading = false;
+
+	onStepChange(step: number) {
+		this.currentStep = step;
+	}
+}
+```
+
+## Stories
+
+### Default
+
+Basic stepper with navigation controls.
+
+<Canvas of={StepperStories.Default} />
+
+### Loading
+
+Stepper showing loading state during processing.
+
+<Canvas of={StepperStories.Loading} />
+
+### Completed
+
+All steps marked as completed.
+
+<Canvas of={StepperStories.Completed} />
+
+## API
+
+<Controls />
