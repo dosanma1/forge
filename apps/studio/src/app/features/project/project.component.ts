@@ -6,7 +6,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { IProject } from '../../core/models/project.model';
 import { provideIcons } from '@ng-icons/core';
 import {
@@ -14,6 +13,7 @@ import {
   lucideFolderOpen,
   lucidePlay,
   lucidePlus,
+  lucideTrash2,
 } from '@ng-icons/lucide';
 import {
   CellContext,
@@ -27,6 +27,7 @@ import {
   MmcAvatarFallback,
   MmcAvatarImage,
   MmcButton,
+  MmcConfirmationDialogService,
   MmcIcon,
   MmcTableComponent,
   PaginationState,
@@ -38,7 +39,7 @@ import { ProjectService } from './project.service';
   standalone: true,
   templateUrl: './project.component.html',
   styleUrl: './project.component.scss',
-  imports: [RouterLink, MmcTableComponent, MmcButton, MmcIcon],
+  imports: [MmcTableComponent, MmcButton, MmcIcon],
   providers: [
     provideIcons({
       plus: lucidePlus,
@@ -55,15 +56,8 @@ export class ProjectComponent {
   }
 
   async openFolder(): Promise<void> {
-    try {
-      // Use Wails native directory picker
-      const path = await this.projectService.selectDirectory();
-      if (path) {
-        await this.projectService.open(path);
-      }
-    } catch (err: unknown) {
-      console.error('Error opening folder:', err);
-    }
+    // Use the smart open folder flow - checks for forge.json and routes accordingly
+    await this.projectService.openOrCreateProject();
   }
 
   // -----------------------------------------------------------------------------------------------------
@@ -128,9 +122,9 @@ export class AvatarRow {
 
 @Component({
   imports: [MmcButton, MmcIcon],
-  viewProviders: [provideIcons({ lucidePlay })],
+  viewProviders: [provideIcons({ lucidePlay, lucideTrash2 })],
   template: `
-    <div class="text-right">
+    <div class="flex justify-end gap-1">
       <button
         mmcButton
         variant="ghost"
@@ -143,6 +137,19 @@ export class AvatarRow {
           size="sm"
         ></mmc-icon>
       </button>
+      <button
+        mmcButton
+        variant="ghost"
+        size="icon"
+        (click)="onRemoveProject($event, context.row.original)"
+      >
+        <mmc-icon
+          aria-label="Remove Project"
+          name="lucideTrash2"
+          size="sm"
+          class="text-destructive"
+        ></mmc-icon>
+      </button>
     </div>
   `,
 })
@@ -150,9 +157,28 @@ export class ActionsRow {
   readonly context =
     injectFlexRenderContext<CellContext<IProject, unknown>>();
   private readonly projectService = inject(ProjectService);
+  private readonly confirmationDialog = inject(MmcConfirmationDialogService);
 
   protected onSelectProject(project: IProject): void {
     // Use switchProject to also save the project ID to localStorage
     this.projectService.switchProject(project);
+  }
+
+  protected onRemoveProject(event: Event, project: IProject): void {
+    event.stopPropagation();
+
+    const dialogRef = this.confirmationDialog.confirm({
+      title: 'Delete Project',
+      description: `Are you sure you want to delete "${project.name}"? The folder will be moved to Trash.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    dialogRef.closed.subscribe((confirmed) => {
+      if (confirmed) {
+        this.projectService.deleteProject(project);
+      }
+    });
   }
 }

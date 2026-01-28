@@ -1,8 +1,8 @@
 # Forge Framework - Code Generation Engine
 
 **Version:** 1.0.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -74,15 +74,15 @@ All generated files include:
 
 Located in `forge-cli/templates/`:
 
-| Template                  | Output                   | Description                    |
-| ------------------------- | ------------------------ | ------------------------------ |
-| `entity.go.tmpl`          | `{entity}.go`            | Entity with Repo/Usecase/Ctrl  |
-| `transport_rest.go.tmpl`  | `{entity}_transport.go`  | REST handlers with JSON:API    |
-| `transport_grpc.go.tmpl`  | `{entity}_grpc.go`       | gRPC service implementation    |
-| `transport_nats.go.tmpl`  | `{entity}_nats.go`       | NATS producer/consumer         |
-| `module.go.tmpl`          | `module.go`              | Fx module wiring               |
-| `migration.sql.tmpl`      | `YYYYMMDD_init.up.sql`   | Database migration             |
-| `build.bazel.tmpl`        | `BUILD.bazel`            | Bazel build file               |
+| Template                 | Output                  | Description                   |
+| ------------------------ | ----------------------- | ----------------------------- |
+| `entity.go.tmpl`         | `{entity}.go`           | Entity with Repo/Usecase/Ctrl |
+| `transport_rest.go.tmpl` | `{entity}_transport.go` | REST handlers with JSON:API   |
+| `transport_grpc.go.tmpl` | `{entity}_grpc.go`      | gRPC service implementation   |
+| `transport_nats.go.tmpl` | `{entity}_nats.go`      | NATS producer/consumer        |
+| `module.go.tmpl`         | `module.go`             | Fx module wiring              |
+| `migration.sql.tmpl`     | `YYYYMMDD_init.up.sql`  | Database migration            |
+| `build.bazel.tmpl`       | `BUILD.bazel`           | Bazel build file              |
 
 ---
 
@@ -138,6 +138,7 @@ my-service/
 ---
 
 **Related Specifications:**
+
 - [Architecture](01-architecture.md)
 - [Features](02-features.md)
 - [Node System](03-node-system.md)

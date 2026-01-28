@@ -42,6 +42,54 @@ export class FileInfo {
 }
 
 /**
+ * InitialProject represents an optional initial project to create within a workspace
+ */
+export class InitialProject {
+    "name": string;
+
+    /**
+     * service, application, library
+     */
+    "projectType": string;
+
+    /**
+     * go, nestjs, angular, nextjs, typescript
+     */
+    "language": string;
+
+    /**
+     * helm, cloudrun, firebase (optional for libraries)
+     */
+    "deployer": string;
+
+    /** Creates a new InitialProject instance. */
+    constructor($$source: Partial<InitialProject> = {}) {
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("projectType" in $$source)) {
+            this["projectType"] = "";
+        }
+        if (!("language" in $$source)) {
+            this["language"] = "";
+        }
+        if (!("deployer" in $$source)) {
+            this["deployer"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new InitialProject instance from a string or object.
+     */
+    static createFrom($$source: any = {}): InitialProject {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new InitialProject($$parsedSource as Partial<InitialProject>);
+    }
+}
+
+/**
  * Project represents a Forge project
  */
 export class Project {

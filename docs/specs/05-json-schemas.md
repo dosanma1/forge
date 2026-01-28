@@ -1,8 +1,8 @@
 # Forge Framework - JSON Schemas
 
 **Version:** 1.0.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -67,14 +67,7 @@
         "id": { "type": "string" },
         "type": {
           "type": "string",
-          "enum": [
-            "entity",
-            "rest-endpoint",
-            "grpc-service",
-            "nats-producer",
-            "nats-consumer",
-            "websocket"
-          ]
+          "enum": ["entity", "rest-endpoint", "grpc-service", "nats-producer", "nats-consumer", "websocket"]
         },
         "position": {
           "type": "object",
@@ -279,6 +272,7 @@
 ---
 
 **Related Specifications:**
+
 - [Node System](03-node-system.md)
 - [API Specification](06-api-spec.md)
 - [Code Generation](04-code-generation.md)

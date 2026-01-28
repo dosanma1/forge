@@ -1,21 +1,22 @@
 <div class="flex flex-col flex-auto min-h-full bg-background">
 	<!-- Header with back button -->
-	<div class="w-full p-4 flex justify-between items-center">
-		<button mmcButton variant="ghost" routerLink="/projects">
+	<div class="w-full py-4 pr-4 flex justify-between items-center"
+		style="padding-left: var(--header-padding-left)">
+		<button mmcButton variant="ghost" (click)="onCancel()">
 			<mmc-icon size="sm" name="lucideChevronLeft" />
 			<span>Back to Projects</span>
 		</button>
 	</div>
 
 	<!-- Main content -->
-	<div class="flex flex-col items-center justify-center flex-grow">
-		<div class="max-w-md w-full p-6">
-			<h1 class="text-2xl font-bold text-center mb-6">
+	<div class="flex flex-col items-center justify-center flex-grow py-8">
+		<div class="max-w-2xl w-full px-6">
+			<h1 class="text-2xl font-bold text-center mb-2">
 				Create a new project
 			</h1>
 
 			<p class="text-center text-muted-foreground mb-8">
-				Create a new Forge project in a directory on your machine.
+				Initialize a new Forge project in the selected folder.
 			</p>
 
 			<div class="bg-card rounded-lg shadow-sm p-6">
@@ -36,11 +37,7 @@
 
 					<!-- Project Name Field -->
 					<div>
-						<label
-							mmcLabel
-							for="name"
-							class="block text-sm font-medium text-card-foreground"
-						>
+						<label mmcLabel for="name" class="block text-sm font-medium text-card-foreground">
 							Project Name
 						</label>
 						<div class="mt-1">
@@ -51,52 +48,168 @@
 								formControlName="name"
 								placeholder="my-project"
 								autocomplete="off"
-								[ngClass]="{
-									'!border-destructive': submitted && f['name'].errors,
-								}"
+								[ngClass]="{ '!border-destructive': submitted && f['name'].errors }"
 							/>
 						</div>
 						@if (submitted && f['name'].errors?.['required']) {
-							<p class="mt-2 text-sm text-destructive">
-								Project name is required
-							</p>
+							<p class="mt-2 text-sm text-destructive">Project name is required</p>
 						}
 					</div>
 
-					<!-- Project Path Field -->
-					<div>
-						<label
-							mmcLabel
-							for="path"
-							class="block text-sm font-medium text-card-foreground"
-						>
-							Project Path
-						</label>
-						<div class="mt-1">
-							<input
-								mmcInput
-								id="path"
-								type="text"
-								formControlName="path"
-								placeholder="/Users/you/projects/my-project"
-								autocomplete="off"
-								[ngClass]="{
-									'!border-destructive': submitted && f['path'].errors,
-								}"
-							/>
+					<!-- Services Section -->
+					<div class="border-t border-border pt-6">
+						<div class="flex justify-between items-center mb-3">
+							<label class="text-sm font-medium text-card-foreground">Services</label>
+							<button mmcButton type="button" variant="ghost" size="sm" (click)="addService()">
+								<mmc-icon size="xs" name="lucidePlus" class="mr-1" />
+								Add Service
+							</button>
 						</div>
-						<p class="mt-1 text-xs text-muted-foreground">
-							The directory where the project will be created
-						</p>
-						@if (submitted && f['path'].errors?.['required']) {
-							<p class="mt-2 text-sm text-destructive">
-								Project path is required
-							</p>
+
+						@if (services().length === 0) {
+							<p class="text-sm text-muted-foreground mb-2">No backend services added.</p>
+						} @else {
+							<div class="space-y-2">
+								@for (service of services(); track service.id; let i = $index) {
+									<div class="flex items-center gap-2 animate-in fade-in duration-200">
+										<input
+											mmcInput
+											type="text"
+											[value]="service.name"
+											(input)="updateServiceName(i, $event)"
+											placeholder="api-server"
+											class="flex-1"
+										/>
+										<select
+											class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+											[value]="service.framework"
+											(change)="updateServiceFramework(i, $event)"
+										>
+											<option value="go">Go</option>
+											<option value="nestjs">NestJS</option>
+										</select>
+										<select
+											class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+											[value]="service.deployer"
+											(change)="updateServiceDeployer(i, $event)"
+										>
+											<option value="helm">Helm (K8s)</option>
+											<option value="cloudrun">CloudRun</option>
+										</select>
+										<button
+											type="button"
+											class="p-2 text-muted-foreground hover:text-destructive"
+											(click)="removeService(i)"
+										>
+											<mmc-icon size="sm" name="lucideTrash2" />
+										</button>
+									</div>
+								}
+							</div>
+						}
+					</div>
+
+					<!-- Apps Section -->
+					<div class="border-t border-border pt-6">
+						<div class="flex justify-between items-center mb-3">
+							<label class="text-sm font-medium text-card-foreground">Applications</label>
+							<button mmcButton type="button" variant="ghost" size="sm" (click)="addApp()">
+								<mmc-icon size="xs" name="lucidePlus" class="mr-1" />
+								Add App
+							</button>
+						</div>
+
+						@if (apps().length === 0) {
+							<p class="text-sm text-muted-foreground mb-2">No frontend applications added.</p>
+						} @else {
+							<div class="space-y-2">
+								@for (app of apps(); track app.id; let i = $index) {
+									<div class="flex items-center gap-2 animate-in fade-in duration-200">
+										<input
+											mmcInput
+											type="text"
+											[value]="app.name"
+											(input)="updateAppName(i, $event)"
+											placeholder="web-app"
+											class="flex-1"
+										/>
+										<select
+											class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+											[value]="app.framework"
+											(change)="updateAppFramework(i, $event)"
+										>
+											<option value="angular">Angular</option>
+											<option value="nextjs">Next.js</option>
+										</select>
+										<select
+											class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+											[value]="app.deployer"
+											(change)="updateAppDeployer(i, $event)"
+										>
+											<option value="firebase">Firebase</option>
+											<option value="helm">Helm (K8s)</option>
+											<option value="cloudrun">CloudRun</option>
+										</select>
+										<button
+											type="button"
+											class="p-2 text-muted-foreground hover:text-destructive"
+											(click)="removeApp(i)"
+										>
+											<mmc-icon size="sm" name="lucideTrash2" />
+										</button>
+									</div>
+								}
+							</div>
+						}
+					</div>
+
+					<!-- Libraries Section -->
+					<div class="border-t border-border pt-6">
+						<div class="flex justify-between items-center mb-3">
+							<label class="text-sm font-medium text-card-foreground">Libraries</label>
+							<button mmcButton type="button" variant="ghost" size="sm" (click)="addLibrary()">
+								<mmc-icon size="xs" name="lucidePlus" class="mr-1" />
+								Add Library
+							</button>
+						</div>
+
+						@if (libraries().length === 0) {
+							<p class="text-sm text-muted-foreground mb-2">No shared libraries added.</p>
+						} @else {
+							<div class="space-y-2">
+								@for (library of libraries(); track library.id; let i = $index) {
+									<div class="flex items-center gap-2 animate-in fade-in duration-200">
+										<input
+											mmcInput
+											type="text"
+											[value]="library.name"
+											(input)="updateLibraryName(i, $event)"
+											placeholder="shared-utils"
+											class="flex-1"
+										/>
+										<select
+											class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+											[value]="library.language"
+											(change)="updateLibraryLanguage(i, $event)"
+										>
+											<option value="go">Go</option>
+											<option value="typescript">TypeScript</option>
+										</select>
+										<button
+											type="button"
+											class="p-2 text-muted-foreground hover:text-destructive"
+											(click)="removeLibrary(i)"
+										>
+											<mmc-icon size="sm" name="lucideTrash2" />
+										</button>
+									</div>
+								}
+							</div>
 						}
 					</div>
 
 					<!-- Submit Button -->
-					<div>
+					<div class="pt-4">
 						<button
 							mmcButton
 							type="submit"

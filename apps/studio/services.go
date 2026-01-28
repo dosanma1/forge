@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,6 +23,14 @@ type Project struct {
 	LastOpen    time.Time `json:"lastOpen"`
 }
 
+// InitialProject represents an optional initial project to create within a workspace
+type InitialProject struct {
+	Name        string `json:"name"`
+	ProjectType string `json:"projectType"` // service, application, library
+	Language    string `json:"language"`    // go, nestjs, angular, nextjs, typescript
+	Deployer    string `json:"deployer"`    // helm, cloudrun, firebase (optional for libraries)
+}
+
 // ProjectService handles project operations exposed to the frontend
 type ProjectService struct {
 	app *application.App
@@ -33,7 +42,7 @@ func (p *ProjectService) OnStartup(ctx context.Context, options application.Serv
 	return nil
 }
 
-// ListProjects returns all recent projects
+// ListProjects returns all recent projects, filtering out deleted ones
 func (p *ProjectService) ListProjects() ([]Project, error) {
 	recentPath := filepath.Join(os.Getenv("HOME"), ".forge", "recent_projects.json")
 
@@ -50,22 +59,91 @@ func (p *ProjectService) ListProjects() ([]Project, error) {
 		return nil, err
 	}
 
-	return projects, nil
+	// Filter out projects whose paths no longer exist
+	validProjects := make([]Project, 0)
+	for _, proj := range projects {
+		if _, err := os.Stat(proj.Path); err == nil {
+			validProjects = append(validProjects, proj)
+		}
+	}
+
+	// If we filtered some out, save the cleaned list
+	if len(validProjects) != len(projects) {
+		cleanedData, _ := json.MarshalIndent(validProjects, "", "  ")
+		os.WriteFile(recentPath, cleanedData, 0644)
+	}
+
+	return validProjects, nil
 }
 
-// CreateProject creates a new project at the given path
-func (p *ProjectService) CreateProject(name, path, description string) (*Project, error) {
+// CreateProject creates a new project at the given path with proper forge.json structure
+func (p *ProjectService) CreateProject(name, path string, initialProjects []InitialProject) (*Project, error) {
 	// Create the project directory if it doesn't exist
 	if err := os.MkdirAll(path, 0755); err != nil {
 		return nil, err
 	}
 
-	// Create forge.json
+	// Build projects map
+	projects := map[string]interface{}{}
+
+	for _, initialProject := range initialProjects {
+		if initialProject.Name == "" {
+			continue
+		}
+		projectRoot := initialProject.Name
+
+		// Build architect config
+		architect := map[string]interface{}{
+			"build": map[string]interface{}{
+				"builder": "@forge/bazel:build",
+				"options": map[string]interface{}{},
+				"configurations": map[string]interface{}{
+					"development": map[string]interface{}{},
+					"production":  map[string]interface{}{},
+				},
+				"defaultConfiguration": "production",
+			},
+		}
+
+		// Add deploy config for non-libraries
+		if initialProject.ProjectType != "library" && initialProject.Deployer != "" {
+			deployConfig := map[string]interface{}{
+				"deployer": initialProject.Deployer,
+				"options":  map[string]interface{}{},
+				"configurations": map[string]interface{}{
+					"development": map[string]interface{}{},
+					"production":  map[string]interface{}{},
+				},
+				"defaultConfiguration": "production",
+			}
+			architect["deploy"] = deployConfig
+		}
+
+		projects[initialProject.Name] = map[string]interface{}{
+			"projectType": initialProject.ProjectType,
+			"language":    initialProject.Language,
+			"root":        projectRoot,
+			"tags":        []string{},
+			"architect":   architect,
+		}
+
+		// Create project directory
+		if err := os.MkdirAll(filepath.Join(path, projectRoot), 0755); err != nil {
+			return nil, err
+		}
+	}
+
+	// Create forge.json with proper workspace structure
 	forgeJsonPath := filepath.Join(path, "forge.json")
 	projectConfig := map[string]interface{}{
-		"name":        name,
-		"description": description,
-		"version":     "1.0.0",
+		"$schema": "https://raw.githubusercontent.com/dosanma1/forge-cli/main/schemas/forge-config.v1.schema.json",
+		"version": "1",
+		"workspace": map[string]interface{}{
+			"name":         name,
+			"forgeVersion": "1.0.0",
+		},
+		"newProjectRoot": ".",
+		"projects":       projects,
 	}
 	configData, err := json.MarshalIndent(projectConfig, "", "  ")
 	if err != nil {
@@ -76,11 +154,10 @@ func (p *ProjectService) CreateProject(name, path, description string) (*Project
 	}
 
 	project := &Project{
-		ID:          path,
-		Name:        name,
-		Description: description,
-		Path:        path,
-		LastOpen:    time.Now(),
+		ID:       path,
+		Name:     name,
+		Path:     path,
+		LastOpen: time.Now(),
 	}
 
 	// Add to recent projects
@@ -135,6 +212,19 @@ func (p *ProjectService) OpenProject(path string) (*Project, error) {
 	return project, nil
 }
 
+// CheckForgeProject checks if a directory contains a forge.json file
+func (p *ProjectService) CheckForgeProject(path string) (bool, error) {
+	forgeJsonPath := filepath.Join(path, "forge.json")
+	_, err := os.Stat(forgeJsonPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // SelectDirectory opens a native directory picker dialog
 func (p *ProjectService) SelectDirectory() (string, error) {
 	app := application.Get()
@@ -162,8 +252,27 @@ func (p *ProjectService) WriteFile(path string, content string) error {
 	return os.WriteFile(path, []byte(content), 0644)
 }
 
+// IsGitRepo checks if the given path is a git repository
+func (p *ProjectService) IsGitRepo(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	gitDir := filepath.Join(path, ".git")
+	_, err := os.Stat(gitDir)
+	return err == nil
+}
+
 // GetGitBranch returns the current git branch for the given path
 func (p *ProjectService) GetGitBranch(path string) string {
+	// Check if path exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return ""
+	}
+	// Check if it's a git repo
+	gitDir := filepath.Join(path, ".git")
+	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
+		return ""
+	}
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir = path
 	output, err := cmd.Output()
@@ -175,11 +284,20 @@ func (p *ProjectService) GetGitBranch(path string) string {
 
 // ListGitBranches returns all local git branches for the given path
 func (p *ProjectService) ListGitBranches(path string) ([]string, error) {
+	// Check if path exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return []string{}, nil
+	}
+	// Check if it's a git repo
+	gitDir := filepath.Join(path, ".git")
+	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
+		return []string{}, nil
+	}
 	cmd := exec.Command("git", "branch", "--format=%(refname:short)")
 	cmd.Dir = path
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, err
+		return []string{}, nil
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
@@ -198,6 +316,100 @@ func (p *ProjectService) SwitchGitBranch(path string, branch string) error {
 	cmd := exec.Command("git", "checkout", branch)
 	cmd.Dir = path
 	return cmd.Run()
+}
+
+// InitGitRepo initializes a git repository in the given path
+func (p *ProjectService) InitGitRepo(path string) error {
+	// Check if path exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return err
+	}
+	// Check if already a git repo
+	gitDir := filepath.Join(path, ".git")
+	if _, err := os.Stat(gitDir); err == nil {
+		return nil // Already initialized
+	}
+	cmd := exec.Command("git", "init")
+	cmd.Dir = path
+	return cmd.Run()
+}
+
+// CreateGitBranch creates a new git branch and switches to it
+func (p *ProjectService) CreateGitBranch(path string, branchName string) error {
+	// Check if path exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return err
+	}
+	// Check if it's a git repo
+	gitDir := filepath.Join(path, ".git")
+	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
+		return err
+	}
+	cmd := exec.Command("git", "checkout", "-b", branchName)
+	cmd.Dir = path
+	return cmd.Run()
+}
+
+// RemoveProject removes a project from the recent projects list (does not delete files)
+func (p *ProjectService) RemoveProject(path string) error {
+	return p.removeFromRecentProjects(path)
+}
+
+// DeleteProject deletes a project folder (moves to trash on macOS) and removes from recent list
+func (p *ProjectService) DeleteProject(path string) error {
+	// First check if path exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		// Path doesn't exist, just remove from recent list
+		return p.removeFromRecentProjects(path)
+	}
+
+	// Move to trash using macOS Finder (safer than permanent delete)
+	script := fmt.Sprintf(`tell application "Finder" to delete POSIX file "%s"`, path)
+	cmd := exec.Command("osascript", "-e", script)
+	if err := cmd.Run(); err != nil {
+		// Fallback to permanent delete if trash fails
+		if err := os.RemoveAll(path); err != nil {
+			return err
+		}
+	}
+
+	// Remove from recent projects list
+	return p.removeFromRecentProjects(path)
+}
+
+// removeFromRecentProjects removes a project path from the recent projects list
+func (p *ProjectService) removeFromRecentProjects(path string) error {
+	forgeDir := filepath.Join(os.Getenv("HOME"), ".forge")
+	recentPath := filepath.Join(forgeDir, "recent_projects.json")
+
+	data, err := os.ReadFile(recentPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil // Nothing to remove
+		}
+		return err
+	}
+
+	var projects []Project
+	if err := json.Unmarshal(data, &projects); err != nil {
+		return err
+	}
+
+	// Filter out the project with matching path
+	filtered := make([]Project, 0)
+	for _, proj := range projects {
+		if proj.Path != path {
+			filtered = append(filtered, proj)
+		}
+	}
+
+	// Save the filtered list
+	cleanedData, err := json.MarshalIndent(filtered, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(recentPath, cleanedData, 0644)
 }
 
 // ListDirectory lists files in a directory

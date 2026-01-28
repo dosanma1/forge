@@ -89,3 +89,12 @@
 .messages-list-list .cdk-virtual-scroll-content-wrapper {
 	@apply h-full;
 }
+
+/* Platform-specific header padding for window controls */
+:root {
+	--header-padding-left: 1rem; /* Default: 16px */
+}
+
+html[data-platform='darwin'] {
+	--header-padding-left: 6rem; /* 96px for macOS traffic lights + spacing */
+}

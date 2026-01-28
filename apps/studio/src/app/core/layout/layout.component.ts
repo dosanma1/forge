@@ -12,7 +12,6 @@ import { provideIcons } from '@ng-icons/core';
 import {
   lucideBoxes,
   lucideDatabase,
-  lucideFlaskConical,
   lucideGitBranch,
   lucideHouse,
   lucideZap,
@@ -35,7 +34,6 @@ import { MenuRoute } from '../navigation/navigation-menu';
   viewProviders: [
     provideIcons({
       lucideBoxes,
-      lucideFlaskConical,
       lucideHouse,
       lucideDatabase,
       lucideGitBranch,
@@ -72,34 +70,43 @@ export class LayoutComponent implements OnInit {
   protected breadcrumbSegments = computed<BreadcrumbSelectorSegment[]>(() => {
     const projects = this.projectService.projects();
     const selectedProject = this.projectService.selectedResource();
-    const currentBranch = this.projectService.currentBranch() || 'main';
+    const isGitRepo = this.projectService.isGitRepo();
+    const currentBranch = this.projectService.currentBranch();
     const availableBranches = this.projectService.availableBranches();
 
-    // Use available branches if loaded, otherwise just show current branch
-    const branchItems = availableBranches.length > 0
-      ? availableBranches.map((b) => ({ id: b, label: b, icon: 'lucideGitBranch' }))
-      : [{ id: currentBranch, label: currentBranch, icon: 'lucideGitBranch' }];
-
-    return [
+    const segments: BreadcrumbSelectorSegment[] = [
       {
         id: 'project',
         label: 'Project',
         selectedId: selectedProject?.ID(),
         showAddButton: true,
-        addButtonLabel: 'New project',
+        addButtonLabel: 'Open folder',
         items: projects.map((p) => ({
           id: p.ID(),
           label: p.name,
           icon: 'lucideDatabase',
         })),
       },
-      {
-        id: 'branch',
-        label: 'Branch',
-        selectedId: currentBranch,
-        items: branchItems,
-      },
     ];
+
+    // Always show branch segment - show "no branch" for non-git repos or repos without commits
+    const hasBranch = !!currentBranch;
+    const branchItems = hasBranch
+      ? (availableBranches.length > 0
+          ? availableBranches.map((b) => ({ id: b, label: b, icon: 'lucideGitBranch' }))
+          : [{ id: currentBranch, label: currentBranch, icon: 'lucideGitBranch' }])
+      : [{ id: 'no-branch', label: 'no branch', icon: 'lucideGitBranch' }];
+
+    segments.push({
+      id: 'branch',
+      label: 'Branch',
+      selectedId: hasBranch ? currentBranch : 'no-branch',
+      showAddButton: true,
+      addButtonLabel: isGitRepo ? 'New branch' : 'Initialize repository',
+      items: branchItems,
+    });
+
+    return segments;
   });
 
   onBreadcrumbSelect(event: { segmentId: string; itemId: string }): void {
@@ -109,14 +116,32 @@ export class LayoutComponent implements OnInit {
         this.projectService.switchProject(project);
       }
     } else if (event.segmentId === 'branch') {
-      this.projectService.switchGitBranch(event.itemId);
+      // Don't switch if "no branch" is selected
+      if (event.itemId !== 'no-branch') {
+        this.projectService.switchGitBranch(event.itemId);
+      }
     }
   }
 
   onBreadcrumbAdd(event: { segmentId: string }): void {
     if (event.segmentId === 'project') {
-      // Navigate to new project page or open dialog
-      console.log('Add new project clicked');
+      // Use the smart open folder flow
+      this.projectService.openOrCreateProject();
+    } else if (event.segmentId === 'branch') {
+      if (this.projectService.isGitRepo()) {
+        // Git repo exists - prompt for new branch name
+        this.promptForNewBranch();
+      } else {
+        // No git repo - initialize it
+        this.projectService.initGitRepo();
+      }
+    }
+  }
+
+  private promptForNewBranch(): void {
+    const branchName = window.prompt('Enter new branch name:');
+    if (branchName && branchName.trim()) {
+      this.projectService.createGitBranch(branchName.trim());
     }
   }
 
@@ -140,13 +165,6 @@ export class LayoutComponent implements OnInit {
         type: 'basic',
         icon: 'lucideBoxes',
         link: MenuRoute.ARCHITECTURE,
-      },
-      {
-        id: 'vflow-test',
-        title: 'VFlow Test',
-        type: 'basic',
-        icon: 'lucideFlaskConical',
-        link: MenuRoute.VFLOW_TEST,
       },
     ];
   });

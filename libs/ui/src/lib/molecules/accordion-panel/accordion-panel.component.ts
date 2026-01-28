@@ -71,8 +71,7 @@ export interface AccordionSectionReorder {
         <div
           cdkDrag
           [cdkDragData]="section"
-          class="flex flex-col min-h-0 relative shrink-0 overflow-hidden transition-all duration-300 ease-in-out"
-          [class.duration-0]="isResizing()"
+          class="flex flex-col min-h-0 relative shrink-0 overflow-hidden"
           [style.flex]="getSectionFlex(section)"
         >
           <!-- Drag Preview -->
@@ -109,10 +108,9 @@ export interface AccordionSectionReorder {
 
           <!-- Section Content Wrapper -->
           <div
-            class="flex-1 flex flex-col min-h-0 overflow-hidden transition-all duration-300 ease-in-out"
+            class="flex-1 flex flex-col min-h-0 overflow-hidden transition-opacity duration-300 ease-in-out"
             [class.opacity-0]="!section.expanded()"
             [class.invisible]="!section.expanded()"
-            [class.duration-0]="isResizing()"
           >
             <div
               #sectionContent

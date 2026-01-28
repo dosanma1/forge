@@ -5,7 +5,10 @@ import { MenuRoute } from '../../core/navigation/navigation-menu';
 import { LogService } from '@forge/log';
 import { LOCAL_STORAGE } from '@forge/storage';
 import * as WailsProject from '../../wailsjs/github.com/dosanma1/forge/apps/studio/projectservice';
-import { Project as WailsProjectModel } from '../../wailsjs/github.com/dosanma1/forge/apps/studio/models';
+import {
+  Project as WailsProjectModel,
+  InitialProject,
+} from '../../wailsjs/github.com/dosanma1/forge/apps/studio/models';
 
 const LAST_PROJECT_KEY = 'forge_last_project_path';
 
@@ -65,10 +68,15 @@ export class ProjectService {
   // State signals
   readonly projects = signal<IProject[]>([]);
   readonly selectedResource = signal<IProject | null>(null);
+  readonly isGitRepo = signal<boolean>(false);
   readonly currentBranch = signal<string>('');
   readonly availableBranches = signal<string[]>([]);
   readonly isLoading = signal(false);
   readonly error = signal<string | null>(null);
+
+  // Pending path for create-project flow
+  private readonly _pendingProjectPath = signal<string | null>(null);
+  readonly pendingProjectPath = this._pendingProjectPath.asReadonly();
 
   /**
    * Returns the last opened project path from localStorage
@@ -116,18 +124,19 @@ export class ProjectService {
   /**
    * Create a new project using Wails bindings
    */
-  async create(name: string, path: string): Promise<void> {
+  async create(name: string, path: string, initialProjects: InitialProject[] = []): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
 
     try {
-      const wailsProject = await WailsProject.CreateProject(name, path, '');
+      const wailsProject = await WailsProject.CreateProject(name, path, initialProjects);
       if (wailsProject) {
         const project = new ProjectAdapter(wailsProject);
         this.projects.update((projects) => [project, ...projects]);
         this.setSelectedResource(project);
         this.saveLastProjectPath(path);
-        this.router.navigate([MenuRoute.DASHBOARD]);
+        this._pendingProjectPath.set(null);
+        this.router.navigate([MenuRoute.ARCHITECTURE]);
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create project';
@@ -174,25 +183,84 @@ export class ProjectService {
   }
 
   /**
+   * Open folder first flow: opens native dialog, checks for forge.json,
+   * and either opens project or navigates to create-project
+   */
+  async openOrCreateProject(): Promise<void> {
+    const path = await this.selectDirectory();
+    if (!path) return;
+
+    try {
+      const isForgeProject = await WailsProject.CheckForgeProject(path);
+
+      if (isForgeProject) {
+        await this.open(path);
+        this.router.navigate([MenuRoute.ARCHITECTURE]);
+      } else {
+        // Store path and navigate to create-project
+        this._pendingProjectPath.set(path);
+        this.router.navigate(['/projects/join']);
+      }
+    } catch (err: unknown) {
+      this.logger.error('Failed to check project', err);
+      // On error, try to create a new project anyway
+      this._pendingProjectPath.set(path);
+      this.router.navigate(['/projects/join']);
+    }
+  }
+
+  /**
+   * Get suggested project name from the pending path
+   */
+  getSuggestedName(): string {
+    const path = this._pendingProjectPath();
+    if (!path) return '';
+    return path.split('/').pop() || '';
+  }
+
+  /**
+   * Create project from the pending path
+   */
+  async createFromPendingPath(name: string, initialProjects: InitialProject[] = []): Promise<void> {
+    const path = this._pendingProjectPath();
+    if (!path) {
+      this.error.set('No project path selected');
+      return;
+    }
+    await this.create(name, path, initialProjects);
+  }
+
+  /**
+   * Clear the pending project path
+   */
+  clearPendingPath(): void {
+    this._pendingProjectPath.set(null);
+  }
+
+  /**
    * Get current git branch and list all branches for the selected project
    */
   async refreshGitBranch(): Promise<void> {
     const project = this.selectedResource();
     if (!project) {
+      this.isGitRepo.set(false);
       this.currentBranch.set('');
       this.availableBranches.set([]);
       return;
     }
 
     try {
-      const [branch, branches] = await Promise.all([
+      const [gitRepo, branch, branches] = await Promise.all([
+        WailsProject.IsGitRepo(project.path),
         WailsProject.GetGitBranch(project.path),
         WailsProject.ListGitBranches(project.path),
       ]);
+      this.isGitRepo.set(gitRepo);
       this.currentBranch.set(branch || '');
       this.availableBranches.set(branches || []);
     } catch (err: unknown) {
       this.logger.error('Failed to get git branch info', err);
+      this.isGitRepo.set(false);
       this.currentBranch.set('');
       this.availableBranches.set([]);
     }
@@ -218,6 +286,45 @@ export class ProjectService {
   }
 
   /**
+   * Initialize a git repository in the current project
+   */
+  async initGitRepo(): Promise<void> {
+    const project = this.selectedResource();
+    if (!project) {
+      return;
+    }
+
+    try {
+      await WailsProject.InitGitRepo(project.path);
+      await this.refreshGitBranch();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to initialize repository';
+      this.logger.error('Failed to init git repo', err);
+      this.error.set(message);
+    }
+  }
+
+  /**
+   * Create a new git branch and switch to it
+   */
+  async createGitBranch(branchName: string): Promise<void> {
+    const project = this.selectedResource();
+    if (!project) {
+      return;
+    }
+
+    try {
+      await WailsProject.CreateGitBranch(project.path, branchName);
+      this.currentBranch.set(branchName);
+      this.availableBranches.update(branches => [...branches, branchName]);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create branch';
+      this.logger.error('Failed to create git branch', err);
+      this.error.set(message);
+    }
+  }
+
+  /**
    * Set the selected project and refresh git branch
    */
   setSelectedResource(project: IProject | null): void {
@@ -226,6 +333,7 @@ export class ProjectService {
       this.saveLastProjectPath(project.ID());
       this.refreshGitBranch();
     } else {
+      this.isGitRepo.set(false);
       this.currentBranch.set('');
       this.availableBranches.set([]);
     }
@@ -256,6 +364,44 @@ export class ProjectService {
       if (project) {
         this.setSelectedResource(project);
       }
+    }
+  }
+
+  /**
+   * Remove a project from the recent projects list (keeps files)
+   */
+  async removeProject(project: IProject): Promise<void> {
+    try {
+      await WailsProject.RemoveProject(project.path);
+      this.handleProjectRemoved(project);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to remove project';
+      this.logger.error('Failed to remove project', err);
+      this.error.set(message);
+    }
+  }
+
+  /**
+   * Delete a project folder (moves to trash) and removes from recent list
+   */
+  async deleteProject(project: IProject): Promise<void> {
+    try {
+      await WailsProject.DeleteProject(project.path);
+      this.handleProjectRemoved(project);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete project';
+      this.logger.error('Failed to delete project', err);
+      this.error.set(message);
+    }
+  }
+
+  private handleProjectRemoved(project: IProject): void {
+    // Update local state
+    this.projects.update(projects => projects.filter(p => p.ID() !== project.ID()));
+    // Clear selection if this was the selected project
+    if (this.selectedResource()?.ID() === project.ID()) {
+      this.setSelectedResource(null);
+      this.clearLastProject();
     }
   }
 }

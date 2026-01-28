@@ -14,7 +14,6 @@ export enum Path {
   NOTIFICATIONS = 'notifications',
   GENERAL = 'general',
   DOCUMENTATION = 'documentation',
-  VFLOW_TEST = 'vflow-test',
 }
 
 export enum MenuRoute {
@@ -27,5 +26,4 @@ export enum MenuRoute {
   ARCHITECTURE = `/${Path.ARCHITECTURE}`,
   SETTINGS = `/${Path.SETTINGS}`,
   DOCUMENTATION = `/${Path.DOCUMENTATION}`,
-  VFLOW_TEST = `/${Path.VFLOW_TEST}`,
 }

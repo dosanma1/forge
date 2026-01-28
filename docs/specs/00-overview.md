@@ -1,8 +1,8 @@
 # Forge Framework - Overview
 
 **Version:** 1.0.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -12,9 +12,9 @@ Forge Framework is a visual no-code backend development platform that generates 
 
 **Key Value Propositions:**
 
-- **Visual Infrastructure**: Build backend wiring (API -> Service -> DB) through an intuitive node-based editor
-- **Supreme Developer Experience**: Supabase-inspired Studio with dark mode, dashboard analytics, and clean typography
-- **Project Management**: VSCode-style "Start Screen" to manage local projects and clone repositories
+- **Desktop-First Experience**: Delivered as a native **Wails-based application** for macOS, Windows, and Linux.
+- **Supreme Developer Experience**: Supabase-inspired Studio with dark mode, dashboard analytics, and clean typography.
+- **Native OS Integration**: Native "Start Screen" to manage local projects and native OS dialogs for folder selection.
 - **Hybrid Workflow**: Visual "Shell" (Transports, Wiring) + Manual "Core" (Business Logic in pure Go)
 - **Production-Ready Output**: Generate clean, tested, documented Go code following Clean Architecture
 - **Framework Conventions**: Angular-style conventions with flexibility in project structure
@@ -136,7 +136,8 @@ Forge Framework is a visual no-code backend development platform that generates 
 
 | Layer              | Technology                                |
 | ------------------ | ----------------------------------------- |
-| Frontend Framework | Angular 18+                               |
+| Frontend Framework | Angular 18+ (bundled with Wails)          |
+| App Framework      | Wails v3                                  |
 | Node Editor        | ngx-vflow                                 |
 | State Management   | Angular Signals                           |
 | Styling            | TailwindCSS + OKLCH colors                |

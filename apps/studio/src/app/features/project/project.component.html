@@ -3,13 +3,9 @@
 		<div class="flex justify-between items-center mb-4">
 			<span class="text-h2 font-medium">Your Projects</span>
 			<div class="flex items-center gap-2">
-				<button mmcButton variant="outline" (click)="openFolder()" class="flex items-center gap-2">
+				<button mmcButton (click)="openFolder()" class="flex items-center gap-2">
 					<mmc-icon name="folderOpen" size="sm"></mmc-icon>
 					Open Folder
-				</button>
-				<button mmcButton routerLink="/projects/join" class="flex items-center gap-2">
-					<mmc-icon name="plus" size="sm"></mmc-icon>
-					New Project
 				</button>
 			</div>
 		</div>

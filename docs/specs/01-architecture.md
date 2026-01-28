@@ -1,8 +1,8 @@
 # Forge Framework - System Architecture
 
 **Version:** 1.2.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -62,39 +62,39 @@ func Resolve(projectType string) Builder {
 
 ---
 
-### 2. Daemon Mode (Hot Reload & File Watching)
+### 2. Desktop Application (Wails v3)
 
-`forge studio` runs a persistent daemon for:
+Forge Studio runs as a native desktop application using **Wails v3**. This provides:
 
-- **File watching** with fsnotify
-- **Hot reload** when `forge.json` changes
-- **WebSocket + JSON-RPC 2.0** for real-time updates to Studio frontend
-- **Faster subsequent commands** (no cold start)
+- **Direct Backend Bindings**: Call Go functions directly from Angular via Wails services (no REST/WS overhead for core logic).
+- **Native OS Dialogs**: Use native directory pickers and file dialogs.
+- **File Watching**: Native file watching with fsnotify integrated into the Go backend.
+- **Single Binary**: The entire Studio (Frontend + Backend) is bundled into a single executable.
 
 ```
-┌─────────────────┐     ┌─────────────────┐
-│  Forge CLI      │────▶│  Forge Daemon   │
-│  (forge studio) │     │  (Single Port)  │
-└─────────────────┘     └────────┬────────┘
+┌─────────────────┐     ┌─────────────────────┐
+│  Forge Studio   │     │  Wails Application  │
+│  (Desktop App)  │─────▶│  (Go Services)      │
+└─────────────────┘     └────────┬────────────┘
                                  │
-              ┌──────────────────┴──────────────────┐
-              ▼                                     ▼
-      ┌───────────────┐                     ┌───────────────┐
-      │  / (Static)   │                     │  /api (RPC)   │
-      │  Angular App  │                     │  WebSocket    │
-      └───────────────┘                     └───────────────┘
-                                   ▲
-                                   │
-                           ┌─────────────────┐
-                           │  Browser        │
-                           │  localhost:4200 │
-                           └─────────────────┘
+               ┌──────────────────┴──────────────────┐
+               ▼                                     ▼
+       ┌───────────────┐                     ┌───────────────┐
+       │  Angular UI   │                     │  Local API    │
+       │  (Webview)    │                     │  (HTTP / Binding)
+       └───────────────┘                     └───────────────┘
+                                    ▲
+                                    │
+                            ┌─────────────────┐
+                            │  Mac/Win/Linux  │
+                            │  System native  │
+                            └─────────────────┘
 ```
 
 **Communication Patterns (Encore-inspired):**
 
-| Path          | Protocol                 | Purpose                     |
-| ------------- | ------------------------ | --------------------------- |
+| Path           | Protocol                 | Purpose                     |
+| -------------- | ------------------------ | --------------------------- |
 | CLI ↔ Daemon  | gRPC (Unix socket)       | Type-safe internal commands |
 | Browser ↔ API | REST (HTTP)              | CRUD operations             |
 | Browser ↔ API | WebSocket + JSON-RPC 2.0 | Real-time events            |
@@ -104,22 +104,22 @@ func Resolve(projectType string) Builder {
 ```typescript
 // Server → Client notifications
 interface FileChangedNotification {
-  jsonrpc: "2.0";
-  method: "file.changed";
-  params: { path: string; type: "forge.json" | "code" };
+  jsonrpc: '2.0';
+  method: 'file.changed';
+  params: { path: string; type: 'forge.json' | 'code' };
 }
 
 interface GenerationProgressNotification {
-  jsonrpc: "2.0";
-  method: "generation.progress";
+  jsonrpc: '2.0';
+  method: 'generation.progress';
   params: { percent: number; message: string };
 }
 
 // Client → Server requests
 interface GenerateRequest {
-  jsonrpc: "2.0";
+  jsonrpc: '2.0';
   id: number;
-  method: "generate";
+  method: 'generate';
   params: { projectName: string };
 }
 ```
@@ -236,31 +236,24 @@ replace github.com/dosanma1/forge-cli => ../../forge-cli
 ```
 forge/                              # PUBLIC OPEN-SOURCE REPO (SDK + Studio)
 ├── go/kit/                         # Existing SDK (monitoring, transports, etc.)
-├── studio/                         # Angular frontend (Forge Studio) - AT ROOT
-│   ├── src/
-│   │   └── app/
-│   │       ├── features/           # Feature modules
-│   │       │   ├── node-editor/    # ngx-vflow integration
-│   │       │   ├── node-palette/   # Node selection palette
-│   │       │   └── property-panel/ # Node configuration
-│   │       ├── shared/             # Shared components & utilities
-│   │       └── layout/             # App layout components
-│   └── angular.json
+├── apps/                           # Desktop applications
+│   └── studio/                     # Wails Desktop App (Forge Studio)
+│       ├── main.go                 # App entry point
+│       ├── services.go             # Wails service bindings
+│       ├── frontend/               # Angular frontend logic
+│       └── build/                  # Platform specific assets
 ├── api/                            # Go backend API (FILE-BASED, NO DB)
 │   ├── cmd/server/                 # Main entry point
 │   └── internal/
-│       ├── config.go               # Configuration
-│       ├── project.go              # Project service (reads/writes forge.json)
-│       ├── server.go               # HTTP server & routes
-│       └── module.go               # Fx wiring
+│       ├── global/                 # Project management (Recent, Open, Create)
+│       └── project/                # Graph & Generation logic
 ├── ts/                             # Other TypeScript packages
 │   └── ui/                         # Shared UI components
 ├── templates/                      # Infrastructure templates
-│   ├── infra/                      # Existing (Helm, Cloud Run)
 │   └── codegen/                    # NEW: Code generation templates
 ├── docs/
 │   └── PRD.md                      # This document
-└── Makefile                        # `make dev` starts API + Studio
+└── Makefile                        # `make studio` starts the desktop app
 
 forge-cli/                          # EXISTING CLI REPO (extended)
 ├── cmd/

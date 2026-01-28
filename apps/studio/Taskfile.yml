@@ -6,10 +6,6 @@ includes:
 vars:
   APP_NAME: "forge-studio"
   BIN_DIR: "bin"
-  # Angular builds to ../../dist/apps/studio/browser
-  ANGULAR_DIST: "../../dist/apps/studio/browser"
-  # Wails expects frontend/dist
-  FRONTEND_DIST: "./frontend/dist"
   VITE_PORT: '{{.WAILS_VITE_PORT | default 4200}}'
 
 tasks:
@@ -46,12 +42,8 @@ tasks:
       - task: install:frontend:deps
       - task: generate:bindings
     cmds:
-      # Build Angular with Nx
+      # Angular outputs directly to apps/studio/dist (configured in project.json)
       - cd ../.. && npx nx build studio --configuration production
-      # Copy Angular output to frontend/dist for Wails embedding
-      - mkdir -p {{.FRONTEND_DIST}}
-      - rm -rf {{.FRONTEND_DIST}}/*
-      - cp -r {{.ANGULAR_DIST}}/* {{.FRONTEND_DIST}}/
 
   build:frontend:dev:
     summary: Build the Angular frontend in dev mode
@@ -59,10 +51,8 @@ tasks:
       - task: install:frontend:deps
       - task: generate:bindings
     cmds:
+      # Angular outputs directly to apps/studio/dist (configured in project.json)
       - cd ../.. && npx nx build studio --configuration development
-      - mkdir -p {{.FRONTEND_DIST}}
-      - rm -rf {{.FRONTEND_DIST}}/*
-      - cp -r {{.ANGULAR_DIST}}/* {{.FRONTEND_DIST}}/
 
   dev:frontend:
     summary: Runs the Angular frontend in development mode

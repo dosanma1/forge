@@ -1,32 +1,29 @@
 # Forge Framework - API Specification
 
 **Version:** 1.1.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
 ## Overview
 
-The Forge API is a **lightweight file-based server** that reads/writes `forge.json` files directly from the filesystem. It operates in two modes:
+The Forge API operates primarily as a **Wails-based service set** that interacts with the filesystem. While it exposes some REST endpoints for the Studio frontend, most core operations are handled via direct Go bindings.
 
-1.  **Global Mode**: Runs when no project is selected. Manages recent projects and file operations.
-2.  **Project Mode**: Runs when a specific project is loaded. Manages the graph and code generation.
-
-**Base URL**: `http://localhost:8080/api`
+**Base URL (for REST)**: `http://localhost:8080/api`
 
 ---
 
-## Global API (Start Screen)
+### Project Management API
 
-Used by the Studio when no project is loaded.
+Used by the Studio Start Screen.
 
-| Method | Endpoint         | Description                                       |
-| ------ | ---------------- | ------------------------------------------------- |
-| `GET`  | `/global/recent` | List recent projects (LRU) from `~/.forge/config` |
-| `POST` | `/global/open`   | Open a specific folder path                       |
-| `POST` | `/global/clone`  | Clone a git repository                            |
-| `GET`  | `/global/status` | Check if a project is currently loaded            |
+| Method | Endpoint           | Description                                       |
+| ------ | ------------------ | ------------------------------------------------- |
+| `GET`  | `/projects`        | List recent projects (LRU) from `~/.forge/config` |
+| `POST` | `/projects/open`   | Open a specific folder path                       |
+| `POST` | `/projects/create` | Create/Initialize a new project                   |
+| `GET`  | `/projects/status` | Check if a project is currently loaded            |
 
 **POST /api/global/open Request:**
 

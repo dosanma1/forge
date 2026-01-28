@@ -1,70 +1,76 @@
-# Forge Studio Implementation Tasks
+# Forge Studio - Phased Implementation Roadmap
 
-## Documentation
+This document outlines the implementation status of Forge Studio, organized into development phases.
 
-- [x] Update `00-overview.md` with new Vision (Supabase/VSCode style)
-- [x] Update `01-architecture.md` with Global Mode & Project Selector
-- [x] Update `07-ui-design.md` with Start Screen & Dashboard Layouts
-- [ ] Review `06-api-spec.md` for Global API endpoints (`/api/global/*`)
+## Phase 1: Foundation & Desktop Infrastructure
 
-## CLI (`forge-cli`)
+Focus: Core CLI, Wails desktop integration, and single-binary distribution.
 
-- [ ] Add `forge studio` command
-  - [ ] Should start the daemon (`forge-api`)
-  - [ ] Should open the browser at `localhost:4200`
-  - [ ] Should support `forge studio .` (open current folder directly)
-- [ ] Implement `forge init` (headless mode for API usage)
-  - [ ] Ensure `forge-cli` exposes `generator` package for direct import by Daemon
-  - [ ] Daemon MUST use `generator.NewServiceGenerator()` directly, NOT `exec.Command("forge")`
-- [ ] **Templates Refactor (Sync with Reference)**
-  - [ ] Update `forge-cli` templates to match `trading-bot` structure (Clean Architecture)
-    - [ ] Add `entity.go.tmpl` (Interface definitions)
-    - [ ] Add `transport_rest.go.tmpl` (Kit HTTP handlers)
-    - [ ] Add `module.go.tmpl` (Fx wiring)
-  - [ ] Ensure frontend templates link to `ts/ui` library
+- [x] **CLI Core Extensions**
+  - [x] Add `forge studio` command
+  - [x] Daemon bootstrap logic (`forge-api` integration)
+  - [x] Support `forge studio .` for direct folder opening
+- [x] **Desktop Integration (Wails v3)**
+  - [x] Single binary bundling with `embed`
+  - [x] Native OS dialogs for file system access
+  - [x] Project management service bindings
+- [x] **Project Management API**
+  - [x] Persistent storage for `recent_projects.json` in `~/.forge/`
+  - [x] Project discovery and validation logic
+  - [x] `ListProjects`, `OpenProject`, and `CreateProject` operations
 
-## Daemon (`forge-api`)
+## Phase 2: Studio UI & Workspace Management
 
-- [ ] **Bootstrap via Forge CLI**
-  - [ ] Run `forge generate service api` (using updated templates)
-  - [ ] Ensure `api` service is created in `forge/api` (not `backend/services`)
-- [ ] Create `GlobalManager` service
-  - [ ] Store `recent_projects.json` in user home dir (`~/.forge/`)
-  - [ ] Implement `ListRecent()` and `AddRecent()`
-- [ ] Implement Global API Endpoints
-  - [ ] `GET /api/global/recent`
-  - [ ] `POST /api/global/open` (validates path, check for `forge.json`)
-  - [ ] `POST /api/global/create` (runs `forge init` in target)
-- [ ] Update `ProjectService`
-  - [ ] Support lazy loading (unloading current project, loading new one)
-- [ ] **Single Binary Integration**
-  - [ ] Use `embed` package to bundle `dist/forge-studio` into the binary
-  - [ ] Create `StaticController` using `go/kit/transport/rest` to serve assets on `/`
-  - [ ] Handle SPA routing (redirect 404s to `index.html`) using kit middleware/handler
-- [ ] **Local Experience**
-  - [ ] Implement `xos.OpenInEditor(path, line)` (supports `code .`, `idea`, etc via env var)
-  - [ ] Implement `LogStreamer` to pipe stdout/stderr to WebSocket hub
+Focus: Providing a premium "VSCode-style" entry and "Supabase-style" dashboard.
 
-## Studio UI (`forge-studio`)
+- [x] **Start Screen Implementation**
+  - [x] VSCode-style recent projects list
+  - [x] Dashboard Layout shell
+  - [x] Integration with native directory pickers
+- [ ] **Workspace Refinement**
+  - [ ] Add "Clone Repo" native modal/flow
+  - [ ] Support project lazy-loading (unload/load project context)
+  - [ ] Implement `GlobalState` (Signal Store) for workspace sync
+  - [x] SPA routing with 404 redirection to `index.html`
 
-- [ ] **Infrastructure**
-  - [ ] Create `GlobalState` (Signal Store) to track `currentProject`, `recentProjects`
-  - [ ] Implement Layout service (Start Screen vs Dashboard)
-- [ ] **Start Screen**
-  - [ ] Implement "VSCode-style" layout (Recent list, Action buttons)
-  - [ ] Add "Open Folder" dialog integration (use native browser API or generic prompt)
-  - [ ] Add "Clone Repo" modal
-- [ ] **Dashboard Layout**
-  - [ ] Implement "Supabase-style" Sidebar
-  - [ ] Create `OverviewComponent` (Stats, Health)
-  - [ ] Create `ArchitectureComponent` (The Node Editor wrapper)
-  - [ ] Create `DataModelsComponent` (Schema Table View)
-- [ ] **Theming**
-  - [ ] Enforce Dark Mode variables (`#121212` background)
-  - [ ] Update Tailwind config for new color palette
+## Phase 3: Generator Engine & Templates Refactor
 
-## Testing
+Focus: Syncing with `trading-bot` patterns and ensuring clean code generation.
 
-- [ ] Test `forge studio` without any active project
-- [ ] Test opening an existing project
-- [ ] Test creating a new project in an empty folder
+- [x] **Headless Initialization**
+  - [x] Implement `forge init` for API usage
+  - [x] Expose `generator` package for direct daemon import
+- [ ] **Templates Modernization**
+  - [ ] Update templates to match `trading-bot` (Clean Architecture)
+  - [ ] `entity.go.tmpl` (Interface-first definitions)
+  - [ ] `transport_rest.go.tmpl` (Kit handlers integration)
+  - [ ] `module.go.tmpl` (Fx wiring)
+  - [ ] Ensure frontend templates link to `ts/ui` shared library
+
+## Phase 4: Core Studio Features (The Dashboard)
+
+Focus: Visual editors for architecture and data.
+
+- [ ] **Architecture View (The Graph)**
+  - [ ] `ngx-vflow` wrapper implementation
+  - [ ] Node palette (Entities, Endpoints, Transports)
+  - [ ] Interactive property panels
+- [ ] **Data Models View**
+  - [ ] Table-based schema editor
+  - [ ] Entity relationship management
+- [ ] **API Operations & DX**
+  - [ ] Embedded Swagger/OpenAPI browser
+  - [ ] Local log streaming (Pipe stdout/stderr to UI)
+  - [ ] Native editor integration (`Open in Code`)
+
+## Phase 5: Verification & Production Readiness
+
+Focus: Quality assurance and final refinements.
+
+- [ ] **Functional Testing**
+  - [ ] Empty folder initialization flow
+  - [ ] Existing project loading
+  - [ ] Generation cycle validation
+- [ ] **Production Polish**
+  - [ ] Dark mode variables strict enforcement
+  - [ ] Deployment configuration generation (Helm, Cloud Run)

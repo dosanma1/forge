@@ -19,12 +19,33 @@ import * as application$0 from "../../../../wailsapp/wails/v3/pkg/application/mo
 import * as $models from "./models.js";
 
 /**
- * CreateProject creates a new project at the given path
+ * CheckForgeProject checks if a directory contains a forge.json file
  */
-export function CreateProject(name: string, path: string, description: string): $CancellablePromise<$models.Project | null> {
-    return $Call.ByID(3794430337, name, path, description).then(($result: any) => {
+export function CheckForgeProject(path: string): $CancellablePromise<boolean> {
+    return $Call.ByID(567017732, path);
+}
+
+/**
+ * CreateGitBranch creates a new git branch and switches to it
+ */
+export function CreateGitBranch(path: string, branchName: string): $CancellablePromise<void> {
+    return $Call.ByID(1212430524, path, branchName);
+}
+
+/**
+ * CreateProject creates a new project at the given path with proper forge.json structure
+ */
+export function CreateProject(name: string, path: string, initialProjects: $models.InitialProject[]): $CancellablePromise<$models.Project | null> {
+    return $Call.ByID(3794430337, name, path, initialProjects).then(($result: any) => {
         return $$createType1($result);
     });
+}
+
+/**
+ * DeleteProject deletes a project folder (moves to trash on macOS) and removes from recent list
+ */
+export function DeleteProject(path: string): $CancellablePromise<void> {
+    return $Call.ByID(1959829424, path);
 }
 
 /**
@@ -32,6 +53,20 @@ export function CreateProject(name: string, path: string, description: string): 
  */
 export function GetGitBranch(path: string): $CancellablePromise<string> {
     return $Call.ByID(3782054692, path);
+}
+
+/**
+ * InitGitRepo initializes a git repository in the given path
+ */
+export function InitGitRepo(path: string): $CancellablePromise<void> {
+    return $Call.ByID(3353033358, path);
+}
+
+/**
+ * IsGitRepo checks if the given path is a git repository
+ */
+export function IsGitRepo(path: string): $CancellablePromise<boolean> {
+    return $Call.ByID(1581521484, path);
 }
 
 /**
@@ -53,7 +88,7 @@ export function ListGitBranches(path: string): $CancellablePromise<string[]> {
 }
 
 /**
- * ListProjects returns all recent projects
+ * ListProjects returns all recent projects, filtering out deleted ones
  */
 export function ListProjects(): $CancellablePromise<$models.Project[]> {
     return $Call.ByID(1083075410).then(($result: any) => {
@@ -82,6 +117,13 @@ export function OpenProject(path: string): $CancellablePromise<$models.Project |
  */
 export function ReadFile(path: string): $CancellablePromise<string> {
     return $Call.ByID(1365949130, path);
+}
+
+/**
+ * RemoveProject removes a project from the recent projects list (does not delete files)
+ */
+export function RemoveProject(path: string): $CancellablePromise<void> {
+    return $Call.ByID(3482417973, path);
 }
 
 /**

@@ -1,8 +1,8 @@
 # Forge Framework - Node System Specification
 
 **Version:** 1.0.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -57,17 +57,7 @@ interface FieldConfig {
   };
 }
 
-type FieldType =
-  | "string"
-  | "int"
-  | "int64"
-  | "float64"
-  | "bool"
-  | "uuid"
-  | "timestamp"
-  | "json"
-  | "decimal"
-  | "enum";
+type FieldType = 'string' | 'int' | 'int64' | 'float64' | 'bool' | 'uuid' | 'timestamp' | 'json' | 'decimal' | 'enum';
 ```
 
 ---
@@ -94,7 +84,7 @@ interface RESTEndpointNodeConfig {
     delete: OperationConfig;
   };
 
-  deleteType: "soft" | "hard";
+  deleteType: 'soft' | 'hard';
   authentication: boolean;
 
   // Additional custom routes
@@ -108,7 +98,7 @@ interface OperationConfig {
 }
 
 interface CustomEndpointConfig {
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string; // e.g., "/:id/activate"
   handler: string; // Reference to exposed function
   middleware?: string[];
@@ -134,7 +124,7 @@ interface GRPCServiceNodeConfig {
 
 interface GRPCMethodConfig {
   name: string; // e.g., "GetUser"
-  type: "unary" | "server_stream" | "client_stream" | "bidirectional";
+  type: 'unary' | 'server_stream' | 'client_stream' | 'bidirectional';
   requestEntity?: string; // Entity reference for auto-generated request
   responseEntity?: string; // Entity reference for auto-generated response
   handler?: string; // Reference to exposed function (for custom logic)
@@ -182,7 +172,7 @@ interface NATSConsumerNodeConfig {
 
   retryPolicy: {
     maxRetries: ConfigurableProperty; // e.g. 3 or ENV_VAR
-    backoff: "linear" | "exponential";
+    backoff: 'linear' | 'exponential';
     initialDelay: string; // e.g., "1s"
   };
 }
@@ -216,6 +206,7 @@ interface ConfigurableProperty {
 ---
 
 **Related Specifications:**
+
 - [Overview](00-overview.md)
 - [Features](02-features.md)
 - [JSON Schemas](05-json-schemas.md)

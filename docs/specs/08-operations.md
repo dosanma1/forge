@@ -1,8 +1,8 @@
 # Forge Framework - Operations & Extension
 
 **Version:** 1.0.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -26,6 +26,7 @@ Forge follows a "Shell + Core" definition:
 ### Interface Binding Example
 
 Generated code (`user.go`):
+
 ```go
 // UserRepository defines the data access interface
 type UserRepository interface {
@@ -38,6 +39,7 @@ type UserRepository interface {
 ```
 
 Manual implementation (`user_custom.go`):
+
 ```go
 // userRepositoryImpl implements UserRepository with custom behavior
 type userRepositoryImpl struct {
@@ -57,6 +59,7 @@ func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (*User, erro
 ### Middleware Hooks
 
 Generated transport (`user_transport.go`):
+
 ```go
 // RegisterMiddleware allows adding custom middleware to user endpoints
 func (t *UserTransport) RegisterMiddleware(mw func(http.Handler) http.Handler) {
@@ -65,6 +68,7 @@ func (t *UserTransport) RegisterMiddleware(mw func(http.Handler) http.Handler) {
 ```
 
 Manual middleware registration (`module.go` extension):
+
 ```go
 func init() {
     // Add rate limiting to user endpoints
@@ -86,16 +90,16 @@ Forge generates **Schema Definitions** but provides limited migration logic for 
 
 ### What Gets Auto-Generated
 
-| Change Type              | Auto-Generated | Manual Required |
-| ------------------------ | -------------- | --------------- |
-| Add new table            | ✅             |                 |
-| Add column (nullable)    | ✅             |                 |
-| Add column (non-null)    |                | ✅              |
-| Rename column            |                | ✅              |
-| Change column type       |                | ✅              |
-| Add index                | ✅             |                 |
-| Drop column              |                | ✅              |
-| Data migration           |                | ✅              |
+| Change Type           | Auto-Generated | Manual Required |
+| --------------------- | -------------- | --------------- |
+| Add new table         | ✅             |                 |
+| Add column (nullable) | ✅             |                 |
+| Add column (non-null) |                | ✅              |
+| Rename column         |                | ✅              |
+| Change column type    |                | ✅              |
+| Add index             | ✅             |                 |
+| Drop column           |                | ✅              |
+| Data migration        |                | ✅              |
 
 ### Manual Migration Location
 
@@ -201,6 +205,7 @@ func (r *userRepo) Get(ctx context.Context, id uuid.UUID) (*User, error) {
 ---
 
 **Related Specifications:**
+
 - [Code Generation](04-code-generation.md)
 - [Features](02-features.md)
 - [Architecture](01-architecture.md)

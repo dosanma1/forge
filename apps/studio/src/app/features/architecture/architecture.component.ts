@@ -152,7 +152,7 @@ import { ActionType } from '../graph-editor/models';
       >
         <mmc-tabs
           [activeTabIndex]="0"
-          variant="underlined"
+          variant="pill"
           class="h-full flex flex-col"
         >
           <mmc-tab name="Cards">

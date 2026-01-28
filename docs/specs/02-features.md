@@ -1,18 +1,17 @@
 # Forge Framework - Core Features
 
 **Version:** 1.0.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
-## F1: Visual Node Editor
+### 1. Visual Node Editor (ngx-vflow)
 
-**Description**: Drag-and-drop interface for designing service architecture using ngx-vflow.
-
-**User Stories**:
-
-- As a developer, I can drag Entity nodes to define domain models
+- **Infinite Canvas**: Design service architecture using a high-performance node graph.
+- **Node Library**: Drag-and-drop Entities, REST Endpoints, gRPC Methods, and NATS Topics.
+- **Project Scope**: The editor operates on a per-project basis, reading logic from local `forge.json`.
+- **Native Experience**: Native OS dialogs for opening and creating projects via Wails.
 - As a developer, I can connect Entity to REST Endpoint to expose CRUD operations
 - As a developer, I can see exposed functions from my manual code as available nodes
 

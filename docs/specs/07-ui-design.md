@@ -1,8 +1,8 @@
 # Forge Framework - User Interface Design
 
 **Version:** 1.1.0
-**Status:** Draft
-**Last Updated:** 2026-01-26
+**Status:** Active
+**Last Updated:** 2026-01-28
 
 ---
 
@@ -12,6 +12,7 @@ Forge Studio combines the **project management efficiency of VS Code** with the 
 
 **Core Principles:**
 
+- **Native OS Elements**: Native title bars, translucent backdrops on macOS, and native context menus.
 - **Dark Mode First**: Deep grays (`#121212`), high contrast accents, and subtle borders.
 - **Content-Centric**: Minimal chrome, focus on the graph/code/data.
 - **Contextual**: UI adapts based on the active project or selection.
@@ -47,7 +48,7 @@ When `forge studio` is launched without a specific project context, or when clos
 
 ### Features
 
-- **Open Folder**: Native OS dialog to pick a folder.
+- **Open Folder**: Native OS dialog to pick a folder (Wails Dialog API).
   - If `forge.json` exists: Loads the project.
   - If missing: Prompts **"Forge Project not found. Initialize here?"**
 - **Clone Repo**: Simple modal to paste a Git URL and pick a destination.

@@ -17,5 +17,19 @@ export class AppComponent {
 
 	constructor() {
 		this.log.debug(`App has started in ${environment.name} mode`);
+		this.detectPlatform();
+	}
+
+	private detectPlatform(): void {
+		const userAgent = navigator.userAgent.toLowerCase();
+		let platform: 'darwin' | 'windows' | 'linux' = 'linux';
+
+		if (userAgent.includes('mac')) {
+			platform = 'darwin';
+		} else if (userAgent.includes('win')) {
+			platform = 'windows';
+		}
+
+		document.documentElement.setAttribute('data-platform', platform);
 	}
 }

@@ -10,7 +10,7 @@
       "executor": "@angular/build:application",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/studio",
+        "outputPath": "apps/studio/dist",
         "browser": "apps/studio/src/main.ts",
         "tsConfig": "apps/studio/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
@@ -83,7 +83,7 @@
       "options": {
         "buildTarget": "studio:build",
         "port": 4200,
-        "staticFilePath": "dist/apps/studio/browser",
+        "staticFilePath": "apps/studio/dist/browser",
         "spa": true
       }
     }

@@ -9,9 +9,9 @@ import (
 )
 
 // Wails uses Go's `embed` package to embed the frontend files into the binary.
-// The Angular build output is at ../../dist/apps/studio/browser from apps/studio.
+// Angular outputs directly to dist/browser (configured in project.json).
 
-//go:embed all:frontend/dist
+//go:embed all:dist/browser
 var assets embed.FS
 
 func main() {
@@ -32,12 +32,14 @@ func main() {
 
 	// Create the main window
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "Forge Studio",
-		Width:  1400,
-		Height: 900,
+		Title:     "Forge Studio",
+		Width:     1400,
+		Height:    900,
+		MinWidth:  800,
+		MinHeight: 600,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
-			Backdrop:                application.MacBackdropTranslucent,
+			Backdrop:                application.MacBackdropNormal,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
 		BackgroundColour: application.NewRGB(18, 18, 18), // Dark mode #121212

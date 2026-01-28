@@ -8,5 +8,6 @@ export {
 
 export {
     FileInfo,
+    InitialProject,
     Project
 } from "./models.js";
