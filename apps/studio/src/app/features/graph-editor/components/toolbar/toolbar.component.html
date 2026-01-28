@@ -1,0 +1,62 @@
+<div
+	class="absolute bottom-4 left-1/2 z-50 flex h-11 -translate-x-1/2 items-center justify-center rounded-xl border border-border bg-background p-2 shadow"
+>
+	<div class="flex h-full flex-row items-center justify-start gap-x-2">
+		<button
+			mmcButton
+			variant="outline"
+			size="sm"
+			(click)="onActionClick(eAction.ZOOM_OUT)"
+		>
+			<mmc-icon name="lucideZoomOut" size="sm"> </mmc-icon>
+		</button>
+		<div>{{ zoom | percent }}</div>
+		<button
+			mmcButton
+			variant="outline"
+			size="sm"
+			(click)="onActionClick(eAction.ZOOM_IN)"
+		>
+			<mmc-icon name="lucideZoomIn" size="sm"> </mmc-icon>
+		</button>
+
+		<mmc-divider orientation="vertical"></mmc-divider>
+
+		<button
+			mmcButton
+			variant="outline"
+			size="sm"
+			(click)="onActionClick(eAction.UNDO)"
+		>
+			<mmc-icon name="lucideUndo" size="sm"> </mmc-icon>
+		</button>
+		<button
+			mmcButton
+			variant="outline"
+			size="sm"
+			(click)="onActionClick(eAction.REDO)"
+		>
+			<mmc-icon name="lucideRedo" size="sm"> </mmc-icon>
+		</button>
+
+		<mmc-divider orientation="vertical"></mmc-divider>
+
+		<button
+			mmcButton
+			variant="outline"
+			size="sm"
+			(click)="onActionClick(eAction.FIT_TO_SCREEN)"
+		>
+			<mmc-icon name="lucideFocus" size="sm"> </mmc-icon>
+		</button>
+
+		<button
+			mmcButton
+			variant="outline"
+			size="sm"
+			(click)="onActionClick(eAction.ARRANGE)"
+		>
+			<mmc-icon name="lucideFocus" size="sm"> </mmc-icon>
+		</button>
+	</div>
+</div>

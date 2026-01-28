@@ -5,6 +5,13 @@ import { PROJECT_ROUTES } from './features/project/project.routes';
 import { projectSelectedGuard } from './features/project/guards/project-selected.guard';
 
 export const routes: Routes = [
+  {
+    path: 'vflow-test',
+    loadComponent: () =>
+      import('./features/vflow-test/vflow-test.component').then(
+        (m) => m.VflowTestComponent
+      ),
+  },
   ...PROJECT_ROUTES,
   ...SETTINGS_ROUTES,
   {

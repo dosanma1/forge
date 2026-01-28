@@ -6,6 +6,7 @@ export enum Path {
   PROJECTS = 'projects',
   JOIN = 'join',
   DASHBOARD = 'dashboard',
+  ARCHITECTURE = 'architecture',
   SETTINGS = 'settings',
   ACCOUNTS = 'accounts',
   PROFILE = 'profile',
@@ -13,6 +14,7 @@ export enum Path {
   NOTIFICATIONS = 'notifications',
   GENERAL = 'general',
   DOCUMENTATION = 'documentation',
+  VFLOW_TEST = 'vflow-test',
 }
 
 export enum MenuRoute {
@@ -22,6 +24,8 @@ export enum MenuRoute {
   PROJECTS = `/${Path.PROJECTS}`,
   JOIN = `/${Path.PROJECTS}/${Path.JOIN}`,
   DASHBOARD = `/${Path.DASHBOARD}`,
+  ARCHITECTURE = `/${Path.ARCHITECTURE}`,
   SETTINGS = `/${Path.SETTINGS}`,
   DOCUMENTATION = `/${Path.DOCUMENTATION}`,
+  VFLOW_TEST = `/${Path.VFLOW_TEST}`,
 }

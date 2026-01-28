@@ -33,6 +33,7 @@ export * from './lib/atoms/tooltip/tooltip-trigger.directive';
 export * from './lib/atoms/tooltip/tooltip.directive';
 
 // Molecules
+export * from './lib/molecules/accordion-panel';
 export * from './lib/molecules/alert/alert.component';
 export * from './lib/molecules/autocomplete/autocomplete.component';
 export type { AutocompleteOption } from './lib/molecules/autocomplete/autocomplete.component';

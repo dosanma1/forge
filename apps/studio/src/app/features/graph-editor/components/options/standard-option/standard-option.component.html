@@ -1,0 +1,19 @@
+<div class="group relative flex items-center gap-2 p-2 rounded-lg border border-border bg-white hover:bg-muted/30 transition-all cursor-pointer shadow-sm">
+	<!-- Option label -->
+	<div class="flex-1 min-w-0">
+		<div class="text-[12px] font-medium text-foreground truncate">
+			{{ option()?.label || 'Option' }}
+		</div>
+	</div>
+
+	<!-- Source handle - Centered vertically on the right edge -->
+	<handle
+		[id]="handlerID"
+		type="source"
+		position="right"
+		[template]="sourceHandler.templateRef()"
+	/>
+</div>
+
+<!-- Handler template reference -->
+<mmc-handler #sourceHandler [x]="8"></mmc-handler>

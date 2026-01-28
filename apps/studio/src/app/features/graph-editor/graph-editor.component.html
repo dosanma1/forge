@@ -1,0 +1,47 @@
+<div cdkDropListGroup class="relative h-full w-full">
+	<vflow
+		#flow
+		view="auto"
+		class="h-full w-full"
+		[background]="{
+			type: 'dots',
+			gap: 24,
+			backgroundColor: 'white',
+			color: '#e2e8f0'
+		}"
+		(contextmenu)="onContextMenuClicked($event)"
+		[nodes]="nodes"
+		[edges]="edges"
+		(nodesChanges)="handleNodeChanges($event)"
+		(nodesChanges.select)="handleNodeSelection($event)"
+		(edgesChanges.select)="handleEdgeSelection($event)"
+		(connect)="handleConnect($event)"
+	>
+		<!-- Custom edge template -->
+		<ng-template let-ctx edge>
+			<svg:path
+				selectable
+				fill="none"
+				[attr.d]="ctx.path()"
+				stroke-width="1.5"
+				[attr.stroke]="ctx.selected() ? 'oklch(var(--primary))' : '#cbd5e1'"
+				[attr.marker-end]="ctx.markerEnd()"
+			/>
+		</ng-template>
+
+		<!-- Edge label with delete button -->
+		<ng-template let-ctx edgeLabelHtml>
+			@if (selectedEdges().includes(ctx.edge.id)) {
+				<button
+					mmcButton
+					variant="destructive"
+					size="icon"
+					(click)="deleteEdge(ctx.edge)"
+				>
+					<mmc-icon name="lucideTrash" size="sm"></mmc-icon>
+				</button>
+			}
+		</ng-template>
+	</vflow>
+	<mmc-toolbar></mmc-toolbar>
+</div>

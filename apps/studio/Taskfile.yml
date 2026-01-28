@@ -1,0 +1,126 @@
+version: '3'
+
+includes:
+  common: ./build/Taskfile.yml
+
+vars:
+  APP_NAME: "forge-studio"
+  BIN_DIR: "bin"
+  # Angular builds to ../../dist/apps/studio/browser
+  ANGULAR_DIST: "../../dist/apps/studio/browser"
+  # Wails expects frontend/dist
+  FRONTEND_DIST: "./frontend/dist"
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 4200}}'
+
+tasks:
+  build:
+    summary: Builds the application
+    cmds:
+      - task: darwin:build
+
+  package:
+    summary: Packages a production build of the application
+    cmds:
+      - task: darwin:package
+
+  run:
+    summary: Runs the application
+    cmds:
+      - task: darwin:run
+
+  dev:
+    summary: Runs the application in development mode
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
+  # Angular/Nx specific tasks
+  install:frontend:deps:
+    summary: Install frontend dependencies (from monorepo root)
+    dir: ../..
+    cmds:
+      - npm install
+
+  build:frontend:
+    summary: Build the Angular frontend
+    deps:
+      - task: install:frontend:deps
+      - task: generate:bindings
+    cmds:
+      # Build Angular with Nx
+      - cd ../.. && npx nx build studio --configuration production
+      # Copy Angular output to frontend/dist for Wails embedding
+      - mkdir -p {{.FRONTEND_DIST}}
+      - rm -rf {{.FRONTEND_DIST}}/*
+      - cp -r {{.ANGULAR_DIST}}/* {{.FRONTEND_DIST}}/
+
+  build:frontend:dev:
+    summary: Build the Angular frontend in dev mode
+    deps:
+      - task: install:frontend:deps
+      - task: generate:bindings
+    cmds:
+      - cd ../.. && npx nx build studio --configuration development
+      - mkdir -p {{.FRONTEND_DIST}}
+      - rm -rf {{.FRONTEND_DIST}}/*
+      - cp -r {{.ANGULAR_DIST}}/* {{.FRONTEND_DIST}}/
+
+  dev:frontend:
+    summary: Runs the Angular frontend in development mode
+    dir: ../..
+    cmds:
+      - npx nx serve studio --port {{.VITE_PORT}}
+
+  generate:bindings:
+    summary: Generates TypeScript bindings for the frontend
+    cmds:
+      - go mod tidy
+      - wails3 generate bindings -f '{{.BUILD_FLAGS}}' -clean=true -ts -d ./src/app/wailsjs
+    vars:
+      BUILD_FLAGS: "{{.BUILD_FLAGS}}"
+
+  # Platform-specific build tasks
+  darwin:build:
+    summary: Builds for macOS
+    deps:
+      - task: build:frontend
+    cmds:
+      - go build -o {{.BIN_DIR}}/{{.APP_NAME}} .
+
+  darwin:run:
+    summary: Runs the macOS build
+    deps:
+      - task: darwin:build
+    cmds:
+      - ./{{.BIN_DIR}}/{{.APP_NAME}}
+
+  darwin:package:
+    summary: Packages macOS .app bundle
+    deps:
+      - task: darwin:build
+    cmds:
+      - mkdir -p {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS
+      - mkdir -p {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Resources
+      - cp {{.BIN_DIR}}/{{.APP_NAME}} {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS/
+      - |
+        cat > {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Info.plist << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleExecutable</key>
+          <string>{{.APP_NAME}}</string>
+          <key>CFBundleIdentifier</key>
+          <string>com.dosanma1.forge-studio</string>
+          <key>CFBundleName</key>
+          <string>Forge Studio</string>
+          <key>CFBundleVersion</key>
+          <string>1.0.0</string>
+          <key>CFBundleShortVersionString</key>
+          <string>1.0.0</string>
+          <key>CFBundlePackageType</key>
+          <string>APPL</string>
+          <key>NSHighResolutionCapable</key>
+          <true/>
+        </dict>
+        </plist>
+        EOF

@@ -56,23 +56,13 @@ export class ProjectComponent {
 
   async openFolder(): Promise<void> {
     try {
-      // Use File System Access API - shows "Open" button instead of "Upload"
-      const dirHandle = await (window as any).showDirectoryPicker();
-      const folderName = dirHandle.name;
-
-      // Browser security prevents getting full path - prompt for it
-      const path = window.prompt(
-        `Selected folder: "${folderName}"\n\nPlease enter the full path:`
-      );
-
+      // Use Wails native directory picker
+      const path = await this.projectService.selectDirectory();
       if (path) {
-        this.projectService.open(path);
+        await this.projectService.open(path);
       }
-    } catch (err: any) {
-      // User cancelled the picker
-      if (err.name !== 'AbortError') {
-        console.error('Error opening folder:', err);
-      }
+    } catch (err: unknown) {
+      console.error('Error opening folder:', err);
     }
   }
 

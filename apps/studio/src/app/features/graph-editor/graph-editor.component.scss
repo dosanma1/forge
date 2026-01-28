@@ -1,0 +1,31 @@
+// Custom handle styling - outlined with primary color
+:host ::ng-deep {
+	.vflow-handle {
+		width: 8px !important;
+		height: 8px !important;
+		background: #ffffff !important;
+		border: 1.5px solid #a1a1aa !important; // slate-400
+		border-radius: 50% !important;
+		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		cursor: crosshair !important;
+		padding: 0 !important;
+
+		&:hover {
+			background: #f4f4f5 !important;
+			border-color: #71717a !important; // slate-500
+			transform: scale(1.25);
+		}
+
+		&.vflow-handle-connecting {
+			background: oklch(var(--primary)) !important;
+			border-color: oklch(var(--primary)) !important;
+			box-shadow: 0 0 0 4px oklch(var(--primary) / 0.2);
+		}
+	}
+
+	// Connection line styling
+	.vflow-connection {
+		stroke: oklch(var(--primary));
+		stroke-width: 1.5;
+	}
+}

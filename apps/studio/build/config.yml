@@ -1,0 +1,40 @@
+# Forge Studio - Wails v3 Configuration
+version: '3'
+
+# Application information
+info:
+  companyName: "dosanma1"
+  productName: "Forge Studio"
+  productIdentifier: "com.dosanma1.forge-studio"
+  description: "Visual no-code backend development platform"
+  copyright: "(c) 2025, dosanma1"
+  comments: "Build microservices visually with Forge"
+  version: "1.0.0"
+
+# Dev mode configuration
+dev_mode:
+  root_path: .
+  log_level: warn
+  debounce: 1000
+  ignore:
+    dir:
+      - .git
+      - node_modules
+      - frontend/dist
+      - bin
+      - .angular
+      - dist
+    file:
+      - .DS_Store
+      - .gitignore
+      - .gitkeep
+    watched_extension:
+      - "*.go"
+    git_ignore: true
+  executes:
+    - cmd: wails3 task build:frontend:dev
+      type: blocking
+    - cmd: wails3 task dev:frontend
+      type: background
+    - cmd: wails3 task darwin:run
+      type: primary

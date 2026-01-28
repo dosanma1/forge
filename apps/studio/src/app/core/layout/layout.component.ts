@@ -2,13 +2,17 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
+  OnInit,
 } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { ProjectService } from '../../features/project/project.service';
 import { provideIcons } from '@ng-icons/core';
 import {
+  lucideBoxes,
   lucideDatabase,
+  lucideFlaskConical,
   lucideGitBranch,
   lucideHouse,
   lucideZap,
@@ -17,6 +21,7 @@ import {
   BreadcrumbLogo,
   BreadcrumbSelectorSegment,
   MmcBreadcrumb,
+  MmcIcon,
   NavigationItem,
   SideBarComponent,
   SideBarService,
@@ -26,9 +31,11 @@ import { MenuRoute } from '../navigation/navigation-menu';
 @Component({
   selector: 'mmc-layout',
   standalone: true,
-  imports: [RouterOutlet, SideBarComponent, MmcBreadcrumb],
+  imports: [RouterOutlet, SideBarComponent, MmcBreadcrumb, MmcIcon],
   viewProviders: [
     provideIcons({
+      lucideBoxes,
+      lucideFlaskConical,
       lucideHouse,
       lucideDatabase,
       lucideGitBranch,
@@ -39,19 +46,39 @@ import { MenuRoute } from '../navigation/navigation-menu';
   styleUrl: './layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   protected readonly projectService = inject(ProjectService);
   protected readonly sidebarService = inject(SideBarService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  ngOnInit(): void {
+    // Load projects and restore last opened project
+    this.projectService.list();
+
+    // Refresh git branch when window regains focus (detects external branch changes)
+    const onFocus = () => this.projectService.refreshGitBranch();
+    window.addEventListener('focus', onFocus);
+    this.destroyRef.onDestroy(() => window.removeEventListener('focus', onFocus));
+  }
 
   protected readonly logo: BreadcrumbLogo = {
     icon: 'lucideZap',
     alt: 'Home',
   };
 
+  protected readonly currentBranch = computed(() => this.projectService.currentBranch());
+
   protected breadcrumbSegments = computed<BreadcrumbSelectorSegment[]>(() => {
     const projects = this.projectService.projects();
     const selectedProject = this.projectService.selectedResource();
+    const currentBranch = this.projectService.currentBranch() || 'main';
+    const availableBranches = this.projectService.availableBranches();
+
+    // Use available branches if loaded, otherwise just show current branch
+    const branchItems = availableBranches.length > 0
+      ? availableBranches.map((b) => ({ id: b, label: b, icon: 'lucideGitBranch' }))
+      : [{ id: currentBranch, label: currentBranch, icon: 'lucideGitBranch' }];
 
     return [
       {
@@ -69,8 +96,8 @@ export class LayoutComponent {
       {
         id: 'branch',
         label: 'Branch',
-        selectedId: 'main',
-        items: [{ id: 'main', label: 'main', icon: 'lucideGitBranch' }],
+        selectedId: currentBranch,
+        items: branchItems,
       },
     ];
   });
@@ -81,6 +108,8 @@ export class LayoutComponent {
       if (project) {
         this.projectService.switchProject(project);
       }
+    } else if (event.segmentId === 'branch') {
+      this.projectService.switchGitBranch(event.itemId);
     }
   }
 
@@ -97,8 +126,8 @@ export class LayoutComponent {
 
   onSegmentClick(event: { segmentId: string; itemId: string }): void {
     if (event.segmentId === 'project') {
-      // Navigate to current project dashboard
-      this.router.navigate([MenuRoute.DASHBOARD]);
+      // Navigate to current project architecture view
+      this.router.navigate([MenuRoute.ARCHITECTURE]);
     }
     // Branch clicks could navigate to branch view in the future
   }
@@ -106,11 +135,18 @@ export class LayoutComponent {
   protected navigationItems = computed<NavigationItem[]>(() => {
     return [
       {
-        id: 'dashboard',
-        title: 'Dashboard',
+        id: 'architecture',
+        title: 'Architecture',
         type: 'basic',
-        icon: 'lucideHouse',
-        link: MenuRoute.DASHBOARD,
+        icon: 'lucideBoxes',
+        link: MenuRoute.ARCHITECTURE,
+      },
+      {
+        id: 'vflow-test',
+        title: 'VFlow Test',
+        type: 'basic',
+        icon: 'lucideFlaskConical',
+        link: MenuRoute.VFLOW_TEST,
       },
     ];
   });

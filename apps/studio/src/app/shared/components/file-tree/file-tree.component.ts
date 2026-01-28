@@ -26,14 +26,18 @@ import {
   lucideRefreshCw,
 } from '@ng-icons/lucide';
 import { MmcButton, MmcIcon, MmcTree, TreeNode } from '@forge/ui';
-import {
-  FileSystemEntry,
-  FileSystemService,
-} from '../../../core/services/file-system.service';
+import * as WailsProject from '../../../wailsjs/github.com/dosanma1/forge/apps/studio/projectservice';
+import { FileInfo } from '../../../wailsjs/github.com/dosanma1/forge/apps/studio/models';
+
+export interface FileSystemEntry {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: FileSystemEntry[];
+}
 
 export interface FileTreeNode extends TreeNode {
   path: string;
-  handle?: FileSystemHandle;
   type: 'file' | 'directory';
 }
 
@@ -105,12 +109,14 @@ export interface FileTreeNode extends TreeNode {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FileTreeComponent implements OnInit {
-  private readonly fileSystemService = inject(FileSystemService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly directoryHandle = input<FileSystemDirectoryHandle | null>(null);
-  readonly hotReloadEnabled = input<boolean>(true);
-  readonly hotReloadInterval = input<number>(3000); // 3 seconds default
+  readonly directoryPath = input<string | null>(null);
+  readonly hotReloadEnabled = input<boolean>(false); // Disabled by default - too disruptive
+  readonly hotReloadInterval = input<number>(10000); // 10 seconds if enabled
+
+  // Track expanded nodes to preserve state across refreshes
+  private readonly expandedNodeIds = signal<Set<string>>(new Set());
 
   readonly fileSelect = output<FileTreeNode>();
   readonly directorySelect = output<FileTreeNode>();
@@ -124,11 +130,11 @@ export class FileTreeComponent implements OnInit {
   });
 
   constructor() {
-    // Watch for directory handle changes
+    // Watch for directory path changes
     effect(() => {
-      const handle = this.directoryHandle();
-      if (handle) {
-        this.loadDirectory(handle);
+      const path = this.directoryPath();
+      if (path) {
+        this.loadDirectory(path);
       }
     });
   }
@@ -139,23 +145,23 @@ export class FileTreeComponent implements OnInit {
       interval(this.hotReloadInterval())
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
-          const handle = this.directoryHandle();
-          if (handle && !this.isLoading()) {
-            this.loadDirectory(handle, true);
+          const path = this.directoryPath();
+          if (path && !this.isLoading()) {
+            this.loadDirectory(path, true);
           }
         });
     }
   }
 
   async refresh(): Promise<void> {
-    const handle = this.directoryHandle();
-    if (handle) {
-      await this.loadDirectory(handle);
+    const path = this.directoryPath();
+    if (path) {
+      await this.loadDirectory(path);
     }
   }
 
   private async loadDirectory(
-    handle: FileSystemDirectoryHandle,
+    path: string,
     silent: boolean = false,
   ): Promise<void> {
     if (!silent) {
@@ -163,11 +169,7 @@ export class FileTreeComponent implements OnInit {
     }
 
     try {
-      const entries = await this.fileSystemService.readDirectoryTree(
-        handle,
-        '',
-        5, // Max depth of 5 levels
-      );
+      const entries = await this.readDirectoryTree(path, '', 2);
       this.fileEntries.set(entries);
     } catch (error) {
       console.error('Error loading directory:', error);
@@ -178,27 +180,75 @@ export class FileTreeComponent implements OnInit {
     }
   }
 
-  private flattenEntries(entries: FileSystemEntry[], level: number): FileTreeNode[] {
-    const nodes: FileTreeNode[] = [];
+  private async readDirectoryTree(
+    basePath: string,
+    relativePath: string,
+    maxDepth: number,
+  ): Promise<FileSystemEntry[]> {
+    if (maxDepth <= 0) {
+      return this.readDirectory(basePath, relativePath);
+    }
+
+    const entries = await this.readDirectory(basePath, relativePath);
 
     for (const entry of entries) {
+      if (entry.type === 'directory') {
+        entry.children = await this.readDirectoryTree(
+          basePath,
+          entry.path,
+          maxDepth - 1,
+        );
+      }
+    }
+
+    return entries;
+  }
+
+  private async readDirectory(
+    basePath: string,
+    relativePath: string,
+  ): Promise<FileSystemEntry[]> {
+    const fullPath = relativePath ? `${basePath}/${relativePath}` : basePath;
+    const files: FileInfo[] = await WailsProject.ListDirectory(fullPath);
+
+    return files
+      .map((f) => ({
+        name: f.name,
+        path: relativePath ? `${relativePath}/${f.name}` : f.name,
+        type: f.isDir ? ('directory' as const) : ('file' as const),
+      }))
+      .sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === 'directory' ? -1 : 1;
+        }
+        return a.name.localeCompare(b.name);
+      });
+  }
+
+  private flattenEntries(entries: FileSystemEntry[], level: number): FileTreeNode[] {
+    const nodes: FileTreeNode[] = [];
+    const expandedIds = this.expandedNodeIds();
+
+    for (const entry of entries) {
+      // Preserve expanded state, or auto-expand root level on first load
+      const isExpanded = expandedIds.has(entry.path) || (level === 0 && expandedIds.size === 0);
+
       const node: FileTreeNode = {
         name: entry.name,
         path: entry.path,
         level,
         type: entry.type,
         expandable: entry.type === 'directory',
-        isExpanded: level === 0, // Auto-expand root level
+        isExpanded,
         icon: this.getIcon(entry),
         expandedIcon: entry.type === 'directory' ? 'lucideFolderOpen' : undefined,
         id: entry.path,
-        handle: entry.handle,
       };
 
       nodes.push(node);
 
-      // Recursively add children
-      if (entry.children && entry.children.length > 0) {
+      // Only add children if this node is expanded
+      if (entry.children && entry.children.length > 0 && isExpanded) {
         nodes.push(...this.flattenEntries(entry.children, level + 1));
       }
     }
@@ -253,7 +303,19 @@ export class FileTreeComponent implements OnInit {
     if (fileNode.type === 'file') {
       this.fileSelect.emit(fileNode);
     } else {
+      // Toggle expanded state for directories
+      this.toggleExpanded(fileNode.path);
       this.directorySelect.emit(fileNode);
     }
+  }
+
+  private toggleExpanded(path: string): void {
+    const expandedIds = new Set(this.expandedNodeIds());
+    if (expandedIds.has(path)) {
+      expandedIds.delete(path);
+    } else {
+      expandedIds.add(path);
+    }
+    this.expandedNodeIds.set(expandedIds);
   }
 }

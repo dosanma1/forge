@@ -1,0 +1,10 @@
+<ng-template let-ctx>
+    <svg:circle
+        stroke-width="1.5"
+        stroke="oklch(var(--primary))"
+        r="4"
+        fill="#ffffff"
+        class="transition-all duration-200"
+        [attr.cx]="ctx.point().x + x()"
+        [attr.cy]="ctx.point().y + y()" />
+</ng-template>

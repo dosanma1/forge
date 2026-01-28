@@ -1,27 +1,72 @@
-import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { IProject, Project } from '../../core/models/project.model';
+import { IProject } from '../../core/models/project.model';
 import { MenuRoute } from '../../core/navigation/navigation-menu';
 import { LogService } from '@forge/log';
 import { LOCAL_STORAGE } from '@forge/storage';
-import { ApiService } from '../../core/services/api.service';
-import { environment } from '../../../environments/environment';
-import { take } from 'rxjs';
+import * as WailsProject from '../../wailsjs/github.com/dosanma1/forge/apps/studio/projectservice';
+import { Project as WailsProjectModel } from '../../wailsjs/github.com/dosanma1/forge/apps/studio/models';
 
 const LAST_PROJECT_KEY = 'forge_last_project_path';
+
+/**
+ * Adapter to convert Wails Project to IProject interface
+ */
+class ProjectAdapter implements IProject {
+  constructor(private wailsProject: WailsProjectModel) {}
+
+  ID(): string {
+    return this.wailsProject.path;
+  }
+
+  Type(): string {
+    return 'projects';
+  }
+
+  CreatedAt(): Date {
+    return this.wailsProject.lastOpen ? new Date(this.wailsProject.lastOpen as unknown as string) : new Date();
+  }
+
+  UpdatedAt(): Date {
+    return this.wailsProject.lastOpen ? new Date(this.wailsProject.lastOpen as unknown as string) : new Date();
+  }
+
+  DeletedAt(): Date | null {
+    return null;
+  }
+
+  get id(): string {
+    return this.wailsProject.id;
+  }
+
+  get name(): string {
+    return this.wailsProject.name;
+  }
+
+  get description(): string {
+    return this.wailsProject.description || '';
+  }
+
+  get imageURL(): string {
+    return this.wailsProject.imageURL || '';
+  }
+
+  get path(): string {
+    return this.wailsProject.path;
+  }
+}
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   private readonly logger = inject(LogService);
   private readonly router = inject(Router);
-  private readonly http = inject(HttpClient);
   private readonly localStorage = inject(LOCAL_STORAGE);
-  private readonly apiService = inject(ApiService);
 
   // State signals
   readonly projects = signal<IProject[]>([]);
   readonly selectedResource = signal<IProject | null>(null);
+  readonly currentBranch = signal<string>('');
+  readonly availableBranches = signal<string[]>([]);
   readonly isLoading = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -47,93 +92,142 @@ export class ProjectService {
   }
 
   /**
-   * List recent projects from the backend using JSON API
+   * List recent projects using Wails bindings
    */
-  list(): void {
+  async list(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.apiService
-      .list(Project)
-      .pipe(take(1))
-      .subscribe({
-        next: (response) => {
-          this.projects.set(response.result());
-        },
-        error: (err) => {
-          this.logger.error('Failed to list projects', err);
-          this.error.set(err.message || 'Failed to load projects');
-          this.isLoading.set(false);
-        },
-        complete: () => this.isLoading.set(false),
-      });
+    try {
+      const wailsProjects = await WailsProject.ListProjects();
+      const projects = wailsProjects.map((p) => new ProjectAdapter(p));
+      this.projects.set(projects);
+      // After loading projects, try to restore the last opened project
+      this.initializeLastProject();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load projects';
+      this.logger.error('Failed to list projects', err);
+      this.error.set(message);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   /**
-   * Create a new project using JSON API
+   * Create a new project using Wails bindings
    */
-  create(name: string, path: string): void {
+  async create(name: string, path: string): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
 
-    const newProject = new Project({
-      name,
-      path,
-      description: '',
-    });
-
-    this.apiService
-      .post(newProject)
-      .pipe(take(1))
-      .subscribe({
-        next: (createdProject) => {
-          this.projects.update((projects) => [createdProject, ...projects]);
-          this.setSelectedResource(createdProject);
-          this.saveLastProjectPath(path);
-          this.router.navigate([MenuRoute.DASHBOARD]);
-        },
-        error: (err) => {
-          this.logger.error('Failed to create project', err);
-          this.error.set(err.error?.errors?.[0]?.detail || err.message || 'Failed to create project');
-          this.isLoading.set(false);
-        },
-        complete: () => this.isLoading.set(false),
-      });
+    try {
+      const wailsProject = await WailsProject.CreateProject(name, path, '');
+      if (wailsProject) {
+        const project = new ProjectAdapter(wailsProject);
+        this.projects.update((projects) => [project, ...projects]);
+        this.setSelectedResource(project);
+        this.saveLastProjectPath(path);
+        this.router.navigate([MenuRoute.DASHBOARD]);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create project';
+      this.logger.error('Failed to create project', err);
+      this.error.set(message);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   /**
-   * Open an existing project by path
-   * Note: This uses a custom endpoint, not standard JSON API
+   * Open an existing project by path using Wails bindings
    */
-  open(path: string): void {
+  async open(path: string): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.http
-      .post<IProject>(`${environment.url}/projects/open`, { path })
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
-          // Refresh the list to get the updated project info
-          this.list();
-          this.saveLastProjectPath(path);
-        },
-        error: (err) => {
-          this.logger.error('Failed to open project', err);
-          this.error.set(err.error?.errors?.[0]?.detail || err.message || 'Failed to open project');
-          this.isLoading.set(false);
-        },
-        complete: () => this.isLoading.set(false),
-      });
+    try {
+      const wailsProject = await WailsProject.OpenProject(path);
+      if (wailsProject) {
+        // Refresh the list to get the updated project info
+        await this.list();
+        this.saveLastProjectPath(path);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to open project';
+      this.logger.error('Failed to open project', err);
+      this.error.set(message);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   /**
-   * Set the selected project and navigate to dashboard
+   * Open native directory picker using Wails bindings
+   */
+  async selectDirectory(): Promise<string | null> {
+    try {
+      return await WailsProject.SelectDirectory();
+    } catch (err: unknown) {
+      this.logger.error('Failed to open directory picker', err);
+      return null;
+    }
+  }
+
+  /**
+   * Get current git branch and list all branches for the selected project
+   */
+  async refreshGitBranch(): Promise<void> {
+    const project = this.selectedResource();
+    if (!project) {
+      this.currentBranch.set('');
+      this.availableBranches.set([]);
+      return;
+    }
+
+    try {
+      const [branch, branches] = await Promise.all([
+        WailsProject.GetGitBranch(project.path),
+        WailsProject.ListGitBranches(project.path),
+      ]);
+      this.currentBranch.set(branch || '');
+      this.availableBranches.set(branches || []);
+    } catch (err: unknown) {
+      this.logger.error('Failed to get git branch info', err);
+      this.currentBranch.set('');
+      this.availableBranches.set([]);
+    }
+  }
+
+  /**
+   * Switch to a different git branch
+   */
+  async switchGitBranch(branch: string): Promise<void> {
+    const project = this.selectedResource();
+    if (!project) {
+      return;
+    }
+
+    try {
+      await WailsProject.SwitchGitBranch(project.path, branch);
+      this.currentBranch.set(branch);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to switch branch';
+      this.logger.error('Failed to switch git branch', err);
+      this.error.set(message);
+    }
+  }
+
+  /**
+   * Set the selected project and refresh git branch
    */
   setSelectedResource(project: IProject | null): void {
     this.selectedResource.set(project);
     if (project) {
       this.saveLastProjectPath(project.ID());
+      this.refreshGitBranch();
+    } else {
+      this.currentBranch.set('');
+      this.availableBranches.set([]);
     }
   }
 
