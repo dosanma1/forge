@@ -3,7 +3,7 @@ module github.com/dosanma1/forge/go/kit
 go 1.24.0
 
 require (
-	firebase.google.com/go/v4 v4.15.1
+	firebase.google.com/go/v4 v4.19.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/getsops/sops/v3 v3.8.1
