@@ -14,6 +14,7 @@ import {
 import { ClassValue } from 'clsx';
 import { cn } from '../../../helpers/cn';
 import { MmcTab } from './tab.component';
+import { GhostTabsComponent } from './variants/ghost/ghost.component';
 import { PillTabsComponent } from './variants/pill/pill.component';
 import { UnderlinedTabsComponent } from './variants/underlined/underlined.component';
 
@@ -23,7 +24,7 @@ export type TabsOrientation =
   | 'horizontal-reverse'
   | 'vertical-reverse';
 
-export type TabsVariant = 'pill' | 'underlined';
+export type TabsVariant = 'pill' | 'underlined' | 'ghost';
 
 export interface TabChange {
   previous: number | undefined;
@@ -34,7 +35,7 @@ export interface TabChange {
   selector: 'mmc-tabs',
   standalone: true,
   templateUrl: './tabs.component.html',
-  imports: [NgTemplateOutlet, PillTabsComponent, UnderlinedTabsComponent],
+  imports: [NgTemplateOutlet, GhostTabsComponent, PillTabsComponent, UnderlinedTabsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('tabChange', [

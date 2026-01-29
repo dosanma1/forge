@@ -344,7 +344,7 @@ export class ProjectService {
    */
   switchProject(project: IProject): void {
     this.setSelectedResource(project);
-    this.router.navigate([MenuRoute.DASHBOARD]);
+    this.router.navigate([MenuRoute.ARCHITECTURE]);
   }
 
   /**

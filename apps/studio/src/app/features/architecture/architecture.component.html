@@ -1,0 +1,60 @@
+<div class="grid grid-rows-[1fr_auto] grid-cols-[auto_1fr] h-full w-full">
+  <!-- Left Panel - Architecture Explorer -->
+  <aside
+    class="col-start-1 row-start-1 row-span-2 w-64 border-r border-border bg-sidebar flex flex-col overflow-hidden"
+  >
+    <app-architecture-sidebar
+      [projectPath]="projectPath()"
+      [nodes]="architectureNodes()"
+      [selectedNodeId]="selectedNodeId()"
+      [unsavedChanges]="unsavedChanges()"
+      [canvasDropList]="canvasDropList()"
+      (addNode)="onAddNode($event)"
+      (selectNode)="selectNode($event)"
+      (saveChanges)="saveChanges()"
+      (openFolder)="openFolder()"
+      (fileSelect)="onFileSelect($event)"
+      (directorySelect)="onDirectorySelect($event)"
+    />
+  </aside>
+
+  <!-- Main Canvas Area -->
+  <main class="col-start-2 row-start-1 overflow-hidden bg-muted/30 relative">
+    <app-architecture-canvas
+      #architectureCanvas
+      [graphNodes]="graphNodesForEditor()"
+      [graphEdges]="graphEdgesForEditor()"
+      [configPanelData]="configPanelData()"
+      [transportConfigPanelData]="transportConfigPanelData()"
+      (nodesChanged)="onNodesChange($event)"
+      (edgesChanged)="onEdgesChange($event)"
+      (nodeSelected)="onNodeSelected($event)"
+      (nodeDrop)="onNodeDrop($event)"
+      (configSave)="onConfigPanelSave($event)"
+      (configClose)="onConfigPanelClose()"
+      (configDelete)="onConfigPanelDelete($event)"
+      (addTransport)="onAddTransport($event)"
+      (transportConfigClose)="onTransportConfigPanelClose()"
+      (transportAddEndpoint)="onAddEndpoint($event)"
+      (transportBasePathChange)="onTransportBasePathChange($event)"
+    />
+  </main>
+
+  <!-- Bottom Panel -->
+  <div
+    class="col-start-2 row-start-2 h-48 border-t border-border bg-background overflow-hidden"
+  >
+    <app-bottom-panel
+      #bottomPanel
+      [nodes]="architectureNodes()"
+      [selectedNode]="selectedNode()"
+      [selectedNodeId]="selectedNodeId()"
+      [activeTabIndex]="0"
+      [architectureJson]="architectureJson()"
+      (selectNode)="selectNode($event)"
+      (tabChanged)="onBottomTabChanged($event)"
+      (addTransport)="onBottomPanelAddTransport($event)"
+      (addEndpoint)="onAddEndpoint($event)"
+    />
+  </div>
+</div>

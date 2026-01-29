@@ -1,0 +1,57 @@
+<mmc-tabs
+  #bottomTabs
+  [activeTabIndex]="activeTabIndex()"
+  variant="ghost"
+  class="h-full flex flex-col"
+  (tabChanged)="onTabChanged($event)"
+>
+  <mmc-tab name="Nodes">
+    <div class="p-4 overflow-auto h-full">
+      @if (nodes().length === 0) {
+        <p class="text-sm text-muted-foreground">
+          No nodes. Click "Add Nodes" in the sidebar to add services, apps, or libraries.
+        </p>
+      } @else {
+        <div class="grid grid-cols-3 gap-4">
+          @for (node of nodes(); track node.id) {
+            <div
+              class="p-3 rounded-lg border cursor-pointer"
+              [class.border-primary]="selectedNodeId() === node.id"
+              [class.bg-muted/50]="selectedNodeId() === node.id"
+              (click)="onSelectNode(node.id)"
+            >
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-medium text-sm">{{ node.name }}</span>
+                <span class="text-xs px-1.5 py-0.5 rounded bg-muted">
+                  {{ node.type }}
+                </span>
+              </div>
+              <p class="text-xs text-muted-foreground font-mono">
+                {{ node.root }}
+              </p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </mmc-tab>
+  <mmc-tab name="Actions">
+    <div class="p-4 overflow-auto h-full">
+      <app-actions-panel
+        [selectedNode]="selectedNode()"
+        (addTransport)="onAddTransport($event)"
+        (addEndpoint)="onAddEndpoint($event)"
+      />
+    </div>
+  </mmc-tab>
+  <mmc-tab name="Logs">
+    <div class="p-4 overflow-auto h-full font-mono text-xs">
+      <p class="text-muted-foreground">No logs available</p>
+    </div>
+  </mmc-tab>
+  <mmc-tab name="JSON">
+    <div class="p-4 overflow-auto h-full">
+      <pre class="text-xs font-mono">{{ architectureJson() }}</pre>
+    </div>
+  </mmc-tab>
+</mmc-tabs>

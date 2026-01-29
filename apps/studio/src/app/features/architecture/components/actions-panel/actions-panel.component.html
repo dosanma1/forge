@@ -1,0 +1,107 @@
+@if (!selectedNode()) {
+  <p class="text-sm text-muted-foreground">
+    Select a node to see available actions.
+  </p>
+} @else if (selectedNode()?.type === 'service') {
+  <div class="space-y-4">
+    <!-- Selected Transport Editor -->
+    @if (selectedTransport(); as transport) {
+      <div class="rounded-lg border border-primary bg-card p-3 space-y-3">
+        <!-- Transport Header -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <mmc-icon name="lucideGlobe" size="sm" class="text-blue-500"></mmc-icon>
+            <span class="font-medium">HTTP {{ transport.basePath }}</span>
+          </div>
+          <button
+            mmcButton
+            variant="ghost"
+            size="icon"
+            (click)="onClearSelection()"
+          >
+            <mmc-icon name="lucideX" size="xs"></mmc-icon>
+          </button>
+        </div>
+
+        <!-- Existing Endpoints -->
+        @if (transport.endpoints.length > 0) {
+          <div class="space-y-1">
+            <span class="text-xs text-muted-foreground">Endpoints</span>
+            @for (endpoint of transport.endpoints; track endpoint.id) {
+              <div class="flex items-center gap-2 py-1 px-2 bg-muted/50 rounded text-xs">
+                <span
+                  class="px-1.5 py-0.5 text-[10px] font-medium rounded"
+                  [class]="{
+                    'bg-emerald-100 text-emerald-700': endpoint.method === 'GET',
+                    'bg-blue-100 text-blue-700': endpoint.method === 'POST',
+                    'bg-amber-100 text-amber-700': endpoint.method === 'PUT' || endpoint.method === 'PATCH',
+                    'bg-red-100 text-red-700': endpoint.method === 'DELETE'
+                  }"
+                >
+                  {{ endpoint.method }}
+                </span>
+                <span class="font-mono">{{ endpoint.path }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Add Endpoint Form -->
+        <div class="space-y-2">
+          <span class="text-xs text-muted-foreground">Add endpoint</span>
+          <div class="flex gap-2">
+            <mmc-select
+              [(ngModel)]="newEndpointMethod"
+              name="method"
+              class="w-24"
+            >
+              <mmc-option value="GET">GET</mmc-option>
+              <mmc-option value="POST">POST</mmc-option>
+              <mmc-option value="PUT">PUT</mmc-option>
+              <mmc-option value="PATCH">PATCH</mmc-option>
+              <mmc-option value="DELETE">DELETE</mmc-option>
+            </mmc-select>
+            <input
+              mmcInput
+              type="text"
+              placeholder="/path"
+              [(ngModel)]="newEndpointPath"
+              name="path"
+              class="flex-1 h-8 text-sm"
+            />
+            <button
+              mmcButton
+              variant="default"
+              size="sm"
+              (click)="onAddEndpoint()"
+              [disabled]="!newEndpointPath.trim()"
+            >
+              <mmc-icon name="lucidePlus" size="xs" class="mr-1"></mmc-icon>
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Transport Actions Grid -->
+    <div>
+      <span class="text-xs text-muted-foreground mb-2 block">Add transport</span>
+      <div class="grid grid-cols-2 gap-2">
+        @for (action of transportActions; track action.type) {
+          <app-transport-action
+            [type]="action.type"
+            [label]="action.label"
+            [icon]="action.icon"
+            [disabled]="action.disabled"
+            (add)="onAddTransport($event)"
+          />
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <p class="text-sm text-muted-foreground">
+    No actions available for {{ selectedNode()?.type }} nodes yet.
+  </p>
+}

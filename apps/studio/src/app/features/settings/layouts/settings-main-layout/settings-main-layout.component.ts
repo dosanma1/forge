@@ -11,6 +11,7 @@ export type LayoutSize = NonNullable<'default' | 'lg' | 'xl' | 'full'>;
 @Component({
 	selector: 'mmc-settings-main-layout',
 	templateUrl: './settings-main-layout.component.html',
+	styleUrl: './settings-main-layout.component.scss',
 	imports: [MmcDivider, MmcBreadcrumb],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	host: {

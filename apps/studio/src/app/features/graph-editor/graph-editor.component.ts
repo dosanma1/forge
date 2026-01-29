@@ -1,12 +1,16 @@
-import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  ElementRef,
+  inject,
   input,
   output,
   signal,
   viewChild,
+  WritableSignal,
 } from '@angular/core';
 import { provideIcons } from '@ng-icons/core';
 import { lucideTrash } from '@ng-icons/lucide';
@@ -20,15 +24,23 @@ import {
   Connection,
 } from 'ngx-vflow';
 import { MmcButton, MmcIcon } from '@forge/ui';
-import { StandardNodeComponent } from './components/nodes/standard-node/standard-node.component';
+import { ServiceNodeComponent } from '../architecture/components/nodes/service-node/service-node.component';
+import { AppNodeComponent } from '../architecture/components/nodes/app-node/app-node.component';
+import { LibraryNodeComponent } from '../architecture/components/nodes/library-node/library-node.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
-import { ActionType, DialogueNode, IPosition } from './models';
+
+export interface IPosition {
+  x: number;
+  y: number;
+}
+
+export type GraphNodeType = 'service' | 'app' | 'library';
 
 export interface GraphNode {
   id: string;
   name: string;
-  description: string;
-  type: 'standard' | 'start' | 'graph';
+  description?: string;
+  type: GraphNodeType;
   positionX: number;
   positionY: number;
   data?: Record<string, unknown>;
@@ -42,11 +54,20 @@ export interface GraphEdge {
   targetHandle?: string;
 }
 
+interface VflowNode {
+  id: string;
+  point: WritableSignal<{ x: number; y: number }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: WritableSignal<any>;
+}
+
 @Component({
   selector: 'app-graph-editor',
   templateUrl: './graph-editor.component.html',
   styleUrl: './graph-editor.component.scss',
-  imports: [Vflow, ToolbarComponent, CdkDropListGroup, MmcButton, MmcIcon],
+  imports: [Vflow, ToolbarComponent, CdkDropList, MmcButton, MmcIcon],
   viewProviders: [provideIcons({ lucideTrash })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -54,6 +75,8 @@ export interface GraphEdge {
   },
 })
 export class GraphEditorComponent {
+  private readonly elementRef = inject(ElementRef);
+
   /** Input nodes from parent */
   readonly graphNodes = input<GraphNode[]>([]);
 
@@ -66,7 +89,29 @@ export class GraphEditorComponent {
   /** Emitted when edges change */
   readonly edgesChanged = output<GraphEdge[]>();
 
+  /** Emitted when node selection changes */
+  readonly nodeSelected = output<string | null>();
+
+  /** Emitted when a node type is dropped on the canvas */
+  readonly nodeDrop = output<{ type: string; position: { x: number; y: number } }>();
+
   readonly vFlowComponent = viewChild.required(VflowComponent);
+
+  /** Drop list reference for connecting to external palette */
+  readonly dropList = viewChild.required('canvasDropList', { read: CdkDropList });
+
+  /** Expose viewport for external coordinate conversion (reactive) */
+  readonly viewport = computed(() => this.vFlowComponent().viewport());
+
+  /** Convert flow coordinates to document/screen coordinates */
+  flowPointToDocumentPoint(flowPoint: { x: number; y: number }): { x: number; y: number } {
+    const vp = this.vFlowComponent().viewport();
+    const containerRect = this.elementRef.nativeElement.getBoundingClientRect();
+    return {
+      x: (flowPoint.x * vp.zoom) + vp.x + containerRect.left,
+      y: (flowPoint.y * vp.zoom) + vp.y + containerRect.top,
+    };
+  }
 
   readonly contextMenuPosition = signal<IPosition | undefined>(undefined);
   readonly selectedNodes = signal<string[]>([]);
@@ -84,117 +129,84 @@ export class GraphEditorComponent {
     };
   });
 
-  /** Test nodes using StandardNodeComponent */
-  nodes = [
-    {
-      id: '1',
-      point: signal({ x: 100, y: 100 }),
-      type: StandardNodeComponent,
-      data: signal(
-        new DialogueNode({
-          id: '1',
-          name: 'Data_Gathering',
-          positionX: 100,
-          positionY: 100,
-          actions: [
-            {
-              id: 'a1',
-              type: ActionType.Text,
-              content: "Hi, I'm Artie! I hope you are having a great day.",
-            },
-            {
-              id: 'a2',
-              type: ActionType.ExecuteCode,
-              label: 'Execute code',
-            },
-            {
-              id: 'a3',
-              type: ActionType.Text,
-              content: 'I am your AI powered assistant',
-            },
-            {
-              id: 'a4',
-              type: ActionType.Transition,
-              label: 'AI Transition',
-              options: [
-                { id: 'o1', label: 'Weekly brief' },
-                { id: 'o2', label: 'Get important emails' },
-                { id: 'o3', label: 'Setup team meeting' },
-                { id: 'o4', label: 'Upload project details' },
-              ],
-            },
-          ],
-        })
-      ),
-    },
-    {
-      id: '2',
-      point: signal({ x: 500, y: 100 }),
-      type: StandardNodeComponent,
-      data: signal(
-        new DialogueNode({
-          id: '2',
-          name: 'Weekly_Brief',
-          positionX: 500,
-          positionY: 100,
-          actions: [
-            {
-              id: 'a5',
-              type: ActionType.Text,
-              content: 'Here is your weekly brief summary...',
-            },
-            {
-              id: 'a6',
-              type: ActionType.ExecuteCode,
-              label: 'Fetch calendar data',
-            },
-          ],
-        })
-      ),
-    },
-    {
-      id: '3',
-      point: signal({ x: 500, y: 300 }),
-      type: StandardNodeComponent,
-      data: signal(
-        new DialogueNode({
-          id: '3',
-          name: 'Email_Handler',
-          positionX: 500,
-          positionY: 300,
-          actions: [
-            {
-              id: 'a7',
-              type: ActionType.Text,
-              content: 'Fetching your important emails...',
-            },
-            {
-              id: 'a8',
-              type: ActionType.FillVariable,
-              label: 'email_count',
-            },
-          ],
-        })
-      ),
-    },
-  ];
+  /** Maps node type to vflow component */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private readonly nodeTypeToComponent: Record<GraphNodeType, any> = {
+    service: ServiceNodeComponent,
+    app: AppNodeComponent,
+    library: LibraryNodeComponent,
+  };
 
-  edges: Edge[] = [
-    {
-      id: '1-2',
-      source: '1',
-      sourceHandle: 'transition-a4-o1', // Weekly brief option
-      target: '2',
-      targetHandle: 'node-2',
-    },
-    {
-      id: '1-3',
-      source: '1',
-      sourceHandle: 'transition-a4-o2', // Get important emails option
-      target: '3',
-      targetHandle: 'node-3',
-    },
-  ];
+  /** Cache for vflow nodes to maintain stable signal references */
+  private nodeCache = new Map<string, VflowNode>();
+
+  /** Signal holding the current vflow nodes */
+  readonly vflowNodes = signal<VflowNode[]>([]);
+
+  constructor() {
+    // Effect to sync graphNodes input with vflowNodes signal
+    effect(() => {
+      const inputNodes = this.graphNodes();
+
+      // If no input nodes, show empty canvas
+      if (inputNodes.length === 0) {
+        this.vflowNodes.set([]);
+        return;
+      }
+
+      // Get current node IDs
+      const inputNodeIds = new Set(inputNodes.map((n) => n.id));
+
+      // Remove nodes that no longer exist
+      for (const id of this.nodeCache.keys()) {
+        if (!inputNodeIds.has(id)) {
+          this.nodeCache.delete(id);
+        }
+      }
+
+      // Update or create nodes
+      const vflowNodeList: VflowNode[] = [];
+
+      for (const node of inputNodes) {
+        let cached = this.nodeCache.get(node.id);
+
+        if (cached) {
+          // Only update data signal, NOT point - let vflow manage drag positions internally
+          // This prevents feedback loop during dragging
+          cached.data.set(node.data ?? node);
+          // Update type in case it changed
+          cached.type = this.nodeTypeToComponent[node.type];
+        } else {
+          // Create new cached node with stable signals
+          // Point is only set on initial creation
+          cached = {
+            id: node.id,
+            point: signal({ x: node.positionX, y: node.positionY }),
+            type: this.nodeTypeToComponent[node.type],
+            data: signal(node.data ?? node),
+          };
+          this.nodeCache.set(node.id, cached);
+        }
+
+        vflowNodeList.push(cached);
+      }
+
+      this.vflowNodes.set(vflowNodeList);
+    });
+  }
+
+  /** Converts graphEdges input to vflow edge format */
+  readonly vflowEdges = computed(() => {
+    const inputEdges = this.graphEdges();
+
+    return inputEdges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      sourceHandle: edge.sourceHandle,
+      target: edge.target,
+      targetHandle: edge.targetHandle,
+    }));
+  });
 
   fitScreen(): void {
     this.vFlowComponent().fitView({ duration: 500, padding: 2 });
@@ -236,6 +248,8 @@ export class GraphEditorComponent {
       .filter((c) => c.selected)
       .map((c) => c.id);
     this.selectedNodes.set(selectedIds);
+    // Emit first selected node or null to notify parent
+    this.nodeSelected.emit(selectedIds[0] ?? null);
   }
 
   handleEdgeSelection(changes: EdgeSelectChange[]): void {
@@ -246,15 +260,16 @@ export class GraphEditorComponent {
   }
 
   handleConnect(connection: Connection): void {
-    // Create new edge from connection event
-    const newEdge: Edge = {
+    // Create new edge from connection event and emit to parent
+    const newEdge: GraphEdge = {
       id: `${connection.source}-${connection.target}-${Date.now()}`,
       source: connection.source,
       sourceHandle: connection.sourceHandle,
       target: connection.target,
       targetHandle: connection.targetHandle,
     };
-    this.edges = [...this.edges, newEdge];
+    const currentEdges = this.graphEdges();
+    this.edgesChanged.emit([...currentEdges, newEdge]);
   }
 
   protected onContextMenuClicked(event: MouseEvent): void {
@@ -264,5 +279,26 @@ export class GraphEditorComponent {
         y: event.pageY,
       }),
     );
+  }
+
+  /** Allow all drops from palette */
+  allowDrop = () => true;
+
+  /** Handle drop from palette */
+  handleDrop(event: CdkDragDrop<unknown>): void {
+    const nodeType = event.item.data as string;
+    if (!nodeType) return;
+
+    // Get drop position and convert to flow coordinates
+    const dropPoint = event.dropPoint;
+    const flowPoint = this.vFlowComponent().documentPointToFlowPoint({
+      x: dropPoint.x,
+      y: dropPoint.y,
+    });
+
+    this.nodeDrop.emit({
+      type: nodeType,
+      position: flowPoint,
+    });
   }
 }

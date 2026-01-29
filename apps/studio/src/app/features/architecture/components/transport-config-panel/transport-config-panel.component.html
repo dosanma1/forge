@@ -1,0 +1,94 @@
+<div
+  class="absolute z-50 w-80 bg-card rounded-lg overflow-hidden border border-primary shadow-lg"
+  [style.left.px]="panelPosition().x"
+  [style.top.px]="panelPosition().y"
+>
+  <!-- Header -->
+  <div
+    class="flex items-center justify-between px-3 py-2 border-b border-border bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+  >
+    <div class="flex items-center gap-2">
+      <mmc-icon name="lucideGlobe" size="sm"></mmc-icon>
+      <span class="text-sm font-semibold">Edit HTTP Transport</span>
+    </div>
+    <button mmcButton variant="ghost" size="icon" (click)="onClose()">
+      <mmc-icon name="lucideX" size="sm"></mmc-icon>
+    </button>
+  </div>
+
+  <!-- Transport Config -->
+  <div class="p-3 space-y-3">
+    <!-- Base Path -->
+    <div class="space-y-1">
+      <label mmcLabel class="text-xs">Base Path</label>
+      <input
+        mmcInput
+        type="text"
+        placeholder="/"
+        [ngModel]="data()?.transport?.basePath"
+        (ngModelChange)="onBasePathChange($event)"
+        name="basePath"
+        class="w-full h-8 text-sm font-mono"
+      />
+    </div>
+
+    <!-- Existing Endpoints -->
+    @if (data()?.transport?.endpoints?.length) {
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs">Endpoints</label>
+        <div class="space-y-1 max-h-32 overflow-auto">
+          @for (endpoint of data()?.transport?.endpoints; track endpoint.id) {
+            <div
+              class="flex items-center gap-2 py-1.5 px-2 bg-muted/50 rounded text-xs"
+            >
+              <app-method-badge [method]="endpoint.method" />
+              <span class="font-mono flex-1 truncate">{{ endpoint.path }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Add Endpoint Form -->
+    <div class="space-y-2">
+      <label mmcLabel class="text-xs">Add Endpoint</label>
+      <div class="flex gap-2">
+        <mmc-select [(ngModel)]="newEndpointMethod" name="method" class="w-24">
+          <mmc-option value="GET">GET</mmc-option>
+          <mmc-option value="POST">POST</mmc-option>
+          <mmc-option value="PUT">PUT</mmc-option>
+          <mmc-option value="PATCH">PATCH</mmc-option>
+          <mmc-option value="DELETE">DELETE</mmc-option>
+        </mmc-select>
+        <input
+          mmcInput
+          type="text"
+          placeholder="/path"
+          [(ngModel)]="newEndpointPath"
+          name="path"
+          class="flex-1 h-8 text-sm"
+        />
+      </div>
+      <button
+        mmcButton
+        variant="default"
+        size="sm"
+        class="w-full"
+        (click)="onAddEndpoint()"
+        [disabled]="!newEndpointPath.trim()"
+      >
+        <mmc-icon name="lucidePlus" size="xs" class="mr-1"></mmc-icon>
+        Add Endpoint
+      </button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div
+    class="flex justify-end items-center px-3 py-2 border-t border-border bg-muted/30"
+  >
+    <button mmcButton variant="ghost" size="sm" (click)="onClose()">
+      Close
+    </button>
+  </div>
+</div>

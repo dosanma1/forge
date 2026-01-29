@@ -1,4 +1,10 @@
-<div cdkDropListGroup class="relative h-full w-full">
+<div
+	#canvasDropList="cdkDropList"
+	cdkDropList
+	[cdkDropListEnterPredicate]="allowDrop"
+	(cdkDropListDropped)="handleDrop($event)"
+	class="relative h-full w-full"
+>
 	<vflow
 		#flow
 		view="auto"
@@ -10,8 +16,8 @@
 			color: '#e2e8f0'
 		}"
 		(contextmenu)="onContextMenuClicked($event)"
-		[nodes]="nodes"
-		[edges]="edges"
+		[nodes]="vflowNodes()"
+		[edges]="vflowEdges()"
 		(nodesChanges)="handleNodeChanges($event)"
 		(nodesChanges.select)="handleNodeSelection($event)"
 		(edgesChanges.select)="handleEdgeSelection($event)"

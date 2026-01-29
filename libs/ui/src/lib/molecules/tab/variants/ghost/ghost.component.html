@@ -1,0 +1,29 @@
+<div [class]="tabsCmp.tabListClasses()" class="flex gap-1 p-1">
+  @for (tab of tabsCmp.tabs(); track $index) {
+    <button
+      type="button"
+      (click)="tabsCmp.selectTab($index)"
+      [class]="getTabButtonClasses($index)"
+    >
+      <span class="flex items-center gap-1.5">
+        @if (tab.icon()) {
+          <mmc-icon size="xs" [name]="tab.icon() || ''" />
+        }
+        @if (tab.name()) {
+          {{ tab.name() }}
+        }
+        @if (tab.badge()) {
+          <mmc-badge
+            variant="secondary"
+            class="ml-1"
+            [ngClass]="{
+              'border-0 text-muted-foreground shadow-none': $index !== tabsCmp.activeTabIndex()
+            }"
+          >
+            {{ tab.badge() }}
+          </mmc-badge>
+        }
+      </span>
+    </button>
+  }
+</div>

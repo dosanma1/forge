@@ -1,0 +1,32 @@
+<app-graph-editor
+  #graphEditor
+  [graphNodes]="graphNodes()"
+  [graphEdges]="graphEdges()"
+  (nodesChanged)="onNodesChanged($event)"
+  (edgesChanged)="onEdgesChanged($event)"
+  (nodeSelected)="onNodeSelected($event)"
+  (nodeDrop)="onNodeDrop($event)"
+/>
+
+<!-- Inline Node Config Panel -->
+@if (configPanelData()) {
+  <app-node-config-panel
+    [data]="configPanelData()"
+    [viewport]="viewport()"
+    (save)="onConfigSave($event)"
+    (close)="onConfigClose()"
+    (delete)="onConfigDelete($event)"
+    (addTransport)="onAddTransport($event)"
+  />
+}
+
+<!-- Inline Transport Config Panel -->
+@if (transportConfigPanelData()) {
+  <app-transport-config-panel
+    [data]="transportConfigPanelData()"
+    [viewport]="viewport()"
+    (close)="onTransportConfigClose()"
+    (addEndpoint)="onTransportAddEndpoint($event)"
+    (basePathChange)="onTransportBasePathChange($event)"
+  />
+}

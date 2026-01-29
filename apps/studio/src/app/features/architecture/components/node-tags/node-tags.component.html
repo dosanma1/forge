@@ -1,0 +1,21 @@
+@if (tags()?.length) {
+  <div
+    class="flex items-center gap-1 flex-wrap pt-1"
+    [class]="additionalClasses()"
+  >
+    @for (tag of maxTags() > 0 ? tags().slice(0, maxTags()) : tags(); track tag) {
+      <span
+        class="px-1.5 py-0.5 text-[10px] rounded bg-muted text-muted-foreground"
+      >
+        {{ tag }}
+      </span>
+    }
+    @if (maxTags() > 0 && tags().length > maxTags()) {
+      <span
+        class="px-1.5 py-0.5 text-[10px] rounded bg-muted text-muted-foreground"
+      >
+        +{{ tags().length - maxTags() }}
+      </span>
+    }
+  </div>
+}

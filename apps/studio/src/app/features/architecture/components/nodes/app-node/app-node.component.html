@@ -1,0 +1,72 @@
+<!-- App Node Card -->
+<div
+  class="w-[280px] min-w-[240px] max-w-[320px] rounded-lg bg-card shadow-sm overflow-hidden"
+  [class]="selected() ? 'border border-primary' : 'border border-border'"
+>
+  <!-- Node Header -->
+  <header
+    class="flex items-center justify-between px-3 py-2 bg-green-50 dark:bg-green-950/30 border-b border-green-200 dark:border-green-800/50 cursor-move"
+    dragHandle
+  >
+    <!-- Target handle on top left -->
+    <handle
+      [id]="'node-' + data()?.id"
+      type="target"
+      position="left"
+      [offsetX]="12"
+      [template]="targetHandler.templateRef()"
+    />
+
+    <div class="flex items-center gap-2 flex-1 min-w-0">
+      <mmc-icon
+        name="lucideMonitor"
+        size="sm"
+        class="text-green-500 shrink-0"
+      ></mmc-icon>
+      <h5
+        class="text-sm font-semibold text-foreground tracking-tight truncate text-left"
+      >
+        {{ data()?.name }}
+      </h5>
+    </div>
+    <mmc-badge
+      variant="secondary"
+      class="ring-1 text-green-600 dark:text-green-400 ring-green-300 dark:ring-green-700 bg-green-100 dark:bg-green-900/50"
+    >
+      {{ getFrameworkBadge() }}
+    </mmc-badge>
+  </header>
+
+  <!-- Node Body -->
+  <div class="p-3 space-y-2">
+    <!-- Root Path -->
+    <div class="flex items-start gap-2 text-xs">
+      <span class="text-muted-foreground shrink-0">Root:</span>
+      <span class="text-foreground font-mono truncate">{{
+        data()?.root || 'frontend/apps/' + data()?.name
+      }}</span>
+    </div>
+
+    <!-- Deployer -->
+    <div class="flex items-center gap-2 text-xs">
+      <span class="text-muted-foreground">Deployer:</span>
+      <span class="text-foreground">{{ getDeployerLabel() }}</span>
+    </div>
+
+    <!-- Tags -->
+    <app-node-tags [tags]="data()?.tags ?? []" />
+
+    <!-- Source handle at bottom right -->
+    <handle
+      [id]="'source-' + data()?.id"
+      type="source"
+      position="right"
+      [offsetX]="-12"
+      [template]="sourceHandler.templateRef()"
+    />
+  </div>
+</div>
+
+<!-- Handler templates -->
+<mmc-handler #targetHandler></mmc-handler>
+<mmc-handler #sourceHandler></mmc-handler>

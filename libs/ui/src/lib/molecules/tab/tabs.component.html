@@ -8,13 +8,16 @@
 	@case ('underlined') {
 	<mmc-tabs-underlined></mmc-tabs-underlined>
 	}
+	@case ('ghost') {
+	<mmc-tabs-ghost></mmc-tabs-ghost>
+	}
 	@default {
 	<mmc-tabs-pill></mmc-tabs-pill>
 	}
 	}
 </div>
 @if (showTabContent()) {
-<div [@tabChange]="activeTabIndex()" class="w-full">
-	<ng-template [ngTemplateOutlet]="activeTabComponent()?.templateRef() || null"></ng-template>
+<div [@tabChange]="activeTabIndex()" class="w-full flex-1 min-h-0">
+	<ng-template [ngTemplateOutlet]="activeTabComponent()?.templateRef || null"></ng-template>
 </div>
 }

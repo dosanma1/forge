@@ -1,0 +1,104 @@
+<div class="p-4 space-y-6">
+  <!-- Header with icon -->
+  <div class="flex items-center gap-3">
+    <div
+      class="w-10 h-10 rounded-lg flex items-center justify-center"
+      [class]="headerColorClass()"
+    >
+      <mmc-icon [name]="headerIcon()" size="md"></mmc-icon>
+    </div>
+    <div>
+      <h3 class="text-lg font-semibold">Add {{ nodeTypeLabel() }}</h3>
+      <p class="text-sm text-muted-foreground">
+        Configure your new {{ nodeTypeLabel().toLowerCase() }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form class="space-y-4">
+    <!-- Name -->
+    <div class="space-y-2">
+      <label mmcLabel>Name</label>
+      <input
+        mmcInput
+        type="text"
+        placeholder="e.g., account"
+        [(ngModel)]="name"
+        name="name"
+        class="w-full"
+      />
+      <p class="text-xs text-muted-foreground">
+        Use kebab-case (lowercase with hyphens)
+      </p>
+    </div>
+
+    <!-- Language/Framework selector -->
+    @if (data().type === 'service') {
+      <div class="space-y-2">
+        <label mmcLabel>Language</label>
+        <mmc-select [(ngModel)]="serviceLanguage" name="serviceLanguage">
+          <mmc-option value="go">Go</mmc-option>
+          <mmc-option value="nestjs">NestJS</mmc-option>
+        </mmc-select>
+      </div>
+
+      <div class="space-y-2">
+        <label mmcLabel>Deployer</label>
+        <mmc-select [(ngModel)]="serviceDeployer" name="serviceDeployer">
+          <mmc-option value="helm">Helm (GKE)</mmc-option>
+          <mmc-option value="cloudrun">Cloud Run</mmc-option>
+        </mmc-select>
+      </div>
+    }
+
+    @if (data().type === 'app') {
+      <div class="space-y-2">
+        <label mmcLabel>Framework</label>
+        <mmc-select [(ngModel)]="appFramework" name="appFramework">
+          <mmc-option value="angular">Angular</mmc-option>
+          <mmc-option value="react">React</mmc-option>
+          <mmc-option value="vue">Vue</mmc-option>
+        </mmc-select>
+      </div>
+
+      <div class="space-y-2">
+        <label mmcLabel>Deployer</label>
+        <mmc-select [(ngModel)]="appDeployer" name="appDeployer">
+          <mmc-option value="firebase">Firebase</mmc-option>
+          <mmc-option value="cloudrun">Cloud Run</mmc-option>
+          <mmc-option value="gke">GKE</mmc-option>
+        </mmc-select>
+      </div>
+    }
+
+    @if (data().type === 'library') {
+      <div class="space-y-2">
+        <label mmcLabel>Language</label>
+        <mmc-select [(ngModel)]="libraryLanguage" name="libraryLanguage">
+          <mmc-option value="go">Go</mmc-option>
+          <mmc-option value="typescript">TypeScript</mmc-option>
+        </mmc-select>
+      </div>
+    }
+
+    <!-- Preview root path -->
+    <div class="p-3 bg-muted rounded-lg">
+      <p class="text-xs text-muted-foreground mb-1">Root Path:</p>
+      <p class="text-sm font-mono">{{ previewRootPath() }}</p>
+    </div>
+  </form>
+
+  <!-- Actions -->
+  <div class="flex justify-end gap-2 pt-4 border-t">
+    <button mmcButton variant="ghost" (click)="onCancel()">Cancel</button>
+    <button
+      mmcButton
+      variant="default"
+      (click)="onSubmit()"
+      [disabled]="!isValid()"
+    >
+      Add {{ nodeTypeLabel() }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,150 @@
+<div
+  class="absolute z-50 w-72 bg-card rounded-lg overflow-hidden border border-primary shadow-lg"
+  [style.left.px]="panelPosition().x"
+  [style.top.px]="panelPosition().y"
+>
+  <!-- Header -->
+  <div
+    class="flex items-center justify-between px-3 py-2 border-b border-border"
+    [class]="headerBgClass()"
+  >
+    <div class="flex items-center gap-2">
+      <mmc-icon [name]="headerIcon()" size="sm"></mmc-icon>
+      <span class="text-sm font-semibold">{{ headerTitle() }}</span>
+    </div>
+    <button
+      mmcButton
+      variant="ghost"
+      size="icon"
+      class="!h-5 !w-5"
+      (click)="onClose()"
+    >
+      <mmc-icon name="lucideX" size="sm"></mmc-icon>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <form class="p-3 space-y-3">
+    <!-- Name -->
+    <div class="space-y-1">
+      <label mmcLabel class="text-xs">Name</label>
+      <input
+        mmcInput
+        type="text"
+        placeholder="e.g., account"
+        [(ngModel)]="name"
+        name="name"
+        class="w-full h-8 text-sm"
+      />
+    </div>
+
+    <!-- Language/Framework selector -->
+    @if (data()?.type === 'service') {
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs block">Language</label>
+        <mmc-select
+          [(ngModel)]="serviceLanguage"
+          name="serviceLanguage"
+          class="w-full"
+        >
+          <mmc-option value="go">Go</mmc-option>
+          <mmc-option value="nestjs">NestJS</mmc-option>
+        </mmc-select>
+      </div>
+
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs block">Deployer</label>
+        <mmc-select
+          [(ngModel)]="serviceDeployer"
+          name="serviceDeployer"
+          class="w-full"
+        >
+          <mmc-option value="helm">Helm (GKE)</mmc-option>
+          <mmc-option value="cloudrun">Cloud Run</mmc-option>
+        </mmc-select>
+      </div>
+    }
+
+    @if (data()?.type === 'app') {
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs block">Framework</label>
+        <mmc-select
+          [(ngModel)]="appFramework"
+          name="appFramework"
+          class="w-full"
+        >
+          <mmc-option value="angular">Angular</mmc-option>
+          <mmc-option value="react">React</mmc-option>
+          <mmc-option value="vue">Vue</mmc-option>
+        </mmc-select>
+      </div>
+
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs block">Deployer</label>
+        <mmc-select
+          [(ngModel)]="appDeployer"
+          name="appDeployer"
+          class="w-full"
+        >
+          <mmc-option value="firebase">Firebase</mmc-option>
+          <mmc-option value="cloudrun">Cloud Run</mmc-option>
+          <mmc-option value="gke">GKE</mmc-option>
+        </mmc-select>
+      </div>
+    }
+
+    @if (data()?.type === 'library') {
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs block">Language</label>
+        <mmc-select
+          [(ngModel)]="libraryLanguage"
+          name="libraryLanguage"
+          class="w-full"
+        >
+          <mmc-option value="go">Go</mmc-option>
+          <mmc-option value="typescript">TypeScript</mmc-option>
+        </mmc-select>
+      </div>
+    }
+
+    <!-- Preview root path -->
+    <div class="p-2 bg-muted rounded text-xs">
+      <span class="text-muted-foreground">Root: </span>
+      <span class="font-mono">{{ previewRootPath() }}</span>
+    </div>
+  </form>
+
+  <!-- Actions -->
+  <div
+    class="flex justify-between items-center px-3 py-2 border-t border-border bg-muted/30"
+  >
+    @if (isEditing()) {
+      <button
+        mmcButton
+        variant="ghost"
+        size="sm"
+        class="text-destructive hover:text-destructive"
+        (click)="onDelete()"
+      >
+        <mmc-icon name="lucideTrash" size="sm" class="mr-1"></mmc-icon>
+        Delete
+      </button>
+    } @else {
+      <div></div>
+    }
+    <div class="flex gap-2">
+      <button mmcButton variant="ghost" size="sm" (click)="onClose()">
+        Cancel
+      </button>
+      <button
+        mmcButton
+        variant="default"
+        size="sm"
+        (click)="onSave()"
+        [disabled]="!isValid()"
+      >
+        {{ isEditing() ? 'Update' : 'Add' }}
+      </button>
+    </div>
+  </div>
+</div>

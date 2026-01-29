@@ -1,0 +1,54 @@
+<div
+  class="p-2 space-y-2"
+  cdkDropList
+  cdkDropListSortingDisabled
+  [cdkDropListConnectedTo]="getConnectedTo()"
+  [cdkDropListEnterPredicate]="noReturnPredicate"
+>
+  <p class="text-xs text-muted-foreground px-2 mb-3">
+    Drag to canvas or click to add
+  </p>
+
+  @for (item of paletteItems(); track item.type) {
+    <div
+      cdkDrag
+      [cdkDragData]="item.type"
+      (cdkDragStarted)="onDragStarted($event, item.type)"
+      (click)="onAddNode(item.type)"
+      class="group flex items-center gap-3 p-2.5 rounded-lg border border-border bg-card hover:bg-muted/50 hover:border-muted-foreground/30 transition-all cursor-grab active:cursor-grabbing shadow-sm"
+    >
+      <!-- Drag placeholder -->
+      <div
+        *cdkDragPlaceholder
+        class="h-[52px] rounded-lg border-2 border-dashed border-primary/50 bg-primary/5"
+      ></div>
+
+      <div
+        class="w-9 h-9 rounded-md flex items-center justify-center shrink-0"
+        [class]="item.colorClass"
+      >
+        <mmc-icon [name]="item.icon" size="sm"></mmc-icon>
+      </div>
+      <div class="text-left flex-1 min-w-0">
+        <div class="text-sm font-medium text-foreground">{{ item.label }}</div>
+        <div class="text-xs text-muted-foreground truncate">
+          {{ item.description }}
+        </div>
+      </div>
+
+      <!-- Drag preview -->
+      <div
+        *cdkDragPreview
+        class="flex items-center gap-2 px-3 py-2 rounded-lg shadow-xl border border-border bg-card"
+      >
+        <div
+          class="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
+          [class]="item.colorClass"
+        >
+          <mmc-icon [name]="item.icon" size="xs"></mmc-icon>
+        </div>
+        <span class="text-sm font-medium">{{ item.label }}</span>
+      </div>
+    </div>
+  }
+</div>

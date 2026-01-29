@@ -1,0 +1,182 @@
+@if (node(); as node) {
+  <div class="p-4 space-y-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 rounded-md flex items-center justify-center"
+          [class]="nodeColorClass()"
+        >
+          <mmc-icon [name]="nodeIcon()" size="sm"></mmc-icon>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold">{{ node.name }}</h3>
+          <mmc-badge variant="secondary" class="text-xs">
+            {{ nodeTypeLabel() }}
+          </mmc-badge>
+        </div>
+      </div>
+      <button
+        mmcButton
+        variant="ghost"
+        size="icon"
+        class="text-destructive hover:text-destructive"
+        title="Delete node"
+        (click)="onDelete()"
+      >
+        <mmc-icon name="lucideTrash" size="sm"></mmc-icon>
+      </button>
+    </div>
+
+    <!-- General Properties -->
+    <div class="space-y-3">
+      <h4
+        class="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+      >
+        General
+      </h4>
+
+      <!-- Name -->
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs">Name</label>
+        <input
+          mmcInput
+          type="text"
+          [ngModel]="node.name"
+          (ngModelChange)="updateProperty('name', $event)"
+          class="h-8 text-sm"
+        />
+      </div>
+
+      <!-- Description -->
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs">Description</label>
+        <textarea
+          mmcTextarea
+          [ngModel]="node.description || ''"
+          (ngModelChange)="updateProperty('description', $event)"
+          class="text-sm min-h-[60px]"
+          placeholder="Describe this node..."
+        ></textarea>
+      </div>
+
+      <!-- Root Path -->
+      <div class="space-y-1">
+        <label mmcLabel class="text-xs">Root Path</label>
+        <p class="text-xs font-mono bg-muted px-2 py-1.5 rounded">
+          {{ node.root }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Type-Specific Properties -->
+    <div class="space-y-3">
+      <h4
+        class="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+      >
+        Configuration
+      </h4>
+
+      @if (isService(node)) {
+        <!-- Service Language -->
+        <div class="space-y-1">
+          <label mmcLabel class="text-xs">Language</label>
+          <mmc-select
+            [ngModel]="node.language"
+            (ngModelChange)="updateProperty('language', $event)"
+          >
+            <mmc-option value="go">Go</mmc-option>
+            <mmc-option value="nestjs">NestJS</mmc-option>
+          </mmc-select>
+        </div>
+
+        <!-- Service Deployer -->
+        <div class="space-y-1">
+          <label mmcLabel class="text-xs">Deployer</label>
+          <mmc-select
+            [ngModel]="node.deployer"
+            (ngModelChange)="updateProperty('deployer', $event)"
+          >
+            <mmc-option value="helm">Helm (Kubernetes)</mmc-option>
+            <mmc-option value="cloudrun">Cloud Run</mmc-option>
+          </mmc-select>
+        </div>
+      }
+
+      @if (isApp(node)) {
+        <!-- App Framework -->
+        <div class="space-y-1">
+          <label mmcLabel class="text-xs">Framework</label>
+          <mmc-select
+            [ngModel]="node.framework"
+            (ngModelChange)="updateProperty('framework', $event)"
+          >
+            <mmc-option value="angular">Angular</mmc-option>
+            <mmc-option value="react">React</mmc-option>
+            <mmc-option value="vue">Vue</mmc-option>
+          </mmc-select>
+        </div>
+
+        <!-- App Deployer -->
+        <div class="space-y-1">
+          <label mmcLabel class="text-xs">Deployer</label>
+          <mmc-select
+            [ngModel]="node.deployer"
+            (ngModelChange)="updateProperty('deployer', $event)"
+          >
+            <mmc-option value="firebase">Firebase Hosting</mmc-option>
+            <mmc-option value="cloudrun">Cloud Run</mmc-option>
+            <mmc-option value="gke">GKE</mmc-option>
+          </mmc-select>
+        </div>
+      }
+
+      @if (isLibrary(node)) {
+        <!-- Library Language -->
+        <div class="space-y-1">
+          <label mmcLabel class="text-xs">Language</label>
+          <mmc-select
+            [ngModel]="node.language"
+            (ngModelChange)="updateProperty('language', $event)"
+          >
+            <mmc-option value="go">Go</mmc-option>
+            <mmc-option value="typescript">TypeScript</mmc-option>
+          </mmc-select>
+        </div>
+      }
+    </div>
+
+    <!-- Tags -->
+    <div class="space-y-3">
+      <h4
+        class="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+      >
+        Tags
+      </h4>
+      <div class="flex flex-wrap gap-1">
+        @for (tag of node.tags || []; track tag) {
+          <span
+            class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-muted"
+          >
+            {{ tag }}
+            <button class="hover:text-destructive" (click)="removeTag(tag)">
+              &times;
+            </button>
+          </span>
+        }
+        <input
+          type="text"
+          class="px-2 py-0.5 text-xs border rounded-full w-20 focus:w-32 transition-all bg-transparent"
+          placeholder="Add tag..."
+          (keyup.enter)="addTag($event)"
+        />
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="p-4 text-center">
+    <p class="text-sm text-muted-foreground">
+      Select a node to view its properties
+    </p>
+  </div>
+}

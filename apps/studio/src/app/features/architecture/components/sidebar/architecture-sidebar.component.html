@@ -1,0 +1,88 @@
+<!-- Panel Header -->
+<div class="flex items-center justify-between px-3 py-2 border-b border-border">
+  <span class="text-sm font-semibold">Architecture</span>
+  <div class="flex items-center gap-1">
+    @if (unsavedChanges() > 0) {
+      <button
+        mmcButton
+        variant="ghost"
+        size="sm"
+        title="Save changes"
+        class="!p-1"
+        (click)="onSaveChanges()"
+      >
+        <mmc-icon name="lucideSave" class="w-4 h-4 text-primary" />
+      </button>
+    }
+  </div>
+</div>
+
+<!-- Accordion Sections -->
+<mmc-accordion-panel
+  [allowMultipleExpanded]="true"
+  class="flex-1 min-h-0 overflow-auto"
+>
+  <!-- Add Nodes Section -->
+  <mmc-accordion-section id="add-nodes" title="Add Nodes" [expanded]="true">
+    <app-node-palette
+      [connectedDropList]="canvasDropList()"
+      (addNode)="onAddNode($event)"
+    />
+  </mmc-accordion-section>
+
+  <!-- Explorer Section -->
+  <mmc-accordion-section id="explorer" title="Explorer" [expanded]="true">
+    @if (projectPath()) {
+      <app-file-tree
+        [directoryPath]="projectPath()"
+        [hotReloadEnabled]="false"
+        (fileSelect)="onFileSelect($event)"
+        (directorySelect)="onDirectorySelect($event)"
+        class="block h-full"
+      />
+    } @else {
+      <div class="p-2">
+        <button
+          mmcButton
+          variant="outline"
+          size="sm"
+          (click)="onOpenFolder()"
+          class="w-full"
+        >
+          <mmc-icon name="lucideFolderOpen" class="w-4 h-4 mr-2" />
+          Open Folder
+        </button>
+      </div>
+    }
+  </mmc-accordion-section>
+
+  <!-- Nodes List Section -->
+  <mmc-accordion-section id="nodes" title="Nodes" [expanded]="true">
+    <div class="px-2 py-1">
+      @if (nodes().length === 0) {
+        <p class="text-xs text-muted-foreground p-2">
+          No nodes yet. Add a service, app, or library.
+        </p>
+      } @else {
+        @for (node of nodes(); track node.id) {
+          <button
+            class="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-muted text-left"
+            [class.bg-muted]="selectedNodeId() === node.id"
+            (click)="onSelectNode(node.id)"
+          >
+            <span
+              class="w-5 h-5 rounded flex items-center justify-center text-xs"
+              [class]="getNodeIconClass(node)"
+            >
+              {{ getNodeIcon(node) }}
+            </span>
+            <span class="truncate flex-1">{{ node.name }}</span>
+            <span class="text-[10px] text-muted-foreground">
+              {{ node.type }}
+            </span>
+          </button>
+        }
+      }
+    </div>
+  </mmc-accordion-section>
+</mmc-accordion-panel>
