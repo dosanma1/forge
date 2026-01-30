@@ -7,10 +7,10 @@ import {
   computed,
 } from '@angular/core';
 import { CdkDropList } from '@angular/cdk/drag-drop';
-import { GraphEditorComponent, GraphNode, GraphEdge } from '../../../graph-editor/graph-editor.component';
-import { NodeConfigPanelComponent, NodeConfigPanelData } from '../node-config-panel/node-config-panel.component';
+import { GraphEditorComponent, GraphNode, GraphEdge } from '../../../../shared/components/graph-editor/graph-editor.component';
+import { NodeConfigPanelComponent, NodeConfigPanelData } from '../panels/node-config-panel/node-config-panel.component';
 import { ViewportData } from '../../../../shared/services/viewport.service';
-import { TransportConfigPanelComponent, TransportConfigPanelData } from '../transport-config-panel/transport-config-panel.component';
+import { TransportConfigPanelComponent, TransportConfigPanelData } from '../panels/transport-config-panel/transport-config-panel.component';
 import { ArchitectureNode, HttpTransport, HttpEndpoint } from '../../models/architecture-node.model';
 
 @Component({
@@ -80,6 +80,42 @@ export class ArchitectureCanvasComponent {
   readonly viewport = computed<ViewportData>(() => {
     const editor = this.graphEditor();
     return editor?.viewport() ?? { x: 0, y: 0, zoom: 1 };
+  });
+
+  /** Get reactive node positions (updates during drag) */
+  readonly nodePositions = computed(() => {
+    const editor = this.graphEditor();
+    return editor?.nodePositions() ?? new Map<string, { x: number; y: number }>();
+  });
+
+  /** Config panel data with reactive position (updates during node drag) */
+  protected readonly configPanelDataWithPosition = computed<NodeConfigPanelData | null>(() => {
+    const data = this.configPanelData();
+    if (!data?.node) return data;
+
+    // Get reactive position from graph editor's node signals
+    const positions = this.nodePositions();
+    const reactivePosition = positions.get(data.node.id);
+
+    if (reactivePosition) {
+      return { ...data, position: reactivePosition };
+    }
+    return data;
+  });
+
+  /** Transport config panel data with reactive position (updates during node drag) */
+  protected readonly transportConfigPanelDataWithPosition = computed<TransportConfigPanelData | null>(() => {
+    const data = this.transportConfigPanelData();
+    if (!data) return data;
+
+    // Get reactive position from graph editor's node signals
+    const positions = this.nodePositions();
+    const reactivePosition = positions.get(data.nodeId);
+
+    if (reactivePosition) {
+      return { ...data, position: reactivePosition };
+    }
+    return data;
   });
 
   protected onNodesChanged(nodes: GraphNode[]): void {

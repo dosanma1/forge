@@ -2,7 +2,13 @@ module github.com/dosanma1/forge/apps/studio
 
 go 1.25.2
 
-require github.com/wailsapp/wails/v3 v3.0.0-alpha.64
+require (
+	github.com/dosanma1/forge-cli v0.0.0
+	github.com/wailsapp/wails/v3 v3.0.0-alpha.64
+	gopkg.in/yaml.v3 v3.0.1
+)
+
+replace github.com/dosanma1/forge-cli => ../../../forge-cli
 
 require (
 	dario.cat/mergo v1.0.2 // indirect

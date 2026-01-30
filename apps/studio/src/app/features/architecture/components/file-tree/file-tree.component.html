@@ -1,34 +1,4 @@
 <div class="flex flex-col h-full">
-  <div
-    class="flex items-center justify-between px-2 py-1 border-b border-border"
-  >
-    <span
-      class="text-sm font-medium text-muted-foreground uppercase tracking-wide"
-    >
-      Explorer
-    </span>
-    <div class="flex items-center gap-1">
-      @if (hotReloadEnabled()) {
-        <span class="text-xs text-muted-foreground">Auto-refresh</span>
-      }
-      <button
-        mmcButton
-        variant="ghost"
-        size="icon"
-        class="size-6"
-        (click)="refresh()"
-        [disabled]="isLoading()"
-        title="Refresh file tree"
-      >
-        <mmc-icon
-          name="lucideRefreshCw"
-          size="xs"
-          [class.animate-spin]="isLoading()"
-        />
-      </button>
-    </div>
-  </div>
-
   <div class="flex-1 overflow-auto p-2">
     @if (isLoading() && treeData().length === 0) {
       <div class="flex items-center justify-center h-full">

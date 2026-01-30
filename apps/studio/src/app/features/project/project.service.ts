@@ -8,6 +8,7 @@ import * as WailsProject from '../../wailsjs/github.com/dosanma1/forge/apps/stud
 import {
   Project as WailsProjectModel,
   InitialProject,
+  ServiceSpecInput,
 } from '../../wailsjs/github.com/dosanma1/forge/apps/studio/models';
 
 const LAST_PROJECT_KEY = 'forge_last_project_path';
@@ -402,6 +403,48 @@ export class ProjectService {
     if (this.selectedResource()?.ID() === project.ID()) {
       this.setSelectedResource(null);
       this.clearLastProject();
+    }
+  }
+
+  /**
+   * Generate a new service in the project using forge-cli generators
+   */
+  async generateService(projectPath: string, serviceName: string, language: string, deployer: string): Promise<void> {
+    try {
+      await WailsProject.GenerateService(projectPath, serviceName, language, deployer);
+      this.logger.info(`Service ${serviceName} generated successfully`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to generate service';
+      this.logger.error('Failed to generate service', err);
+      throw new Error(message);
+    }
+  }
+
+  /**
+   * Generate a new app in the project using forge-cli generators
+   */
+  async generateApp(projectPath: string, appName: string, framework: string, deployer: string): Promise<void> {
+    try {
+      await WailsProject.GenerateApp(projectPath, appName, framework, deployer);
+      this.logger.info(`App ${appName} generated successfully`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to generate app';
+      this.logger.error('Failed to generate app', err);
+      throw new Error(message);
+    }
+  }
+
+  /**
+   * Save the forge.spec.yaml for a service
+   */
+  async saveServiceSpec(servicePath: string, specInput: ServiceSpecInput): Promise<void> {
+    try {
+      await WailsProject.SaveServiceSpec(servicePath, specInput);
+      this.logger.info(`Service spec saved for ${servicePath}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save service spec';
+      this.logger.error('Failed to save service spec', err);
+      throw new Error(message);
     }
   }
 }

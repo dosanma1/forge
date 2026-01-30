@@ -10,6 +10,78 @@ import { Create as $Create } from "@wailsio/runtime";
 import * as time$0 from "../../../../../time/models.js";
 
 /**
+ * EndpointSpecInput represents an endpoint in a resource
+ */
+export class EndpointSpecInput {
+    "method": string;
+    "path": string;
+    "handler": string;
+    "response": string;
+
+    /** Creates a new EndpointSpecInput instance. */
+    constructor($$source: Partial<EndpointSpecInput> = {}) {
+        if (!("method" in $$source)) {
+            this["method"] = "";
+        }
+        if (!("path" in $$source)) {
+            this["path"] = "";
+        }
+        if (!("handler" in $$source)) {
+            this["handler"] = "";
+        }
+        if (!("response" in $$source)) {
+            this["response"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EndpointSpecInput instance from a string or object.
+     */
+    static createFrom($$source: any = {}): EndpointSpecInput {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EndpointSpecInput($$parsedSource as Partial<EndpointSpecInput>);
+    }
+}
+
+/**
+ * FieldSpecInput represents a field in a resource
+ */
+export class FieldSpecInput {
+    "name": string;
+    "type": string;
+    "required": boolean;
+    "omitempty": boolean;
+
+    /** Creates a new FieldSpecInput instance. */
+    constructor($$source: Partial<FieldSpecInput> = {}) {
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("type" in $$source)) {
+            this["type"] = "";
+        }
+        if (!("required" in $$source)) {
+            this["required"] = false;
+        }
+        if (!("omitempty" in $$source)) {
+            this["omitempty"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new FieldSpecInput instance from a string or object.
+     */
+    static createFrom($$source: any = {}): FieldSpecInput {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new FieldSpecInput($$parsedSource as Partial<FieldSpecInput>);
+    }
+}
+
+/**
  * FileInfo represents file metadata
  */
 export class FileInfo {
@@ -132,3 +204,104 @@ export class Project {
         return new Project($$parsedSource as Partial<Project>);
     }
 }
+
+/**
+ * ResourceSpecInput represents a resource in the spec
+ */
+export class ResourceSpecInput {
+    "name": string;
+    "basePath": string;
+    "version": string;
+    "fields": FieldSpecInput[];
+    "methods": string[];
+    "endpoints": EndpointSpecInput[];
+
+    /** Creates a new ResourceSpecInput instance. */
+    constructor($$source: Partial<ResourceSpecInput> = {}) {
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("basePath" in $$source)) {
+            this["basePath"] = "";
+        }
+        if (!("version" in $$source)) {
+            this["version"] = "";
+        }
+        if (!("fields" in $$source)) {
+            this["fields"] = [];
+        }
+        if (!("methods" in $$source)) {
+            this["methods"] = [];
+        }
+        if (!("endpoints" in $$source)) {
+            this["endpoints"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ResourceSpecInput instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ResourceSpecInput {
+        const $$createField3_0 = $$createType1;
+        const $$createField4_0 = $$createType2;
+        const $$createField5_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("fields" in $$parsedSource) {
+            $$parsedSource["fields"] = $$createField3_0($$parsedSource["fields"]);
+        }
+        if ("methods" in $$parsedSource) {
+            $$parsedSource["methods"] = $$createField4_0($$parsedSource["methods"]);
+        }
+        if ("endpoints" in $$parsedSource) {
+            $$parsedSource["endpoints"] = $$createField5_0($$parsedSource["endpoints"]);
+        }
+        return new ResourceSpecInput($$parsedSource as Partial<ResourceSpecInput>);
+    }
+}
+
+/**
+ * ServiceSpecInput represents the spec data from the UI
+ */
+export class ServiceSpecInput {
+    "serviceName": string;
+    "package": string;
+    "resources": ResourceSpecInput[];
+
+    /** Creates a new ServiceSpecInput instance. */
+    constructor($$source: Partial<ServiceSpecInput> = {}) {
+        if (!("serviceName" in $$source)) {
+            this["serviceName"] = "";
+        }
+        if (!("package" in $$source)) {
+            this["package"] = "";
+        }
+        if (!("resources" in $$source)) {
+            this["resources"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ServiceSpecInput instance from a string or object.
+     */
+    static createFrom($$source: any = {}): ServiceSpecInput {
+        const $$createField2_0 = $$createType6;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("resources" in $$parsedSource) {
+            $$parsedSource["resources"] = $$createField2_0($$parsedSource["resources"]);
+        }
+        return new ServiceSpecInput($$parsedSource as Partial<ServiceSpecInput>);
+    }
+}
+
+// Private type creation functions
+const $$createType0 = FieldSpecInput.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = $Create.Array($Create.Any);
+const $$createType3 = EndpointSpecInput.createFrom;
+const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = ResourceSpecInput.createFrom;
+const $$createType6 = $Create.Array($$createType5);

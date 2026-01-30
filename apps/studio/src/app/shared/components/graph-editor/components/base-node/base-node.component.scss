@@ -1,0 +1,7 @@
+// Base node component styles
+// Most styling is handled via Tailwind classes in the template
+// This file exists for any custom styles that can't be achieved with Tailwind
+
+:host {
+  display: contents;
+}

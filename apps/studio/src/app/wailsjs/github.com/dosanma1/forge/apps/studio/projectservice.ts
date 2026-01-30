@@ -49,6 +49,20 @@ export function DeleteProject(path: string): $CancellablePromise<void> {
 }
 
 /**
+ * GenerateApp generates a new Angular or Next.js app in the project
+ */
+export function GenerateApp(projectPath: string, appName: string, framework: string, deployer: string): $CancellablePromise<void> {
+    return $Call.ByID(4098395122, projectPath, appName, framework, deployer);
+}
+
+/**
+ * GenerateService generates a new Go or NestJS service in the project
+ */
+export function GenerateService(projectPath: string, serviceName: string, language: string, deployer: string): $CancellablePromise<void> {
+    return $Call.ByID(3154400698, projectPath, serviceName, language, deployer);
+}
+
+/**
  * GetGitBranch returns the current git branch for the given path
  */
 export function GetGitBranch(path: string): $CancellablePromise<string> {
@@ -124,6 +138,13 @@ export function ReadFile(path: string): $CancellablePromise<string> {
  */
 export function RemoveProject(path: string): $CancellablePromise<void> {
     return $Call.ByID(3482417973, path);
+}
+
+/**
+ * SaveServiceSpec saves the forge.spec.yaml for a service
+ */
+export function SaveServiceSpec(servicePath: string, specInput: $models.ServiceSpecInput): $CancellablePromise<void> {
+    return $Call.ByID(1228669559, servicePath, specInput);
 }
 
 /**

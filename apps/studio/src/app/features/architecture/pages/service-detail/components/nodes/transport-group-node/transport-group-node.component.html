@@ -1,0 +1,58 @@
+<!-- Transport Group Node -->
+<div
+  class="w-[260px] rounded-lg bg-card border shadow-sm overflow-hidden cursor-pointer transition-colors"
+  [class]="selected() || isSelected() ? 'border-primary' : 'border-border hover:border-primary/50'"
+  (click)="onTransportClick($event)"
+>
+  <!-- Header -->
+  <header
+    class="flex items-center justify-between px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-200 dark:border-blue-800/50 cursor-move"
+    dragHandle
+  >
+    <div class="flex items-center gap-2">
+      <mmc-icon [name]="getTransportIcon()" size="sm" class="text-blue-500"></mmc-icon>
+      <span class="font-medium text-sm text-foreground">{{ getTransportLabel() }}</span>
+    </div>
+    <mmc-badge variant="secondary" class="text-xs">
+      {{ transport()?.basePath }}
+    </mmc-badge>
+  </header>
+
+  <!-- Endpoints List (matching service-node style) -->
+  <div class="border-t border-border/30">
+    @for (endpoint of endpoints(); track endpoint.id) {
+      <div class="flex items-center gap-1.5 px-2 py-1.5 hover:bg-muted/50 text-xs">
+        <app-method-badge [method]="endpoint.method" />
+        <span class="text-foreground font-mono truncate">{{ endpoint.path }}</span>
+      </div>
+    }
+
+    @if (endpoints().length === 0) {
+      <div class="px-2 py-1.5 text-muted-foreground italic text-xs">
+        No endpoints yet
+      </div>
+    }
+  </div>
+
+  <!-- Add Endpoint Button -->
+  <div class="border-t border-border/30 p-2">
+    <button
+      class="flex items-center gap-1.5 w-full px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded transition-colors"
+      (click)="onAddEndpoint($event)"
+    >
+      <mmc-icon name="lucidePlus" size="xs"></mmc-icon>
+      <span>Add Endpoint</span>
+    </button>
+  </div>
+
+  <!-- Source handle on right side of the node -->
+  <handle
+    [id]="'transport-' + transport()?.id"
+    type="source"
+    position="right"
+    [template]="sourceHandler.templateRef()"
+  />
+</div>
+
+<!-- Handler template -->
+<mmc-handler #sourceHandler></mmc-handler>

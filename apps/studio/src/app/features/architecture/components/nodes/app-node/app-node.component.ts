@@ -7,37 +7,21 @@ import {
 } from '@angular/core';
 import { provideIcons } from '@ng-icons/core';
 import { lucideMonitor } from '@ng-icons/lucide';
-import {
-  CustomNodeComponent,
-  DragHandleDirective,
-  HandleComponent,
-  SelectableDirective,
-} from 'ngx-vflow';
-import { cn, MmcBadge, MmcIcon } from '@forge/ui';
-import { HandlerComponent } from '../../../../graph-editor/components/handler/handler.component';
-import { NodeTagsComponent } from '../../node-tags/node-tags.component';
+import { CustomNodeComponent, SelectableDirective } from 'ngx-vflow';
+import { cn } from '@forge/ui';
 import { AppNode } from '../../../models/architecture-node.model';
 import { ClassValue } from 'clsx';
-import { NodeMetadataService } from '../../../../../shared/components/node/services/node-metadata.service';
+import { ArchitectureMetadataService } from '../../../services/architecture-metadata.service';
+import { BaseNodeComponent } from '../../../../../shared/components/graph-editor/components/base-node/base-node.component';
 
 @Component({
   selector: 'node-app',
   templateUrl: './app-node.component.html',
   styleUrl: './app-node.component.scss',
-  imports: [
-    DragHandleDirective,
-    HandleComponent,
-    MmcBadge,
-    MmcIcon,
-    HandlerComponent,
-    NodeTagsComponent,
-  ],
+  standalone: true,
+  imports: [BaseNodeComponent],
   hostDirectives: [SelectableDirective],
-  viewProviders: [
-    provideIcons({
-      lucideMonitor,
-    }),
-  ],
+  viewProviders: [provideIcons({ lucideMonitor })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[attr.data-node-id]': 'data()?.id',
@@ -45,11 +29,9 @@ import { NodeMetadataService } from '../../../../../shared/components/node/servi
   },
 })
 export class AppNodeComponent extends CustomNodeComponent<AppNode> {
-  private readonly metadataService = inject(NodeMetadataService);
+  private readonly metadataService = inject(ArchitectureMetadataService);
 
-  readonly additionalClasses = input<ClassValue>('', {
-    alias: 'class',
-  });
+  readonly additionalClasses = input<ClassValue>('', { alias: 'class' });
 
   protected classNames = computed(() =>
     cn('contents', this.additionalClasses()),
@@ -57,7 +39,9 @@ export class AppNodeComponent extends CustomNodeComponent<AppNode> {
 
   protected getFrameworkBadge(): string {
     const framework = this.data()?.framework;
-    return framework ? this.metadataService.getAppFrameworkLabel(framework) : 'App';
+    return framework
+      ? this.metadataService.getAppFrameworkLabel(framework)
+      : 'App';
   }
 
   protected getDeployerLabel(): string {

@@ -1,60 +1,108 @@
-<div class="grid grid-rows-[1fr_auto] grid-cols-[auto_1fr] h-full w-full">
-  <!-- Left Panel - Architecture Explorer -->
-  <aside
-    class="col-start-1 row-start-1 row-span-2 w-64 border-r border-border bg-sidebar flex flex-col overflow-hidden"
-  >
-    <app-architecture-sidebar
-      [projectPath]="projectPath()"
-      [nodes]="architectureNodes()"
-      [selectedNodeId]="selectedNodeId()"
-      [unsavedChanges]="unsavedChanges()"
-      [canvasDropList]="canvasDropList()"
-      (addNode)="onAddNode($event)"
-      (selectNode)="selectNode($event)"
-      (saveChanges)="saveChanges()"
-      (openFolder)="openFolder()"
-      (fileSelect)="onFileSelect($event)"
-      (directorySelect)="onDirectorySelect($event)"
-    />
-  </aside>
+<div class="flex flex-col h-full w-full">
+  <!-- Breadcrumb Header -->
+  <header class="flex items-center gap-2 px-4 py-2 bg-background border-b border-border shrink-0">
+    <!-- Breadcrumb navigation -->
+    <nav class="flex items-center gap-1 text-sm">
+      <button
+        class="text-muted-foreground hover:text-foreground transition-colors"
+        [class.text-foreground]="!canvasNavigation.isInServiceInternals()"
+        [class.font-medium]="!canvasNavigation.isInServiceInternals()"
+        (click)="canvasNavigation.navigateBack()"
+      >
+        Architecture
+      </button>
 
-  <!-- Main Canvas Area -->
-  <main class="col-start-2 row-start-1 overflow-hidden bg-muted/30 relative">
-    <app-architecture-canvas
-      #architectureCanvas
-      [graphNodes]="graphNodesForEditor()"
-      [graphEdges]="graphEdgesForEditor()"
-      [configPanelData]="configPanelData()"
-      [transportConfigPanelData]="transportConfigPanelData()"
-      (nodesChanged)="onNodesChange($event)"
-      (edgesChanged)="onEdgesChange($event)"
-      (nodeSelected)="onNodeSelected($event)"
-      (nodeDrop)="onNodeDrop($event)"
-      (configSave)="onConfigPanelSave($event)"
-      (configClose)="onConfigPanelClose()"
-      (configDelete)="onConfigPanelDelete($event)"
-      (addTransport)="onAddTransport($event)"
-      (transportConfigClose)="onTransportConfigPanelClose()"
-      (transportAddEndpoint)="onAddEndpoint($event)"
-      (transportBasePathChange)="onTransportBasePathChange($event)"
-    />
-  </main>
+      @if (canvasNavigation.isInServiceInternals() && focusedServiceNode()) {
+        <span class="text-muted-foreground">/</span>
+        <span class="text-foreground font-medium">{{ focusedServiceNode()!.name }}</span>
+      }
+    </nav>
 
-  <!-- Bottom Panel -->
-  <div
-    class="col-start-2 row-start-2 h-48 border-t border-border bg-background overflow-hidden"
-  >
-    <app-bottom-panel
-      #bottomPanel
-      [nodes]="architectureNodes()"
-      [selectedNode]="selectedNode()"
-      [selectedNodeId]="selectedNodeId()"
-      [activeTabIndex]="0"
-      [architectureJson]="architectureJson()"
-      (selectNode)="selectNode($event)"
-      (tabChanged)="onBottomTabChanged($event)"
-      (addTransport)="onBottomPanelAddTransport($event)"
-      (addEndpoint)="onAddEndpoint($event)"
-    />
+    <!-- Spacer -->
+    <div class="flex-1"></div>
+
+    <!-- Generate button (only in Canvas Level 2) -->
+    @if (canvasNavigation.isInServiceInternals() && focusedServiceNode()) {
+      <button
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        (click)="onServiceGenerate(focusedServiceNode()!.id)"
+      >
+        Generate
+      </button>
+    }
+  </header>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 grid grid-rows-[1fr_auto] grid-cols-[auto_1fr] overflow-hidden">
+    <!-- Left Panel - Architecture Explorer (visible in both levels) -->
+    <aside
+      class="col-start-1 row-start-1 row-span-2 w-64 border-r border-border bg-sidebar flex flex-col overflow-hidden"
+    >
+      <app-architecture-sidebar
+        [projectPath]="projectPath()"
+        [nodes]="architectureNodes()"
+        [selectedNodeId]="selectedNodeId()"
+        [unsavedChanges]="unsavedChanges()"
+        [canvasDropList]="canvasDropList()"
+        (addNode)="onAddNode($event)"
+        (selectNode)="selectNode($event)"
+        (saveChanges)="saveChanges()"
+        (openFolder)="openFolder()"
+        (fileSelect)="onFileSelect($event)"
+        (directorySelect)="onDirectorySelect($event)"
+      />
+    </aside>
+
+    <!-- Main Canvas Area -->
+    <main class="col-start-2 row-start-1 overflow-hidden bg-muted/30 relative">
+      @if (canvasNavigation.isInServiceInternals() && focusedServiceNode()) {
+        <!-- Canvas Level 2: Service Detail -->
+        <app-service-detail
+          [serviceNode]="focusedServiceNode()!"
+          (addTransport)="onAddTransport($event)"
+          (addEndpoint)="onAddEndpoint($event)"
+        />
+      } @else {
+        <!-- Canvas Level 1: Architecture Overview -->
+        <app-architecture-canvas
+          #architectureCanvas
+          [graphNodes]="graphNodesForEditor()"
+          [graphEdges]="graphEdgesForEditor()"
+          [configPanelData]="configPanelData()"
+          [transportConfigPanelData]="transportConfigPanelData()"
+          (nodesChanged)="onNodesChange($event)"
+          (edgesChanged)="onEdgesChange($event)"
+          (nodeSelected)="onNodeSelected($event)"
+          (nodeDrop)="onNodeDrop($event)"
+          (configSave)="onConfigPanelSave($event)"
+          (configClose)="onConfigPanelClose()"
+          (configDelete)="onConfigPanelDelete($event)"
+          (addTransport)="onAddTransport($event)"
+          (transportConfigClose)="onTransportConfigPanelClose()"
+          (transportAddEndpoint)="onAddEndpoint($event)"
+          (transportBasePathChange)="onTransportBasePathChange($event)"
+        />
+      }
+    </main>
+
+    <!-- Bottom Panel (only in Canvas Level 1) -->
+    @if (!canvasNavigation.isInServiceInternals()) {
+      <div
+        class="col-start-2 row-start-2 h-48 border-t border-border bg-background overflow-hidden"
+      >
+        <app-bottom-panel
+          #bottomPanel
+          [nodes]="architectureNodes()"
+          [selectedNode]="selectedNode()"
+          [selectedNodeId]="selectedNodeId()"
+          [activeTabIndex]="0"
+          [architectureJson]="architectureJson()"
+          (selectNode)="selectNode($event)"
+          (tabChanged)="onBottomTabChanged($event)"
+          (addTransport)="onBottomPanelAddTransport($event)"
+          (addEndpoint)="onAddEndpoint($event)"
+        />
+      </div>
+    }
   </div>
 </div>

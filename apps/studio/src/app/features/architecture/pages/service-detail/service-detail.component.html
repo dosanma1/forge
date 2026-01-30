@@ -1,0 +1,71 @@
+<!-- Canvas Level 2: Service Internals using ngx-vflow -->
+<div class="relative h-full w-full">
+  <!-- Vflow Canvas -->
+  <vflow
+    view="auto"
+    class="h-full w-full"
+    [background]="{
+      type: 'dots',
+      gap: 24,
+      backgroundColor: 'white',
+      color: '#e2e8f0'
+    }"
+    [nodes]="vflowNodes()"
+    [edges]="vflowEdges()"
+    (nodesChanges)="handleNodeChanges($event)"
+    (connect)="handleConnect($event)"
+  >
+    <!-- Custom edge template -->
+    <ng-template let-ctx edge>
+      <svg:path
+        selectable
+        fill="none"
+        [attr.d]="ctx.path()"
+        stroke-width="1.5"
+        [attr.stroke]="ctx.selected() ? 'oklch(var(--primary))' : '#a855f7'"
+        stroke-dasharray="5,5"
+        [attr.marker-end]="ctx.markerEnd()"
+      />
+    </ng-template>
+  </vflow>
+
+  <!-- Transport Config Panel (Add Endpoint popup) -->
+  @if (transportConfigPanelData()) {
+    <app-transport-config-panel
+      [data]="transportConfigPanelData()"
+      [viewport]="viewport()"
+      [elementWidth]="260"
+      (close)="onTransportConfigClose()"
+      (addEndpoint)="onTransportAddEndpoint($event)"
+      (basePathChange)="onTransportBasePathChange($event)"
+    />
+  }
+
+  <!-- Floating Action Buttons -->
+  <div class="absolute bottom-4 right-4 flex gap-2">
+    <button
+      class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md bg-blue-500 text-white hover:bg-blue-600 shadow-md transition-colors"
+      (click)="onAddHttpTransport()"
+    >
+      <mmc-icon name="lucidePlus" size="sm"></mmc-icon>
+      <span>Add Transport</span>
+    </button>
+    <button
+      class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md bg-purple-500 text-white hover:bg-purple-600 shadow-md transition-colors"
+      (click)="onAddResource()"
+    >
+      <mmc-icon name="lucidePlus" size="sm"></mmc-icon>
+      <span>Add Resource</span>
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  @if (vflowNodes().length === 0) {
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="text-center">
+        <p class="text-muted-foreground mb-2">No transports or resources defined yet.</p>
+        <p class="text-sm text-muted-foreground">Use the buttons below to add HTTP transports and resource interfaces.</p>
+      </div>
+    </div>
+  }
+</div>

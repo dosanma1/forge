@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, signal, viewChild } from '@angular
 import { TabChange } from '@forge/ui';
 import { ProjectService } from '../project/project.service';
 import { FileTreeNode } from './components/file-tree/file-tree.component';
-import { GraphNode, GraphEdge } from '../graph-editor/graph-editor.component';
+import { GraphNode, GraphEdge } from '../../shared/components/graph-editor/graph-editor.component';
 import {
   ArchitectureNode,
   ArchitectureNodeType,
@@ -11,18 +11,22 @@ import {
   createLibraryNode,
   createHttpTransport,
   ServiceNode,
+  AppNode,
   HttpTransport,
   HttpEndpoint,
 } from './models/architecture-node.model';
 import { ArchitectureEdge } from './models/architecture-edge.model';
-import { NodeConfigPanelData } from './components/node-config-panel/node-config-panel.component';
-import { TransportConfigPanelData } from './components/transport-config-panel/transport-config-panel.component';
+import { NodeConfigPanelData } from './components/panels/node-config-panel/node-config-panel.component';
+import { TransportConfigPanelData } from './components/panels/transport-config-panel/transport-config-panel.component';
 import { ArchitectureSidebarComponent } from './components/sidebar/architecture-sidebar.component';
 import { ArchitectureCanvasComponent } from './components/canvas/architecture-canvas.component';
-import { BottomPanelComponent } from './components/bottom-panel/bottom-panel.component';
-import { TransportType } from './components/transport-action/transport-action.component';
+import { BottomPanelComponent } from './components/panels/bottom-panel/bottom-panel.component';
+import { ServiceDetailComponent } from './pages/service-detail/service-detail.component';
+import { TransportType } from './components/actions/transport-action/transport-action.component';
 import { ForgeJsonService } from './services/forge-json.service';
 import { TransportEditorService } from './services/transport-editor.service';
+import { CanvasNavigationService } from './services/canvas-navigation.service';
+import { ARCHITECTURE_NODE_PROVIDERS } from './providers';
 
 @Component({
   selector: 'app-architecture',
@@ -31,7 +35,9 @@ import { TransportEditorService } from './services/transport-editor.service';
     ArchitectureSidebarComponent,
     ArchitectureCanvasComponent,
     BottomPanelComponent,
+    ServiceDetailComponent,
   ],
+  providers: ARCHITECTURE_NODE_PROVIDERS,
   templateUrl: './architecture.component.html',
   styleUrl: './architecture.component.scss',
   host: {
@@ -42,6 +48,7 @@ export class ArchitectureComponent {
   private readonly projectService = inject(ProjectService);
   private readonly forgeJsonService = inject(ForgeJsonService);
   private readonly transportEditor = inject(TransportEditorService);
+  protected readonly canvasNavigation = inject(CanvasNavigationService);
 
   /** Reference to the architecture canvas component */
   protected readonly architectureCanvas = viewChild<ArchitectureCanvasComponent>('architectureCanvas');
@@ -98,6 +105,7 @@ export class ArchitectureComponent {
 
           if (transport) {
             // Transport selected - close node config panel and open transport config panel
+            // Note: Canvas component enriches position reactively via computed signals
             this.selectedNodeId.set(null);
             this.configPanelData.set(null);
             this.transportConfigPanelData.set({
@@ -174,6 +182,14 @@ export class ArchitectureComponent {
     const nodeId = this.selectedNodeId();
     if (!nodeId) return null;
     return this.architectureNodes().find((n) => n.id === nodeId) ?? null;
+  });
+
+  /** Get the focused service node for Canvas Level 2 (synced with architecture nodes) */
+  protected readonly focusedServiceNode = computed(() => {
+    const focusedId = this.canvasNavigation.focusedServiceId();
+    if (!focusedId) return null;
+    const node = this.architectureNodes().find((n) => n.id === focusedId);
+    return node?.type === 'service' ? (node as ServiceNode) : null;
   });
 
   async openFolder(): Promise<void> {
@@ -284,11 +300,12 @@ export class ArchitectureComponent {
     }
   }
 
-  onConfigPanelSave(node: ArchitectureNode): void {
+  async onConfigPanelSave(node: ArchitectureNode): Promise<void> {
     // Set state to SAVED
     const savedNode: ArchitectureNode = { ...node, state: 'SAVED' };
 
     const existingNode = this.architectureNodes().find((n) => n.id === node.id);
+    const isNewNode = existingNode?.state === 'DRAFT';
 
     if (existingNode) {
       // Update existing node (could be DRAFT or already SAVED)
@@ -305,6 +322,34 @@ export class ArchitectureComponent {
     this.unsavedChanges.update((c) => c + 1);
     this.configPanelData.set(null);
     this.selectedNodeId.set(node.id);
+
+    // Generate code for new nodes
+    const projectPath = this.projectPath();
+    if (isNewNode && projectPath) {
+      try {
+        if (node.type === 'service') {
+          const serviceNode = node as ServiceNode;
+          await this.projectService.generateService(
+            projectPath,
+            serviceNode.name,
+            serviceNode.language,
+            serviceNode.deployer,
+          );
+          console.log(`Service ${serviceNode.name} generated successfully`);
+        } else if (node.type === 'app') {
+          const appNode = node as AppNode;
+          await this.projectService.generateApp(
+            projectPath,
+            appNode.name,
+            appNode.framework,
+            appNode.deployer,
+          );
+          console.log(`App ${appNode.name} generated successfully`);
+        }
+      } catch (err) {
+        console.error('Failed to generate code:', err);
+      }
+    }
   }
 
   onConfigPanelClose(): void {
@@ -408,30 +453,8 @@ export class ArchitectureComponent {
     });
     this.architectureNodes.set(updatedNodes);
     this.unsavedChanges.update((c) => c + 1);
-
-    // Update config panel position if the node being edited has moved
-    const currentPanelData = this.configPanelData();
-    if (currentPanelData?.node) {
-      const movedNode = nodes.find((n) => n.id === currentPanelData.node?.id);
-      if (movedNode) {
-        this.configPanelData.set({
-          ...currentPanelData,
-          position: { x: movedNode.positionX, y: movedNode.positionY },
-        });
-      }
-    }
-
-    // Update transport config panel position if the node being edited has moved
-    const currentTransportPanelData = this.transportConfigPanelData();
-    if (currentTransportPanelData) {
-      const movedNode = nodes.find((n) => n.id === currentTransportPanelData.nodeId);
-      if (movedNode) {
-        this.transportConfigPanelData.set({
-          ...currentTransportPanelData,
-          position: { x: movedNode.positionX, y: movedNode.positionY },
-        });
-      }
-    }
+    // Note: Panel positions are now updated reactively by the canvas component
+    // via computed signals that read from graph-editor's nodePositions
   }
 
   onEdgesChange(edges: GraphEdge[]): void {
@@ -580,6 +603,33 @@ export class ArchitectureComponent {
           transport: updatedTransport,
         });
       }
+    }
+  }
+
+  /** Handle generate code request from service internals view */
+  async onServiceGenerate(serviceId: string): Promise<void> {
+    const projectPath = this.projectPath();
+    const node = this.architectureNodes().find((n) => n.id === serviceId);
+
+    if (!projectPath || !node || node.type !== 'service') {
+      console.error('Cannot generate: missing project path or invalid service');
+      return;
+    }
+
+    const serviceNode = node as ServiceNode;
+    console.log(`Generating code for service: ${serviceNode.name}`);
+
+    try {
+      // TODO: In the future, this should:
+      // 1. Build forge.spec.yaml from the UI state (transports, endpoints)
+      // 2. Run codegen to generate controller interfaces
+      // For now, just log that generation would happen
+      console.log('Generation triggered - this will build spec from UI and run codegen');
+
+      // Save changes first to persist the transport/endpoint configuration
+      await this.saveChanges();
+    } catch (err) {
+      console.error('Failed to generate code:', err);
     }
   }
 }

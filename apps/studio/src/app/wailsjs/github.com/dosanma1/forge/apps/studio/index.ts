@@ -7,7 +7,11 @@ export {
 };
 
 export {
+    EndpointSpecInput,
+    FieldSpecInput,
     FileInfo,
     InitialProject,
-    Project
+    Project,
+    ResourceSpecInput,
+    ServiceSpecInput
 } from "./models.js";

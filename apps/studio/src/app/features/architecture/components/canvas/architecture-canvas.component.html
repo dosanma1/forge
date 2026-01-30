@@ -9,9 +9,9 @@
 />
 
 <!-- Inline Node Config Panel -->
-@if (configPanelData()) {
+@if (configPanelDataWithPosition()) {
   <app-node-config-panel
-    [data]="configPanelData()"
+    [data]="configPanelDataWithPosition()"
     [viewport]="viewport()"
     (save)="onConfigSave($event)"
     (close)="onConfigClose()"
@@ -21,9 +21,9 @@
 }
 
 <!-- Inline Transport Config Panel -->
-@if (transportConfigPanelData()) {
+@if (transportConfigPanelDataWithPosition()) {
   <app-transport-config-panel
-    [data]="transportConfigPanelData()"
+    [data]="transportConfigPanelDataWithPosition()"
     [viewport]="viewport()"
     (close)="onTransportConfigClose()"
     (addEndpoint)="onTransportAddEndpoint($event)"

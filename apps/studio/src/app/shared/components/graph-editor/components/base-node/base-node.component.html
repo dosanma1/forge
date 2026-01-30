@@ -1,0 +1,57 @@
+<!-- Base Node Card -->
+<div [class]="containerClasses()" (dblclick)="onDoubleClick($event)">
+  <!-- Node Header -->
+  <header [class]="headerClasses()" dragHandle>
+    <!-- Target handle on left -->
+    @if (showTargetHandle()) {
+      <handle
+        [id]="'node-' + nodeId()"
+        type="target"
+        position="left"
+        [offsetX]="12"
+        [template]="targetHandler.templateRef()"
+      />
+    }
+
+    <div class="flex items-center gap-2 flex-1 min-w-0">
+      <mmc-icon [name]="icon()" size="sm" [class]="iconClasses()"></mmc-icon>
+      <h5
+        class="text-sm font-semibold text-foreground tracking-tight truncate text-left"
+      >
+        {{ nodeName() }}
+      </h5>
+    </div>
+
+    @if (shouldShowBadge()) {
+      <mmc-badge variant="secondary" [class]="badgeClasses()">
+        {{ badge() }}
+      </mmc-badge>
+    }
+  </header>
+
+  <!-- Node Body -->
+  <div class="p-3 space-y-2">
+    <!-- Projected content from child component -->
+    <ng-content></ng-content>
+
+    <!-- Tags -->
+    @if (tags().length > 0) {
+      <app-node-tags [tags]="tags()" />
+    }
+
+    <!-- Source handle at bottom right -->
+    @if (showSourceHandle()) {
+      <handle
+        [id]="'source-' + nodeId()"
+        type="source"
+        position="right"
+        [offsetX]="-12"
+        [template]="sourceHandler.templateRef()"
+      />
+    }
+  </div>
+</div>
+
+<!-- Handler templates -->
+<mmc-handler #targetHandler></mmc-handler>
+<mmc-handler #sourceHandler></mmc-handler>

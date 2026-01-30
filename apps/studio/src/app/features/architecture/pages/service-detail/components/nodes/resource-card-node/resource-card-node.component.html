@@ -1,0 +1,67 @@
+<!-- Resource Card Node (Controller Interface) -->
+<div
+  class="w-[300px] rounded-lg bg-card border shadow-sm overflow-hidden"
+  [class]="selected() ? 'border-primary' : 'border-border'"
+>
+  <!-- Target handle on left -->
+  <handle
+    [id]="'resource-' + data()?.id"
+    type="target"
+    position="left"
+    [offsetX]="12"
+    [template]="targetHandler.templateRef()"
+  />
+
+  <!-- Header -->
+  <header
+    class="flex items-center justify-between px-3 py-2 bg-purple-50 dark:bg-purple-950/30 border-b border-purple-200 dark:border-purple-800/50 cursor-move"
+    dragHandle
+  >
+    <div class="flex items-center gap-2">
+      <mmc-icon name="lucidePackage" size="sm" class="text-purple-500"></mmc-icon>
+      <span class="font-semibold text-sm text-foreground">{{ resource()?.name }}</span>
+    </div>
+    <mmc-badge variant="secondary" class="text-xs">
+      {{ resource()?.version }}
+    </mmc-badge>
+  </header>
+
+  <!-- Resource Info -->
+  <div class="px-3 py-2 border-b border-border/50 text-xs text-muted-foreground">
+    BasePath: <span class="font-mono text-foreground">{{ resource()?.basePath }}</span>
+  </div>
+
+  <!-- Methods List -->
+  <div class="p-2 space-y-1">
+    <div class="flex items-center justify-between px-1 py-1">
+      <span class="text-xs font-medium text-muted-foreground">Methods</span>
+      <button
+        class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        (click)="onAddMethod($event)"
+      >
+        <mmc-icon name="lucidePlus" size="xs"></mmc-icon>
+        <span>Add</span>
+      </button>
+    </div>
+
+    @for (method of methods(); track method.id) {
+      <div class="px-2 py-1.5 rounded bg-muted/50 text-xs font-mono">
+        <span class="text-foreground">{{ method.name }}</span>
+        <span class="text-muted-foreground">({{ method.params }})</span>
+        <span class="text-purple-500"> {{ method.returns }}</span>
+        @if (method.isCustom) {
+          <mmc-badge variant="outline" class="ml-1 text-[10px] py-0">Custom</mmc-badge>
+        }
+      </div>
+    }
+
+    @if (methods().length === 0) {
+      <div class="px-2 py-3 text-center text-muted-foreground text-xs italic">
+        No methods defined
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Handler template -->
+<mmc-handler #targetHandler></mmc-handler>

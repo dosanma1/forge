@@ -120,7 +120,7 @@ export class ViewportService {
     config: PanelPositionConfig = {},
   ): Position {
     const vp = viewport ?? this._viewport();
-    const { elementWidth = 260, gap = 40, side = 'right' } = config;
+    const { elementWidth = 260, gap = 16, side = 'right' } = config;
 
     // Calculate base position based on side
     let baseX = flowPosition.x;
