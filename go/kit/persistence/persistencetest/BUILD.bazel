@@ -1,9 +1,0 @@
-load("@rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "go_default_library",
-    srcs = ["transactioner.go"],
-    importpath = "github.com/dosanma1/forge/go/kit/persistence/persistencetest",
-    visibility = ["//visibility:public"],
-    deps = ["//go/kit/persistence:go_default_library"],
-)
